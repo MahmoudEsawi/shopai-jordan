@@ -1,4 +1,2 @@
-
-the description is old, its a program to search for products on a website called Microelectron, not opensooq
-
-the program uses google dorking with some tweaks
+Opensooq chatbot, created by laith hasan, mahmod isawie, and anas alhadidi. 
+This project is for our graduation process
