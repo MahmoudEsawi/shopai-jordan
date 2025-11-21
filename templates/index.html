@@ -20,19 +20,22 @@
                 </a>
             </div>
             
-            <div class="nav-menu">
-                <a href="#" class="nav-link">Home</a>
+            <div class="nav-menu" id="navMenu">
+                <a href="#home" class="nav-link">Home</a>
                 <a href="#features" class="nav-link">Features</a>
                 <a href="#how-it-works" class="nav-link">How It Works</a>
                 <a href="#about" class="nav-link">About</a>
             </div>
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
             
             <div class="nav-actions">
                 <div class="location-badge">
                     <i class="fas fa-map-marker-alt"></i>
                     <span>Jordan</span>
                 </div>
-                <a href="#start" class="nav-cta">
+                <a href="#start" class="nav-cta" onclick="document.getElementById('navMenu')?.classList.remove('active')">
                     <i class="fas fa-rocket"></i>
                     Get Started
                 </a>
@@ -42,7 +45,7 @@
     
     <div class="container">
         <!-- Hero Section -->
-        <div class="hero-section">
+        <section id="home" class="hero-section">
             <div class="hero-content">
                 <div class="hero-badge">
                     <i class="fas fa-circle" style="font-size: 0.5rem; color: #10b981;"></i>
@@ -88,7 +91,120 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
+        
+        <!-- Features Section -->
+        <section id="features" class="features-section">
+            <div class="section-content">
+                <h2 class="section-title">Powerful Features</h2>
+                <p class="section-subtitle">Everything you need for smart shopping</p>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>AI-Powered Intelligence</h3>
+                        <p>Natural language understanding powered by Groq AI. Just describe what you need in plain English.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <h3>Budget Optimization</h3>
+                        <p>Set your budget and get optimized shopping lists that stay within your limits.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h3>Talabat Integration</h3>
+                        <p>Real products with JOD prices and direct links to Talabat Jordan for easy ordering.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h3>Recipe Suggestions</h3>
+                        <p>Get recipe recommendations based on your shopping list with ingredient matching.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                        <h3>Easy Sharing</h3>
+                        <p>Share your shopping lists via link or export to JSON/Text format.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3>Mobile Friendly</h3>
+                        <p>Fully responsive design that works perfectly on all devices.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="how-it-works-section">
+            <div class="section-content">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">Get your shopping list in 3 simple steps</p>
+                
+                <div class="steps-container">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3>Describe Your Needs</h3>
+                        <p>Tell the AI what you need. For example: "I want a BBQ for 14 people" or use the form to provide details.</p>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3>AI Creates Your List</h3>
+                        <p>Our AI analyzes your request, calculates quantities, and selects the best products from Talabat Jordan.</p>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3>Shop & Share</h3>
+                        <p>Review your list, get recipe suggestions, share with others, or export for later use.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- About Section -->
+        <section id="about" class="about-section">
+            <div class="section-content">
+                <h2 class="section-title">About ShopAI Jordan</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>ShopAI Jordan is an intelligent shopping assistant designed specifically for Jordan. It helps you create smart shopping lists for any event, from family dinners to large parties.</p>
+                        <p>Powered by Groq AI, our system understands natural language and creates optimized shopping lists with real prices from Talabat Jordan. No more guessing quantities or forgetting items!</p>
+                        <div class="about-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">31+</div>
+                                <div class="stat-label">Products</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">100%</div>
+                                <div class="stat-label">Free</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">24/7</div>
+                                <div class="stat-label">Available</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
         
         <div class="dashboard">
             <div class="stat-card">
@@ -109,6 +225,8 @@
             </div>
         </div>
         
+        <!-- Shopping Assistant Section -->
+        <section id="start" class="shopping-section">
         <div class="main-grid" style="grid-template-columns: 1fr;">
             <div class="card">
                 <div class="card-header">
@@ -208,6 +326,7 @@
                 </div>
             </div>
         </div>
+        </section>
         
         <div id="shoppingList"></div>
     </div>
