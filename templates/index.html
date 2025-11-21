@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopAI Jordan - Smart Shopping Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo-section">
+                <a href="#" class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <span class="logo-text">ShopAI</span>
+                </a>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="#" class="nav-link">Home</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#how-it-works" class="nav-link">How It Works</a>
+                <a href="#about" class="nav-link">About</a>
+            </div>
+            
+            <div class="nav-actions">
+                <div class="location-badge">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Jordan</span>
+                </div>
+                <a href="#start" class="nav-cta">
+                    <i class="fas fa-rocket"></i>
+                    Get Started
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-circle" style="font-size: 0.5rem; color: #10b981;"></i>
+                    <span>Powered by Groq AI</span>
+                </div>
+                
+                <h1 class="hero-title">
+                    Intelligent Shopping<br>
+                    <span class="gradient-text">Assistant for Jordan</span>
+                </h1>
+                
+                <p class="hero-description">
+                    Transform your event planning with AI-powered shopping lists. 
+                    Simply describe your needs, set your budget, and receive a complete 
+                    shopping list with real prices from Talabat Jordan. Smart, fast, and 
+                    tailored to your preferences.
+                </p>
+                
+                <div class="hero-features">
+                    <div class="hero-feature">
+                        <div class="hero-feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <span>AI-Powered Intelligence</span>
+                    </div>
+                    <div class="hero-feature">
+                        <div class="hero-feature-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <span>Budget Optimization</span>
+                    </div>
+                    <div class="hero-feature">
+                        <div class="hero-feature-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <span>Direct Talabat Integration</span>
+                    </div>
+                    <div class="hero-feature">
+                        <div class="hero-feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <span>Instant Results</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard">
+            <div class="stat-card">
+                <div class="stat-number" id="totalProducts">0</div>
+                <div class="stat-label">Products with Photos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalCategories">0</div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">JOD</div>
+                <div class="stat-label">Jordan Currency</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">FREE</div>
+                <div class="stat-label">AI Powered</div>
+            </div>
+        </div>
+        
+        <div class="main-grid" style="grid-template-columns: 1fr;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="card-title">Smart Shopping Planner</div>
+                </div>
+                
+                <!-- Questionnaire Form -->
+                <div class="questionnaire">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--dark); font-size: 1.3rem; font-weight: 700;">
+                        <i class="fas fa-clipboard-list" style="color: var(--primary); margin-right: 0.5rem;"></i>
+                        Event Planning Form
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-alt"></i> Event Type
+                            </label>
+                            <select class="form-select" id="eventType">
+                                <option value="bbq">BBQ / Grilling</option>
+                                <option value="dinner">Dinner Party</option>
+                                <option value="lunch">Lunch Gathering</option>
+                                <option value="party">Party / Celebration</option>
+                                <option value="family">Family Meal</option>
+                                <option value="traditional">Traditional Jordanian</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-users"></i> Number of People
+                            </label>
+                            <input type="number" class="form-input" id="numPeople" 
+                                   value="14" min="1" max="100">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-wallet"></i> Budget (JOD)
+                            </label>
+                            <input type="number" class="form-input" id="budget" 
+                                   placeholder="e.g., 100" min="0" step="10">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-leaf"></i> Dietary Preferences
+                            </label>
+                            <select class="form-select" id="dietary">
+                                <option value="all">All Foods</option>
+                                <option value="vegetarian">Vegetarian</option>
+                                <option value="halal">Halal Only</option>
+                                <option value="no-beef">No Beef</option>
+                                <option value="no-chicken">No Chicken</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i> Additional Requests (Optional)
+                        </label>
+                        <input type="text" class="form-input" id="additionalRequests" 
+                               placeholder="e.g., Extra vegetables, low budget, more drinks...">
+                    </div>
+                    
+                    <button class="btn btn-primary" style="width: 100%; padding: 1.1rem; font-size: 1.05rem;" onclick="createSmartList()">
+                        <i class="fas fa-magic"></i> Generate Shopping List
+                    </button>
+                </div>
+                
+                <!-- Or Chat Freely -->
+                <div style="text-align: center; margin: 1.5rem 0; color: var(--gray); font-weight: 600;">
+                    OR
+                </div>
+                
+                <div class="chat-container" id="chatContainer">
+                    <div class="message bot">
+                        <strong>Welcome to ShopAI</strong><br><br>
+                        I'm your intelligent shopping assistant. Use the form above for detailed planning, 
+                        or chat with me naturally about your shopping needs. I'll create perfect shopping 
+                        lists with real prices from Talabat Jordan.
+                        <div class="message-time">Just now</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" id="chatInput" 
+                           style="flex: 1; padding: 1rem 1.5rem; border: 2px solid var(--light); border-radius: 12px; font-size: 1rem;"
+                           placeholder="Or type freely...">
+                    <button class="btn btn-primary" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="shoppingList"></div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+

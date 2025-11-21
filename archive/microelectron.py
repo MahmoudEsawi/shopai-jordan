@@ -11,7 +11,7 @@ from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse, quote_plus,
 from typing import Optional, Tuple, List, Dict, Any
 
 # === SECURE CONFIG ===
-TAVILY_API_KEY = ""  # Put the tavily api key in here and let it do the rest
+TAVILY_API_KEY = "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"  # Put the tavily api key in here and let it do the rest
 NUM_RESULTS = 40
 PRICE_CURRENCY = 10
 SINGLE_PRICE_TOL_PCT = 8
