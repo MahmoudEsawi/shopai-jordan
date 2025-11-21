@@ -11,6 +11,8 @@ from flask_cors import CORS
 from product_database import ProductDatabase
 from groq_assistant import GroqAIAssistant
 from smart_list_builder import SmartListBuilder
+from recipe_suggestions import RecipeSuggestions
+from list_sharing import ListSharing
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -19,10 +21,75 @@ CORS(app)
 db = ProductDatabase()
 assistant = GroqAIAssistant()
 list_builder = SmartListBuilder()
+recipe_suggestions = RecipeSuggestions()
+list_sharing = ListSharing()
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/api/recipes', methods=['POST'])
+def get_recipes():
+    """Get recipe suggestions for a shopping list"""
+    data = request.json
+    shopping_list = data.get('shopping_list', {})
+    
+    if not shopping_list or not shopping_list.get('items'):
+        return jsonify({"error": "Shopping list required"}), 400
+    
+    recipes = recipe_suggestions.get_suggestions(
+        shopping_list.get('event_type', 'bbq'),
+        shopping_list.get('num_people', 4),
+        shopping_list.get('items', [])
+    )
+    
+    return jsonify({"recipes": recipes})
+
+@app.route('/api/share', methods=['POST'])
+def share_list():
+    """Generate share URL for shopping list"""
+    data = request.json
+    shopping_list = data.get('shopping_list', {})
+    
+    if not shopping_list:
+        return jsonify({"error": "Shopping list required"}), 400
+    
+    share_url = list_sharing.generate_share_url(shopping_list)
+    full_url = request.host_url.rstrip('/') + share_url
+    
+    return jsonify({
+        "share_url": share_url,
+        "full_url": full_url,
+        "text": list_sharing.get_social_share_text(shopping_list)
+    })
+
+@app.route('/api/export', methods=['POST'])
+def export_list():
+    """Export shopping list in different formats"""
+    data = request.json
+    shopping_list = data.get('shopping_list', {})
+    format_type = data.get('format', 'json')  # json, text
+    
+    if not shopping_list:
+        return jsonify({"error": "Shopping list required"}), 400
+    
+    if format_type == 'text':
+        exported = list_sharing.export_to_text(shopping_list)
+        return jsonify({"content": exported, "format": "text"})
+    else:
+        exported = list_sharing.export_to_json(shopping_list)
+        return jsonify({"content": exported, "format": "json"})
+
+@app.route('/share/<list_id>', methods=['GET'])
+def view_shared_list(list_id):
+    """View a shared shopping list"""
+    shared_list = list_sharing.get_shared_list(list_id)
+    
+    if not shared_list:
+        return render_template('index.html', error="Shopping list not found or expired")
+    
+    # Render the list in the template
+    return render_template('index.html', shared_list=shared_list)
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
@@ -94,10 +161,23 @@ def chat():
         
         # Only build shopping list if it's a shopping request
         shopping_list = {"items": [], "total_cost": 0, "num_people": 0, "event_type": "none"}
+        recipes = []
+        share_url = None
         
         if is_shopping:
             # Build accurate shopping list
             shopping_list = list_builder.build_list(message)
+            
+            # Get recipe suggestions
+            if shopping_list.get('items'):
+                recipes = recipe_suggestions.get_suggestions(
+                    shopping_list.get('event_type', 'bbq'),
+                    shopping_list.get('num_people', 4),
+                    shopping_list.get('items', [])
+                )
+                
+                # Generate share URL
+                share_url = list_sharing.generate_share_url(shopping_list)
             
             # Enhance AI message with shopping details if needed
             if shopping_list.get('items'):
@@ -122,6 +202,8 @@ def chat():
             "message": ai_message,
             "response": ai_message,
             "shopping_list": shopping_list,
+            "recipes": recipes,
+            "share_url": share_url,
             "is_shopping": is_shopping
         })
     

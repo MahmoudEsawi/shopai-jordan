@@ -63,17 +63,17 @@ async function sendMessage() {
         
         addMessageToChat('bot', data.message || data.response);
         
-        // Only show shopping list if it's actually a shopping request
-        if (data.is_shopping && data.shopping_list && data.shopping_list.items && data.shopping_list.items.length > 0) {
-            displayShoppingList(data.shopping_list, message);
-        } else {
-            // Hide shopping list if it exists
-            const listContainer = document.getElementById('shoppingList');
-            if (listContainer) {
-                listContainer.innerHTML = '';
-                listContainer.style.display = 'none';
-            }
-        }
+                // Only show shopping list if it's actually a shopping request
+                if (data.is_shopping && data.shopping_list && data.shopping_list.items && data.shopping_list.items.length > 0) {
+                    displayShoppingList(data.shopping_list, message, data.recipes, data.share_url);
+                } else {
+                    // Hide shopping list if it exists
+                    const listContainer = document.getElementById('shoppingList');
+                    if (listContainer) {
+                        listContainer.innerHTML = '';
+                        listContainer.style.display = 'none';
+                    }
+                }
     } catch (error) {
         loadingMsg.remove();
         addMessageToChat('bot', 'Error: ' + error.message);
@@ -91,7 +91,7 @@ function addMessageToChat(type, message) {
     return messageDiv;
 }
 
-function displayShoppingList(shoppingList, originalRequest) {
+function displayShoppingList(shoppingList, originalRequest, recipes = [], shareUrl = null) {
     const container = document.getElementById('shoppingList');
     
     const byCategory = {};
@@ -110,9 +110,13 @@ function displayShoppingList(shoppingList, originalRequest) {
     html += '<div class="list-title"><i class="fas fa-shopping-cart"></i> Shopping List</div>';
     html += `<div style="color: var(--gray); margin-top: 0.5rem; font-size: 1rem;">For ${shoppingList.num_people} people • ${shoppingList.items.length} items</div>`;
     html += '</div>';
-    html += '<div style="display: flex; gap: 1rem;">';
+    html += '<div style="display: flex; gap: 1rem; flex-wrap: wrap;">';
     html += '<button class="btn btn-success btn-sm" onclick="openAllOnTalabat()"><i class="fas fa-shopping-bag"></i> Order on Talabat</button>';
     html += '<button class="btn btn-primary btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print</button>';
+    if (shareUrl) {
+        html += `<button class="btn btn-primary btn-sm" onclick="shareList('${shareUrl}')"><i class="fas fa-share-alt"></i> Share</button>`;
+    }
+    html += '<button class="btn btn-primary btn-sm" onclick="exportList()"><i class="fas fa-download"></i> Export</button>';
     html += '</div>';
     html += '</div>';
     
@@ -181,8 +185,49 @@ function displayShoppingList(shoppingList, originalRequest) {
     html += `</div>`;
     html += '</div>';
     
+    // Add Recipe Suggestions Section
+    if (recipes && recipes.length > 0) {
+        html += '<div class="recipes-section" style="margin-top: 3rem; padding: 2rem; background: white; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.12);">';
+        html += '<div style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--dark);"><i class="fas fa-utensils"></i> Recipe Suggestions</div>';
+        html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">';
+        
+        recipes.forEach(recipe => {
+            html += '<div class="recipe-card" style="padding: 1.5rem; background: var(--light); border-radius: 15px; border: 2px solid #e2e8f0;">';
+            html += `<div style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--primary);">${recipe.name}</div>`;
+            html += `<div style="color: var(--gray); margin-bottom: 1rem; font-size: 0.95rem;">${recipe.description}</div>`;
+            html += '<div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">';
+            html += `<span style="background: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem;"><i class="fas fa-clock"></i> ${recipe.prep_time}</span>`;
+            html += `<span style="background: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem;"><i class="fas fa-fire"></i> ${recipe.cook_time}</span>`;
+            html += `<span style="background: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem;"><i class="fas fa-users"></i> ${recipe.servings} servings</span>`;
+            html += `<span style="background: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem;"><i class="fas fa-signal"></i> ${recipe.difficulty}</span>`;
+            html += '</div>';
+            html += '<div style="margin-top: 1rem;">';
+            html += '<div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--dark);">Ingredients:</div>';
+            html += '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">';
+            recipe.ingredients.slice(0, 5).forEach(ing => {
+                html += `<span style="background: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.85rem; color: var(--gray);">${ing}</span>`;
+            });
+            if (recipe.ingredients.length > 5) {
+                html += `<span style="background: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.85rem; color: var(--gray);">+${recipe.ingredients.length - 5} more</span>`;
+            }
+            html += '</div>';
+            html += '</div>';
+            if (recipe.match_percentage) {
+                html += `<div style="margin-top: 1rem; padding: 0.5rem; background: rgba(37, 99, 235, 0.1); border-radius: 8px; font-size: 0.85rem; color: var(--primary);"><i class="fas fa-check-circle"></i> ${recipe.match_percentage}% match with your shopping list</div>`;
+            }
+            html += '</div>';
+        });
+        
+        html += '</div>';
+        html += '</div>';
+    }
+    
     container.innerHTML = html;
     container.style.display = 'block';
+    
+    // Store shopping list for sharing/export
+    window.currentShoppingList = shoppingList;
+    window.currentShareUrl = shareUrl;
     
     // Auto-scroll to shopping list smoothly
     setTimeout(() => {
@@ -204,4 +249,82 @@ function openAllOnTalabat() {
 document.getElementById('chatInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') sendMessage();
 });
+
+// Share List Function
+async function shareList(shareUrl) {
+    const fullUrl = window.location.origin + shareUrl;
+    
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'My Shopping List - ShopAI Jordan',
+                text: window.currentShoppingList ? 
+                    `Shopping list for ${window.currentShoppingList.num_people} people - ${window.currentShoppingList.total_cost.toFixed(2)} JOD` :
+                    'Check out my shopping list!',
+                url: fullUrl
+            });
+        } catch (err) {
+            // Fallback to copy
+            copyToClipboard(fullUrl);
+        }
+    } else {
+        copyToClipboard(fullUrl);
+    }
+}
+
+// Export List Function
+async function exportList() {
+    if (!window.currentShoppingList) {
+        alert('No shopping list to export');
+        return;
+    }
+    
+    const format = confirm('Export as JSON? (Cancel for Text format)') ? 'json' : 'text';
+    
+    try {
+        const response = await fetch('/api/export', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                shopping_list: window.currentShoppingList,
+                format: format
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Create download
+        const blob = new Blob([data.content], { type: format === 'json' ? 'application/json' : 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `shopping-list-${Date.now()}.${format === 'json' ? 'json' : 'txt'}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        alert(`Shopping list exported as ${format.toUpperCase()}!`);
+    } catch (error) {
+        alert('Error exporting list: ' + error.message);
+    }
+}
+
+// Copy to Clipboard
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Link copied to clipboard!');
+        });
+    } else {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('Link copied to clipboard!');
+    }
+}
 
