@@ -1,61 +1,97 @@
-# ShopAI Jordan - Intelligent Shopping Assistant
+<div align="center">
 
-![Python Version](https://img.shields.io/badge/Python-3.8+-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Status](https://img.shields.io/badge/Status-Production-ready-success)
+# 🛒 ShopAI Jordan
 
-## 🎯 Overview
+### AI-Powered Shopping Assistant for Jordan
 
-ShopAI is an AI-powered shopping assistant that helps you create smart shopping lists for events. Simply describe your needs in natural language, and get a complete shopping list with real prices from Talabat Jordan.
+[![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0+-green?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)](https://github.com/MahmoudEsawi/shopai-jordan)
 
-**Example:** Say *"I want a BBQ for 14 people"* and get a complete shopping list with all items, quantities, and prices!
+**Transform your event planning with AI-powered shopping lists. Simply describe your needs, set your budget, and receive a complete shopping list with real prices from Talabat Jordan.**
+
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Screenshots](#-screenshots)
+
+</div>
+
+---
 
 ## ✨ Features
 
-- 🤖 **AI-Powered Intelligence** - Natural language understanding using Groq AI
-- 💰 **Budget Optimization** - Set your budget and get optimized lists
-- 🛒 **Direct Talabat Integration** - Real products with JOD prices and direct links
-- 📸 **Product Images** - Visual product display
-- ⚡ **Instant Results** - Fast response times
-- 🎨 **Modern UI** - Professional, clean interface
-- 📱 **Responsive Design** - Works on all devices
+<div align="center">
+
+| 🤖 AI-Powered | 💰 Budget Optimization | 🛒 Talabat Integration | 📸 Product Images |
+|:---:|:---:|:---:|:---:|
+| Natural language understanding | Smart budget tracking | Real JOD prices | High-quality photos |
+| Groq AI integration | Automatic optimization | Direct product links | Unsplash images |
+
+</div>
+
+### 🎯 Key Capabilities
+
+- **🧠 Intelligent AI Assistant** - Powered by Groq AI (14,400 free requests/day)
+- **📋 Smart Shopping Lists** - Automatic quantity calculation based on number of people
+- **💵 Budget Management** - Set your budget and get optimized lists
+- **🌍 Jordan-Specific** - Products from Talabat Jordan with JOD pricing
+- **🖼️ Real Product Images** - High-quality food photography from Unsplash
+- **🎨 Modern UI** - Professional, responsive design with smooth animations
+- **⚡ Fast & Free** - No API costs, instant results
+
+---
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### Prerequisites
+
+- Python 3.8 or higher
+- pip (Python package manager)
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/MahmoudEsawi/shopai-jordan.git
+cd shopai-jordan
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Set Up API Key (Optional)
+### Configuration
 
-The app works with Groq AI (free tier available). Set your API key:
+Set your Groq API key (optional - app works without it):
 
 ```bash
+# Linux/macOS
 export GROQ_API_KEY="your-api-key-here"
+
+# Windows
+set GROQ_API_KEY=your-api-key-here
 ```
 
 Or create a `.env` file:
-```
+```env
 GROQ_API_KEY=your-api-key-here
 ```
 
-### 3. Run the Application
+> 💡 **Note:** Get your free API key from [Groq Console](https://console.groq.com/)
+
+### Run the Application
 
 ```bash
 python3 web_app_enhanced.py
 ```
 
-### 4. Open in Browser
+Open your browser and navigate to: **http://localhost:8080**
 
-Navigate to: **http://localhost:8080**
+---
 
 ## 📖 Usage
 
 ### Using the Form
 
-1. Select event type (BBQ, Dinner Party, etc.)
+1. Select event type (BBQ, Dinner Party, Breakfast, etc.)
 2. Enter number of people
 3. Set budget (optional)
 4. Choose dietary preferences
@@ -64,14 +100,20 @@ Navigate to: **http://localhost:8080**
 ### Using Chat
 
 Simply type your request naturally:
-- "I want a BBQ for 14 people"
-- "Dinner party for 8, budget 100 JOD"
-- "Traditional Jordanian meal for 10 people"
+
+```
+"I want a BBQ for 14 people"
+"Breakfast for 10, include hummus and falafel"
+"Dinner party for 8, budget 100 JOD"
+"Traditional Jordanian meal for 10 people"
+```
+
+---
 
 ## 🏗️ Project Structure
 
 ```
-mikroelectron/
+shopai-jordan/
 ├── web_app_enhanced.py      # Main Flask application
 ├── product_database.py       # Database management
 ├── groq_assistant.py        # AI assistant (Groq)
@@ -85,26 +127,43 @@ mikroelectron/
 │       └── main.js         # JavaScript
 ├── scripts/                # Utility scripts
 ├── docs/                   # Documentation
-├── data/                   # Database files
 └── requirements.txt        # Python dependencies
 ```
 
-## 🔧 Configuration
+---
 
-### Environment Variables
+## 🎨 Screenshots
 
-- `GROQ_API_KEY` - Your Groq API key (optional, app works without it)
+<div align="center">
 
-### Database
+### Modern Hero Section
+![Hero Section](https://via.placeholder.com/800x400?text=ShopAI+Hero+Section)
 
-The app uses SQLite database (`products.db`) to store product information. Products are added via scripts in the `scripts/` directory.
+### Shopping List Interface
+![Shopping List](https://via.placeholder.com/800x400?text=Shopping+List+Interface)
 
-## 📚 API Endpoints
+### AI Chat Interface
+![Chat Interface](https://via.placeholder.com/800x400?text=AI+Chat+Interface)
 
-### GET `/api/stats`
+</div>
+
+---
+
+## 🔧 API Endpoints
+
+### `GET /api/stats`
 Get statistics about products and categories.
 
-### POST `/api/chat`
+**Response:**
+```json
+{
+  "total_products": 31,
+  "total_stores": 1,
+  "stores": [...]
+}
+```
+
+### `POST /api/chat`
 Send a chat message and get AI response with shopping list.
 
 **Request:**
@@ -128,14 +187,18 @@ Send a chat message and get AI response with shopping list.
 }
 ```
 
+---
+
 ## 🛠️ Development
 
 ### Adding Products
 
-Use the scripts in `scripts/` directory to add products:
-
 ```bash
+# Add Jordan products to database
 python3 scripts/jordan_products.py
+
+# Update product images
+python3 scripts/update_images_unsplash.py
 ```
 
 ### Customizing
@@ -146,22 +209,29 @@ python3 scripts/jordan_products.py
 - **AI Logic**: Edit `groq_assistant.py`
 - **List Building**: Edit `smart_list_builder.py`
 
+---
+
 ## 📦 Dependencies
 
-- Flask - Web framework
-- Flask-CORS - CORS support
-- requests - HTTP requests
-- beautifulsoup4 - HTML parsing
-- groq - Groq AI SDK
+- **Flask** - Web framework
+- **Flask-CORS** - CORS support
+- **requests** - HTTP requests
+- **beautifulsoup4** - HTML parsing
+- **groq** - Groq AI SDK
 
 See `requirements.txt` for complete list.
+
+---
 
 ## 🌍 Target Region
 
 Currently optimized for **Jordan**:
-- Products from Talabat Jordan
-- Prices in JOD (Jordanian Dinar)
-- Local product availability
+- ✅ Products from Talabat Jordan
+- ✅ Prices in JOD (Jordanian Dinar)
+- ✅ Local product availability
+- ✅ Jordanian food preferences
+
+---
 
 ## 🐛 Troubleshooting
 
@@ -180,40 +250,43 @@ The app works without an API key but with limited AI features. For full function
 
 If you encounter database errors, delete `products.db` and re-run product scripts.
 
+---
+
 ## 📝 License
 
-MIT License - See LICENSE file for details
-
-## 👥 Credits
-
-Created as part of a graduation project.
-
-## 🎯 Example Requests
-
-Try these with the chatbot:
-
-```
-"I want a BBQ for 14 people"
-"Dinner party for 8, budget 100 JOD"
-"Traditional Jordanian meal for 10 people"
-"Lunch gathering for 6, vegetarian"
-"Party for 20 people, budget 200 JOD"
-```
-
-## 🔮 Future Enhancements
-
-- [ ] Support for more regions
-- [ ] Multiple store integration
-- [ ] Recipe suggestions
-- [ ] Shopping list sharing
-- [ ] Mobile app
-- [ ] Price comparison
-- [ ] Delivery time estimates
-
-## 📞 Support
-
-For issues or questions, please check the documentation in the `docs/` directory.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-**Happy Shopping! 🛒✨**
+## 👥 Contributors
+
+- **Mahmoud Esawi** - Project Creator
+
+---
+
+## 🙏 Acknowledgments
+
+- [Groq](https://groq.com/) for free AI API
+- [Talabat](https://www.talabat.com/) for product integration
+- [Unsplash](https://unsplash.com/) for product images
+
+---
+
+## 📞 Support
+
+For issues or questions:
+- 📧 Open an [Issue](https://github.com/MahmoudEsawi/shopai-jordan/issues)
+- 📖 Check the [Documentation](docs/)
+- 💬 Start a [Discussion](https://github.com/MahmoudEsawi/shopai-jordan/discussions)
+
+---
+
+<div align="center">
+
+### ⭐ Star this repo if you find it helpful!
+
+**Made with ❤️ for Jordan**
+
+[⬆ Back to Top](#-shopai-jordan)
+
+</div>
