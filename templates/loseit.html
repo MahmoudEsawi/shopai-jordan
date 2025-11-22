@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lose It - Track Your Nutrition | ShopAI Jordan</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/loseit-premium.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/darkmode.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Left Sidebar - Global Navigation -->
+    <aside class="loseit-sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <span class="logo-text">Lose It</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <!-- Main Navigation -->
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="/" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#food-log" class="nav-item" data-page="food-log">
+                    <i class="fas fa-utensils"></i>
+                    <span>Food Log</span>
+                </a>
+                <a href="#exercise" class="nav-item" data-page="exercise">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>Exercise Log</span>
+                </a>
+                <a href="#water-body" class="nav-item" data-page="water-body">
+                    <i class="fas fa-tint"></i>
+                    <span>Water & Body</span>
+                </a>
+            </div>
+
+            <!-- Advanced/Premium Features -->
+            <div class="nav-section">
+                <div class="nav-section-title">Advanced</div>
+                <a href="#fasting" class="nav-item" data-page="fasting">
+                    <i class="fas fa-clock"></i>
+                    <span>Intermittent Fasting</span>
+                    <span class="nav-badge active">Active</span>
+                </a>
+                <a href="#meal-planning" class="nav-item" data-page="meal-planning">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Meal Planning</span>
+                </a>
+                <a href="#recipe-builder" class="nav-item" data-page="recipe-builder">
+                    <i class="fas fa-book"></i>
+                    <span>Recipe Builder</span>
+                </a>
+                <a href="#insights" class="nav-item" data-page="insights">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Insights & Patterns</span>
+                </a>
+            </div>
+
+            <!-- Social -->
+            <div class="nav-section">
+                <div class="nav-section-title">Social</div>
+                <a href="#community" class="nav-item" data-page="community">
+                    <i class="fas fa-users"></i>
+                    <span>Community</span>
+                </a>
+                <a href="#challenges" class="nav-item" data-page="challenges">
+                    <i class="fas fa-trophy"></i>
+                    <span>Challenges</span>
+                </a>
+                <a href="#leaderboard" class="nav-item" data-page="leaderboard">
+                    <i class="fas fa-medal"></i>
+                    <span>Friends Leaderboard</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="#settings" class="nav-item" data-page="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="#devices" class="nav-item" data-page="devices">
+                <i class="fas fa-link"></i>
+                <span>Connected Devices</span>
+                <span class="nav-status" id="deviceStatus">Not Connected</span>
+            </a>
+            <a href="#profile" class="nav-item" data-page="profile">
+                <i class="fas fa-user-circle"></i>
+                <span id="sidebarUsername">Profile</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Mobile Menu Toggle Buttons -->
+    <button class="mobile-menu-toggle-loseit" id="mobileSidebarToggle" onclick="toggleMobileSidebar()" aria-label="Toggle Sidebar">
+        <i class="fas fa-bars"></i>
+    </button>
+    <button class="mobile-panel-toggle" id="mobilePanelToggle" onclick="toggleMobilePanel()" aria-label="Toggle Analytics Panel">
+        <i class="fas fa-chart-pie"></i>
+    </button>
+
+    <!-- Center Main Stage - Detailed Diary -->
+    <main class="loseit-main">
+        <!-- Header with Smart Search and Date Selector -->
+        <header class="diary-header">
+            <div class="header-left">
+                <div class="smart-search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" 
+                           id="smartSearch" 
+                           class="smart-search-input" 
+                           placeholder="Search food or scan barcode... (AI-powered)"
+                           autocomplete="off">
+                    <div id="searchSuggestions" class="search-suggestions"></div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="date-selector">
+                    <button class="date-nav-btn" onclick="changeDate(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <input type="date" id="datePicker" class="date-input" onchange="loadDayData()">
+                    <button class="date-nav-btn" onclick="changeDate(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button class="btn-weekly" onclick="toggleWeeklyView()">
+                        <i class="fas fa-calendar-week"></i> Weekly View
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Food Grid - Breakfast, Lunch, Dinner, Snacks -->
+        <div class="food-diary">
+            <!-- Breakfast Section -->
+            <section class="meal-section" data-meal="breakfast">
+                <div class="meal-header">
+                    <div class="meal-title">
+                        <i class="fas fa-sun"></i>
+                        <span>Breakfast</span>
+                    </div>
+                    <div class="meal-tools">
+                        <button class="tool-btn" onclick="copyFromYesterday('breakfast')" title="Copy from Yesterday">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="tool-btn" onclick="createRecipe('breakfast')" title="Create Recipe">
+                            <i class="fas fa-book"></i>
+                        </button>
+                        <button class="tool-btn" onclick="scanPhoto('breakfast')" title="Scan/Upload Photo">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button class="tool-btn btn-add" onclick="showFoodModal('breakfast')">
+                            <i class="fas fa-plus"></i> Add Food
+                        </button>
+                    </div>
+                </div>
+                <div class="meal-table">
+                    <table class="food-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Calories</th>
+                                <th>Carbs</th>
+                                <th>Fat</th>
+                                <th>Protein</th>
+                                <th>Sodium</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="breakfastItems">
+                            <tr class="empty-row">
+                                <td colspan="8">No items logged yet</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="meal-total">
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td id="breakfastCalories">0</td>
+                                <td id="breakfastCarbs">0g</td>
+                                <td id="breakfastFat">0g</td>
+                                <td id="breakfastProtein">0g</td>
+                                <td id="breakfastSodium">0mg</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Lunch Section -->
+            <section class="meal-section" data-meal="lunch">
+                <div class="meal-header">
+                    <div class="meal-title">
+                        <i class="fas fa-sun"></i>
+                        <span>Lunch</span>
+                    </div>
+                    <div class="meal-tools">
+                        <button class="tool-btn" onclick="copyFromYesterday('lunch')" title="Copy from Yesterday">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="tool-btn" onclick="createRecipe('lunch')" title="Create Recipe">
+                            <i class="fas fa-book"></i>
+                        </button>
+                        <button class="tool-btn" onclick="scanPhoto('lunch')" title="Scan/Upload Photo">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button class="tool-btn btn-add" onclick="showFoodModal('lunch')">
+                            <i class="fas fa-plus"></i> Add Food
+                        </button>
+                    </div>
+                </div>
+                <div class="meal-table">
+                    <table class="food-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Calories</th>
+                                <th>Carbs</th>
+                                <th>Fat</th>
+                                <th>Protein</th>
+                                <th>Sodium</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lunchItems">
+                            <tr class="empty-row">
+                                <td colspan="8">No items logged yet</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="meal-total">
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td id="lunchCalories">0</td>
+                                <td id="lunchCarbs">0g</td>
+                                <td id="lunchFat">0g</td>
+                                <td id="lunchProtein">0g</td>
+                                <td id="lunchSodium">0mg</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Dinner Section -->
+            <section class="meal-section" data-meal="dinner">
+                <div class="meal-header">
+                    <div class="meal-title">
+                        <i class="fas fa-moon"></i>
+                        <span>Dinner</span>
+                    </div>
+                    <div class="meal-tools">
+                        <button class="tool-btn" onclick="copyFromYesterday('dinner')" title="Copy from Yesterday">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="tool-btn" onclick="createRecipe('dinner')" title="Create Recipe">
+                            <i class="fas fa-book"></i>
+                        </button>
+                        <button class="tool-btn" onclick="scanPhoto('dinner')" title="Scan/Upload Photo">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button class="tool-btn btn-add" onclick="showFoodModal('dinner')">
+                            <i class="fas fa-plus"></i> Add Food
+                        </button>
+                    </div>
+                </div>
+                <div class="meal-table">
+                    <table class="food-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Calories</th>
+                                <th>Carbs</th>
+                                <th>Fat</th>
+                                <th>Protein</th>
+                                <th>Sodium</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dinnerItems">
+                            <tr class="empty-row">
+                                <td colspan="8">No items logged yet</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="meal-total">
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td id="dinnerCalories">0</td>
+                                <td id="dinnerCarbs">0g</td>
+                                <td id="dinnerFat">0g</td>
+                                <td id="dinnerProtein">0g</td>
+                                <td id="dinnerSodium">0mg</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Snacks Section -->
+            <section class="meal-section" data-meal="snack">
+                <div class="meal-header">
+                    <div class="meal-title">
+                        <i class="fas fa-cookie"></i>
+                        <span>Snacks</span>
+                    </div>
+                    <div class="meal-tools">
+                        <button class="tool-btn" onclick="copyFromYesterday('snack')" title="Copy from Yesterday">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="tool-btn" onclick="createRecipe('snack')" title="Create Recipe">
+                            <i class="fas fa-book"></i>
+                        </button>
+                        <button class="tool-btn" onclick="scanPhoto('snack')" title="Scan/Upload Photo">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button class="tool-btn btn-add" onclick="showFoodModal('snack')">
+                            <i class="fas fa-plus"></i> Add Food
+                        </button>
+                    </div>
+                </div>
+                <div class="meal-table">
+                    <table class="food-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Calories</th>
+                                <th>Carbs</th>
+                                <th>Fat</th>
+                                <th>Protein</th>
+                                <th>Sodium</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="snackItems">
+                            <tr class="empty-row">
+                                <td colspan="8">No items logged yet</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="meal-total">
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td id="snackCalories">0</td>
+                                <td id="snackCarbs">0g</td>
+                                <td id="snackFat">0g</td>
+                                <td id="snackProtein">0g</td>
+                                <td id="snackSodium">0mg</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Exercise Section -->
+            <section class="exercise-section">
+                <div class="meal-header">
+                    <div class="meal-title">
+                        <i class="fas fa-dumbbell"></i>
+                        <span>Exercise</span>
+                    </div>
+                    <button class="tool-btn btn-add" onclick="showExerciseModal()">
+                        <i class="fas fa-plus"></i> Add Exercise
+                    </button>
+                </div>
+                <div class="exercise-list" id="exerciseList">
+                    <div class="exercise-empty">No exercises logged yet</div>
+                </div>
+                <div class="exercise-summary">
+                    <div class="exercise-stat">
+                        <span class="stat-label">Calories Burned:</span>
+                        <span class="stat-value" id="exerciseCalories">0</span>
+                    </div>
+                    <div class="exercise-stat">
+                        <span class="stat-label">Net Calories:</span>
+                        <span class="stat-value net-calories" id="netCalories">0</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Right Intelligence Panel - Fixed Analytics -->
+    <aside class="loseit-panel">
+        <!-- Calorie Budget Donut Chart -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>Calorie Budget</h3>
+            </div>
+            <div class="donut-chart-container">
+                <canvas id="calorieDonutChart"></canvas>
+                <div class="donut-center">
+                    <div class="donut-value" id="donutCalories">0</div>
+                    <div class="donut-label">of <span id="donutGoal">2000</span></div>
+                    <div class="donut-net" id="donutNet">Net: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Macro Split Progress Bars -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>Macro Split</h3>
+            </div>
+            <div class="macro-bars">
+                <div class="macro-bar-item">
+                    <div class="macro-label">
+                        <span>Carbs</span>
+                        <span class="macro-value" id="carbsValue">0g / 0g</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar carbs-bar" id="carbsBar">
+                            <div class="progress-fill" id="carbsFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="macro-bar-item">
+                    <div class="macro-label">
+                        <span>Fat</span>
+                        <span class="macro-value" id="fatValue">0g / 0g</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar fat-bar" id="fatBar">
+                            <div class="progress-fill" id="fatFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="macro-bar-item">
+                    <div class="macro-label">
+                        <span>Protein</span>
+                        <span class="macro-value" id="proteinValue">0g / 0g</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar protein-bar" id="proteinBar">
+                            <div class="progress-fill" id="proteinFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fasting Widget -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>Intermittent Fasting</h3>
+                <span class="fasting-status active">16:8 Active</span>
+            </div>
+            <div class="fasting-widget">
+                <div class="fasting-circle">
+                    <svg class="fasting-svg" viewBox="0 0 120 120">
+                        <circle class="fasting-bg" cx="60" cy="60" r="54"></circle>
+                        <circle class="fasting-progress" id="fastingProgress" cx="60" cy="60" r="54"></circle>
+                    </svg>
+                    <div class="fasting-center">
+                        <div class="fasting-time" id="fastingTime">16:00</div>
+                        <div class="fasting-label">Time Remaining</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hydration Tracker -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>Hydration</h3>
+            </div>
+            <div class="hydration-tracker">
+                <div class="hydration-progress">
+                    <div class="hydration-fill" id="hydrationFill" style="height: 0%"></div>
+                </div>
+                <div class="hydration-buttons">
+                    <button class="hydration-btn" onclick="addWater(250)">
+                        <i class="fas fa-glass-water"></i>
+                        <span>250ml</span>
+                    </button>
+                    <button class="hydration-btn" onclick="addWater(500)">
+                        <i class="fas fa-wine-bottle"></i>
+                        <span>500ml</span>
+                    </button>
+                    <button class="hydration-btn" onclick="addWater(750)">
+                        <i class="fas fa-wine-bottle"></i>
+                        <span>750ml</span>
+                    </button>
+                </div>
+                <div class="hydration-total">
+                    <span id="waterTotal">0</span> / <span id="waterGoal">2000</span> ml
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Macros Circular Chart -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>Daily Macros</h3>
+            </div>
+            <div class="macro-circle-container">
+                <canvas id="macroCircleChart"></canvas>
+                <div class="macro-circle-center">
+                    <div class="macro-circle-total" id="macroTotal">0g</div>
+                    <div class="macro-circle-label">Total Macros</div>
+                </div>
+            </div>
+            <div class="macro-legend">
+                <div class="macro-legend-item">
+                    <div class="legend-color" style="background: #4A90E2;"></div>
+                    <span>Carbs: <strong id="macroCarbsTotal">0g</strong></span>
+                </div>
+                <div class="macro-legend-item">
+                    <div class="legend-color" style="background: #FF9400;"></div>
+                    <span>Fat: <strong id="macroFatTotal">0g</strong></span>
+                </div>
+                <div class="macro-legend-item">
+                    <div class="legend-color" style="background: #27AE60;"></div>
+                    <span>Protein: <strong id="macroProteinTotal">0g</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weight Trend Sparkline -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3>Weight Trend</h3>
+            </div>
+            <div class="weight-sparkline-container">
+                <canvas id="weightSparkline"></canvas>
+            </div>
+            <div class="weight-info">
+                <div class="weight-current">
+                    <span class="weight-label">Current:</span>
+                    <span class="weight-value" id="currentWeight">-- kg</span>
+                </div>
+                <div class="weight-change">
+                    <span class="weight-label">Change:</span>
+                    <span class="weight-value" id="weightChange">-- kg</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Weekly View Modal -->
+    <div id="weeklyModal" class="modal">
+        <div class="modal-overlay" onclick="closeWeeklyModal()"></div>
+        <div class="modal-content weekly-modal-content">
+            <div class="modal-header">
+                <h3>Weekly View - Calorie Deficit</h3>
+                <button class="modal-close" onclick="closeWeeklyModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="weekly-summary-cards">
+                    <div class="weekly-summary-card">
+                        <div class="weekly-summary-label">Total Calories</div>
+                        <div class="weekly-summary-value" id="weeklyTotalCalories">0</div>
+                    </div>
+                    <div class="weekly-summary-card">
+                        <div class="weekly-summary-label">Total Deficit</div>
+                        <div class="weekly-summary-value" id="weeklyTotalDeficit" style="color: var(--loseit-green);">0</div>
+                    </div>
+                    <div class="weekly-summary-card">
+                        <div class="weekly-summary-label">Avg Daily</div>
+                        <div class="weekly-summary-value" id="weeklyAvgDaily">0</div>
+                    </div>
+                    <div class="weekly-summary-card">
+                        <div class="weekly-summary-label">Avg Deficit</div>
+                        <div class="weekly-summary-value" id="weeklyAvgDeficit" style="color: var(--loseit-green);">0</div>
+                    </div>
+                </div>
+                <div class="weekly-calendar" id="weeklyCalendar">
+                    <!-- Weekly days will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Food Modal -->
+    <div id="foodModal" class="modal">
+        <div class="modal-overlay" onclick="closeFoodModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="foodModalTitle">Log Food</h3>
+                <button class="modal-close" onclick="closeFoodModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>What did you eat?</label>
+                    <input type="text" id="foodInput" placeholder="e.g., Grilled chicken breast 200g" 
+                           onkeyup="debounceAnalyzeFood()">
+                    <button class="btn btn-sm btn-outline" onclick="analyzeFood()">
+                        <i class="fas fa-brain"></i> Analyze with AI
+                    </button>
+                </div>
+                <div id="foodAnalysis" class="food-analysis" style="display: none;"></div>
+                <div class="form-group">
+                    <label>Quantity (grams)</label>
+                    <input type="number" id="foodQuantity" value="100" min="1" step="1" 
+                           oninput="recalculateNutrition()" onchange="recalculateNutrition()">
+                    <small style="color: var(--loseit-text-light); font-size: 0.85rem; margin-top: 0.25rem; display: block;">
+                        Nutrition values will update automatically when you change the quantity
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Brand (optional)</label>
+                    <input type="text" id="foodBrand" placeholder="Brand name">
+                </div>
+                <div class="form-group">
+                    <label>Meal Type</label>
+                    <select id="mealType">
+                        <option value="breakfast">Breakfast</option>
+                        <option value="lunch">Lunch</option>
+                        <option value="dinner">Dinner</option>
+                        <option value="snack">Snack</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes (optional)</label>
+                    <textarea id="foodNotes" rows="2" placeholder="Any additional notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeFoodModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="logFood()">
+                    <i class="fas fa-check"></i> Log Food
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/darkmode.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/loseit-premium.js') }}"></script>
+    <script>
+        // Close sidebars when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            const sidebar = document.querySelector('.loseit-sidebar');
+            const panel = document.querySelector('.loseit-panel');
+            const sidebarToggle = document.getElementById('mobileSidebarToggle');
+            const panelToggle = document.getElementById('mobilePanelToggle');
+            
+            // Close sidebar if clicking outside
+            if (sidebar && sidebar.classList.contains('active') && 
+                !sidebar.contains(e.target) && 
+                !sidebarToggle?.contains(e.target)) {
+                if (window.innerWidth <= 1200) {
+                    toggleMobileSidebar();
+                }
+            }
+            
+            // Close panel if clicking outside
+            if (panel && panel.classList.contains('active') && 
+                !panel.contains(e.target) && 
+                !panelToggle?.contains(e.target)) {
+                if (window.innerWidth <= 1200) {
+                    toggleMobilePanel();
+                }
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const sidebar = document.querySelector('.loseit-sidebar');
+                const panel = document.querySelector('.loseit-panel');
+                
+                if (sidebar && sidebar.classList.contains('active') && window.innerWidth <= 1200) {
+                    toggleMobileSidebar();
+                }
+                if (panel && panel.classList.contains('active') && window.innerWidth <= 1200) {
+                    toggleMobilePanel();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

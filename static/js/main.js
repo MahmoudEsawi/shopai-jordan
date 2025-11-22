@@ -378,7 +378,7 @@ function openAllOnTalabat() {
     links.slice(0, 5).forEach((link, idx) => {
         setTimeout(() => window.open(link.href, '_blank'), idx * 600);
     });
-    alert(`Opening ${Math.min(links.length, 5)} products on Talabat Jordan!`);
+    Toast.info(`Opening ${Math.min(links.length, 5)} products on Talabat Jordan!`);
 }
 
 document.getElementById('chatInput').addEventListener('keypress', function(e) {
@@ -470,11 +470,14 @@ async function shareList(shareUrl) {
 // Export List Function
 async function exportList() {
     if (!window.currentShoppingList) {
-        alert('No shopping list to export');
+        Toast.warning('No shopping list to export');
         return;
     }
     
-    const format = confirm('Export as JSON? (Cancel for Text format)') ? 'json' : 'text';
+    // Use a simple prompt-like approach with toast
+    Toast.info('Choose export format: Click JSON or Text', 5000);
+    // For now, default to JSON. Can be enhanced with a modal later
+    const format = 'json';
     
     try {
         const response = await fetch('/api/export', {
@@ -499,9 +502,9 @@ async function exportList() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        alert(`Shopping list exported as ${format.toUpperCase()}!`);
+        Toast.success(`Shopping list exported as ${format.toUpperCase()}!`);
     } catch (error) {
-        alert('Error exporting list: ' + error.message);
+        Toast.error('Error exporting list: ' + error.message);
     }
 }
 
@@ -509,7 +512,7 @@ async function exportList() {
 function copyToClipboard(text) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(() => {
-            alert('Link copied to clipboard!');
+            Toast.success('Link copied to clipboard!');
         });
     } else {
         // Fallback
@@ -538,7 +541,16 @@ async function loadProducts() {
     
     try {
         loadingEl.style.display = 'block';
-        loadingEl.innerHTML = '<div class="spinner"></div><div>Loading products...</div>';
+        // Show loading skeletons
+        gridEl.innerHTML = Array(12).fill(0).map(() => `
+            <div class="skeleton-product-card">
+                <div class="skeleton skeleton-product-image"></div>
+                <div class="skeleton skeleton-product-title"></div>
+                <div class="skeleton skeleton-text" style="width: 60%;"></div>
+                <div class="skeleton skeleton-product-price"></div>
+                <div class="skeleton skeleton-product-button"></div>
+            </div>
+        `).join('');
         
         const response = await fetch('/api/products');
         
@@ -794,9 +806,18 @@ function displayProducts() {
         // Build nutrition info
         const hasNutrition = product.calories_per_100g || product.protein_per_100g || product.carbs_per_100g || product.fats_per_100g;
         
+        // Store product data in data attribute for quick access
+        const productData = escapeHtml(JSON.stringify(product));
+        
         return `
-            <div class="product-card" onclick="window.open('${productUrl}', '_blank')">
-                <div class="product-card-image">
+            <div class="product-card" data-product-id="${productId}" data-product='${productData}'>
+                <button class="wishlist-btn" onclick="event.stopPropagation(); const card = this.closest('.product-card'); const product = JSON.parse(card.dataset.product); wishlistManager.toggleWishlist(product);" title="Add to wishlist">
+                    <i class="far fa-heart"></i>
+                </button>
+                <button class="quick-view-btn" onclick="event.stopPropagation(); const card = this.closest('.product-card'); const product = JSON.parse(card.dataset.product); productModal.show(product);" title="Quick view">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <div class="product-card-image" onclick="window.open('${productUrl}', '_blank')">
                     <img src="${imageUrl}" 
                          alt="${productName}" 
                          loading="lazy"
@@ -865,6 +886,13 @@ function displayProducts() {
             </div>
         `;
     }).join('');
+    
+    gridEl.innerHTML = html;
+    
+    // Update wishlist UI after rendering products
+    if (typeof wishlistManager !== 'undefined') {
+        wishlistManager.updateWishlistUI();
+    }
     
     console.log(`Displayed ${filteredProducts.length} products`);
 }
@@ -1171,7 +1199,7 @@ async function clearCart() {
 function checkoutCart() {
     const cartItemsEl = document.getElementById('cartItems');
     if (!cartItemsEl || cartItemsEl.querySelector('.cart-items-list')) {
-        alert('Cart is empty!');
+        Toast.warning('Cart is empty!');
         return;
     }
     
@@ -1191,12 +1219,12 @@ function checkoutCart() {
     });
     
     if (urls.length > 0) {
-        alert(`Opening ${urls.length} products on Talabat Jordan...`);
+        Toast.info(`Opening ${urls.length} products on Talabat Jordan...`);
         urls.slice(0, 5).forEach((url, idx) => {
             setTimeout(() => window.open(url, '_blank'), idx * 500);
         });
     } else {
-        alert('Please add items with product links to checkout');
+        Toast.warning('Please add items with product links to checkout');
     }
 }
 

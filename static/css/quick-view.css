@@ -1,0 +1,60 @@
+/* Quick View Button Styles */
+.quick-view-btn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+body[dir="rtl"] .quick-view-btn {
+    left: auto;
+    right: 12px;
+}
+
+.quick-view-btn:hover {
+    background: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: var(--primary-dark);
+}
+
+/* Product card hover effects */
+.product-card {
+    position: relative;
+    overflow: visible;
+}
+
+.product-card:hover .wishlist-btn,
+.product-card:hover .quick-view-btn {
+    opacity: 1;
+    visibility: visible;
+}
+
+.wishlist-btn,
+.quick-view-btn {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+@media (max-width: 768px) {
+    .wishlist-btn,
+    .quick-view-btn {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+

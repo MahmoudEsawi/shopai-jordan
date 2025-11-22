@@ -1,0 +1,352 @@
+/* Product Modal Styles */
+.product-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.product-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    position: relative;
+    background: white;
+    border-radius: 24px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s;
+    z-index: 1;
+}
+
+.product-modal.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--dark);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+body[dir="rtl"] .modal-close {
+    right: auto;
+    left: 1rem;
+}
+
+.modal-close:hover {
+    background: rgba(0, 0, 0, 0.2);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .modal-body {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+.product-modal-image {
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--light);
+}
+
+.product-modal-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.product-modal-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.product-modal-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 0;
+}
+
+.product-modal-category {
+    font-size: 1rem;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.product-modal-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.product-modal-description {
+    color: var(--gray);
+    line-height: 1.6;
+    margin-top: 0.5rem;
+}
+
+.product-modal-nutrition {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--light);
+}
+
+.product-modal-nutrition h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--dark);
+}
+
+.nutrition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.nutrition-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    background: var(--light);
+    border-radius: 12px;
+    gap: 0.5rem;
+}
+
+.nutrition-item i {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.nutrition-item span {
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.nutrition-item strong {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.product-modal-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--light);
+    border-radius: 12px;
+}
+
+.price-label {
+    font-size: 1rem;
+    color: var(--gray);
+}
+
+.price-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.product-modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.product-modal-actions .btn {
+    flex: 1;
+    min-width: 150px;
+}
+
+.wishlist-modal-btn.active {
+    background: var(--jordan-red);
+    color: white;
+    border-color: var(--jordan-red);
+}
+
+.wishlist-modal-btn.active i {
+    color: white;
+}
+
+/* Shortcuts Help Modal */
+.shortcuts-help {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 10001;
+    max-width: 500px;
+    width: 90%;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+body.dark-mode .shortcuts-help {
+    background: #2c2c2c;
+    color: #e0e0e0;
+}
+
+.shortcuts-help-header {
+    padding: 1.5rem;
+    border-bottom: 2px solid var(--light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+body.dark-mode .shortcuts-help-header {
+    border-bottom-color: var(--dark);
+}
+
+.shortcuts-help-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.shortcuts-help-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--gray);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.shortcuts-help-close:hover {
+    background: var(--light);
+    color: var(--dark);
+}
+
+body.dark-mode .shortcuts-help-close:hover {
+    background: var(--dark);
+    color: #e0e0e0;
+}
+
+.shortcuts-help-content {
+    padding: 1.5rem;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background: var(--light);
+    border-radius: 8px;
+}
+
+body.dark-mode .shortcut-item {
+    background: var(--dark);
+}
+
+.shortcut-item kbd {
+    background: white;
+    border: 2px solid var(--gray);
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--dark);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .shortcut-item kbd {
+    background: #1a1a1a;
+    border-color: var(--gray);
+    color: #e0e0e0;
+}
+
+.shortcut-item span {
+    color: var(--gray);
+    font-size: 0.95rem;
+}
+
+body.dark-mode .shortcut-item span {
+    color: #b0b0b0;
+}
+
+/* Dark mode support */
+body.dark-mode .modal-content {
+    background: #2c2c2c;
+    color: #e0e0e0;
+}
+
+body.dark-mode .product-modal-title {
+    color: #e0e0e0;
+}
+
+body.dark-mode .nutrition-item {
+    background: #1a1a1a;
+}
+
+body.dark-mode .nutrition-item strong {
+    color: #e0e0e0;
+}
+
+body.dark-mode .product-modal-price {
+    background: #1a1a1a;
+}
+

@@ -8,6 +8,7 @@ import json
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from datetime import datetime, date, timedelta
 
 # Load environment variables from .env file
 load_dotenv()
@@ -18,6 +19,9 @@ from smart_list_builder import SmartListBuilder
 from recipe_suggestions import RecipeSuggestions
 from list_sharing import ListSharing
 from cart_manager import CartManager
+from user_database import UserDatabase
+from food_analyzer import FoodAnalyzer
+from calorie_calculator import CalorieCalculator
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -28,6 +32,9 @@ assistant = GroqAIAssistant()
 list_builder = SmartListBuilder()
 recipe_suggestions = RecipeSuggestions()
 list_sharing = ListSharing()
+user_db = UserDatabase()
+food_analyzer = FoodAnalyzer()
+calorie_calculator = CalorieCalculator()
 
 # Cart storage (in production, use session or database)
 user_carts = {}  # {session_id: CartManager}
@@ -36,6 +43,16 @@ user_last_ai_responses = {}  # {session_id: last_ai_message}
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/auth')
+def auth():
+    """Authentication page"""
+    return render_template('auth.html')
+
+@app.route('/loseit')
+def loseit():
+    """Lose It section - requires authentication"""
+    return render_template('loseit.html')
 
 @app.route('/api/recipes', methods=['POST'])
 def get_recipes():
@@ -942,6 +959,313 @@ def chat():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+# Authentication Routes
+@app.route('/api/auth/signup', methods=['POST'])
+def signup():
+    """User registration"""
+    try:
+        data = request.json
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        
+        if not username or not email or not password:
+            return jsonify({"success": False, "error": "All fields are required"}), 400
+        
+        result = user_db.create_user(username, email, password)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/auth/signin', methods=['POST'])
+def signin():
+    """User authentication"""
+    try:
+        data = request.json
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        
+        if not username or not password:
+            return jsonify({"success": False, "error": "Username and password are required"}), 400
+        
+        user = user_db.authenticate_user(username, password)
+        
+        if user:
+            return jsonify({
+                "success": True,
+                "user_id": user['id'],
+                "username": user['username'],
+                "email": user['email']
+            })
+        else:
+            return jsonify({"success": False, "error": "Invalid username or password"}), 401
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/auth/signout', methods=['POST'])
+def signout():
+    """User sign out"""
+    return jsonify({"success": True, "message": "Signed out successfully"})
+
+@app.route('/api/auth/check', methods=['GET'])
+def check_auth():
+    """Check if user is authenticated"""
+    user_id = request.headers.get('X-User-ID')
+    if user_id:
+        try:
+            profile = user_db.get_user_profile(int(user_id))
+            return jsonify({"success": True, "authenticated": True, "user_id": int(user_id), "profile": profile})
+        except:
+            pass
+    return jsonify({"success": False, "authenticated": False})
+
+# Lose It / Food Tracking Routes
+@app.route('/api/loseit/profile', methods=['GET'])
+def get_profile():
+    """Get user profile"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        profile = user_db.get_user_profile(int(user_id))
+        return jsonify({"success": True, "profile": profile})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/profile', methods=['POST'])
+def update_profile():
+    """Update user profile"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.json
+        success = user_db.update_user_profile(int(user_id), **data)
+        return jsonify({"success": success})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/analyze-food', methods=['POST'])
+def analyze_food():
+    """Analyze food using AI"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.json
+        food_description = data.get('food_description', '')
+        quantity_g = data.get('quantity_g')
+        
+        if not food_description:
+            return jsonify({"success": False, "error": "Food description required"}), 400
+        
+        result = food_analyzer.analyze_food(food_description, quantity_g)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/log-food', methods=['POST'])
+def log_food():
+    """Log food entry"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.json
+        result = user_db.log_food(
+            int(user_id),
+            data.get('food_name', ''),
+            data.get('meal_type', 'snack'),
+            data.get('quantity_g', 100),
+            data.get('calories'),
+            data.get('protein_g'),
+            data.get('carbs_g'),
+            data.get('fats_g'),
+            data.get('fiber_g'),
+            data.get('notes')
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/food-logs', methods=['GET'])
+def get_food_logs():
+    """Get food logs"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        date_str = request.args.get('date')
+        logs = user_db.get_food_logs(int(user_id), date_str)
+        return jsonify({"success": True, "logs": logs})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/daily-summary', methods=['GET'])
+def get_daily_summary():
+    """Get daily nutrition summary"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        date_str = request.args.get('date')
+        summary = user_db.get_daily_summary(int(user_id), date_str)
+        profile = user_db.get_user_profile(int(user_id))
+        
+        # Calculate AI-based goals if profile exists
+        if profile:
+            # If no goals set, calculate them
+            if not profile.get('daily_calorie_goal'):
+                calculated = calorie_calculator.calculate_calories_with_ai(profile)
+                # Update profile with calculated goals
+                user_db.update_user_profile(int(user_id), **calculated)
+                profile.update(calculated)
+            
+            summary['calorie_goal'] = profile.get('daily_calorie_goal', 2000)
+            summary['protein_goal'] = profile.get('daily_protein_goal', 0)
+            summary['carbs_goal'] = profile.get('daily_carbs_goal', 0)
+            summary['fats_goal'] = profile.get('daily_fats_goal', 0)
+            summary['bmr'] = profile.get('bmr', 0)
+            summary['tdee'] = profile.get('tdee', 0)
+        else:
+            summary['calorie_goal'] = 2000
+            summary['protein_goal'] = 0
+            summary['carbs_goal'] = 0
+            summary['fats_goal'] = 0
+        
+        # Calculate deficit/surplus
+        summary['calorie_deficit'] = summary['calorie_goal'] - summary['calories']
+        summary['exercise_calories'] = 0  # TODO: Add exercise calories
+        
+        return jsonify({"success": True, "summary": summary})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/log-weight', methods=['POST'])
+def log_weight():
+    """Log weight entry"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.json
+        result = user_db.log_weight(int(user_id), data.get('weight_kg'), data.get('notes'))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/weight-logs', methods=['GET'])
+def get_weight_logs():
+    """Get weight logs"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        limit = int(request.args.get('limit', 30))
+        logs = user_db.get_weight_logs(int(user_id), limit)
+        return jsonify({"success": True, "logs": logs})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/log-water', methods=['POST'])
+def log_water():
+    """Log water intake"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.json
+        result = user_db.log_water(int(user_id), data.get('amount_ml', 250))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/delete-food-log', methods=['POST'])
+def delete_food_log():
+    """Delete a food log entry"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.json
+        success = user_db.delete_food_log(int(user_id), data.get('log_id'))
+        return jsonify({"success": success})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/loseit/weekly-summary', methods=['GET'])
+def get_weekly_summary():
+    """Get weekly calorie summary with deficit"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        # Get start date (default: 7 days ago)
+        start_date_str = request.args.get('start_date')
+        if start_date_str:
+            start_date = datetime.fromisoformat(start_date_str).date()
+        else:
+            start_date = date.today() - timedelta(days=6)  # Last 7 days (including today)
+        
+        # Get profile for goals
+        profile = user_db.get_user_profile(int(user_id))
+        calorie_goal = profile.get('daily_calorie_goal', 2000) if profile else 2000
+        
+        # Get summaries for each day
+        days_data = []
+        total_calories = 0
+        total_deficit = 0
+        
+        for i in range(7):
+            current_date = start_date + timedelta(days=i)
+            date_str = current_date.isoformat()
+            
+            day_summary = user_db.get_daily_summary(int(user_id), date_str)
+            day_calories = day_summary.get('calories', 0)
+            day_deficit = calorie_goal - day_calories
+            
+            days_data.append({
+                'date': date_str,
+                'day_name': current_date.strftime('%A'),
+                'day_short': current_date.strftime('%a'),
+                'calories': day_calories,
+                'goal': calorie_goal,
+                'deficit': day_deficit,
+                'protein_g': day_summary.get('protein_g', 0),
+                'carbs_g': day_summary.get('carbs_g', 0),
+                'fats_g': day_summary.get('fats_g', 0)
+            })
+            
+            total_calories += day_calories
+            total_deficit += day_deficit
+        
+        return jsonify({
+            "success": True,
+            "weekly": {
+                "start_date": start_date.isoformat(),
+                "end_date": (start_date + timedelta(days=6)).isoformat(),
+                "total_calories": total_calories,
+                "total_deficit": total_deficit,
+                "average_daily_calories": round(total_calories / 7, 0),
+                "average_daily_deficit": round(total_deficit / 7, 0),
+                "calorie_goal": calorie_goal,
+                "days": days_data
+            }
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == "__main__":
     print("=" * 70)

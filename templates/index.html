@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cart-sidebar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/toast.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/wishlist.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/darkmode.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/quick-view.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ux-enhancements.css') }}">
 </head>
 <body>
     <nav class="navbar">
@@ -26,6 +33,9 @@
                 <a href="#home" class="nav-link" data-translate="home">Home</a>
                 <a href="#features" class="nav-link" data-translate="features">Features</a>
                 <a href="#browse" class="nav-link" data-translate="browse_products">Browse Products</a>
+                <a href="/loseit" class="nav-link" id="loseItLink">
+                    <i class="fas fa-chart-line"></i> Lose It
+                </a>
                 <a href="#how-it-works" class="nav-link" data-translate="how_it_works">How It Works</a>
                 <a href="#about" class="nav-link" data-translate="about">About</a>
             </div>
@@ -34,6 +44,13 @@
             </button>
             
             <div class="nav-actions">
+                <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="wishlist-toggle-btn" id="wishlistToggleBtn" onclick="toggleWishlist()" title="Wishlist / قائمة الأمنيات">
+                    <i class="fas fa-heart"></i>
+                    <span id="wishlistBadge" class="wishlist-badge" style="display: none;">0</span>
+                </button>
                 <button class="language-toggle" id="languageToggle" onclick="toggleLanguage()" title="Switch Language / تبديل اللغة">
                     <i class="fas fa-language"></i>
                     <span id="languageText">EN</span>
@@ -41,6 +58,13 @@
                 <button class="cart-toggle-btn" id="cartToggleBtn" onclick="toggleCart()" title="Shopping Cart / سلة التسوق">
                     <i class="fas fa-shopping-cart"></i>
                     <span id="navCartCount" class="cart-badge">0</span>
+                </button>
+                <a href="/auth" class="btn btn-outline btn-sm" id="signInLink">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </a>
+                <span id="userNavGreeting" style="display: none; margin-right: 1rem; font-weight: 600; color: var(--dark);"></span>
+                <button class="btn btn-outline btn-sm" id="signOutLink" style="display: none;" onclick="signOut()">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
                 </button>
                 <div class="location-badge">
                     <i class="fas fa-map-marker-alt"></i>
@@ -546,8 +570,63 @@
         <i class="fas fa-arrow-down"></i>
     </button>
     
+    <!-- Wishlist Panel -->
+    <div id="wishlistPanel" class="wishlist-panel">
+        <div class="wishlist-header">
+            <div class="wishlist-title">
+                <i class="fas fa-heart"></i>
+                <span data-translate="wishlist">Wishlist</span>
+            </div>
+            <button class="wishlist-close-btn" onclick="toggleWishlist()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="wishlist-items" id="wishlistItems">
+            <!-- Wishlist items will be rendered here -->
+        </div>
+    </div>
+    <div id="wishlistOverlay" class="cart-overlay" onclick="toggleWishlist()" style="z-index: 9997;"></div>
+
     <script src="{{ url_for('static', filename='js/translations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/darkmode.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ux-enhancements.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/wishlist.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/wishlist-panel.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/shortcuts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/product-modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Check authentication status on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const isAuthenticated = localStorage.getItem('is_authenticated') === 'true';
+            const username = localStorage.getItem('username');
+            
+            if (isAuthenticated && username) {
+                // Show authenticated UI
+                const signInLink = document.getElementById('signInLink');
+                const signOutLink = document.getElementById('signOutLink');
+                const userNavGreeting = document.getElementById('userNavGreeting');
+                const loseItLink = document.getElementById('loseItLink');
+                
+                if (signInLink) signInLink.style.display = 'none';
+                if (signOutLink) signOutLink.style.display = 'inline-flex';
+                if (userNavGreeting) {
+                    userNavGreeting.style.display = 'inline';
+                    userNavGreeting.textContent = `Hello, ${username}!`;
+                }
+                // Lose It link is always visible now
+            }
+        });
+        
+        function signOut() {
+            localStorage.removeItem('user_id');
+            localStorage.removeItem('username');
+            localStorage.removeItem('is_authenticated');
+            window.location.reload();
+        }
+        window.signOut = signOut;
+    </script>
 </body>
 </html>
 
