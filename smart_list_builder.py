@@ -64,6 +64,10 @@ class SmartListBuilder:
         event_type = self._extract_event_type(user_request)
         dietary = self._extract_dietary(user_request)
         specific_products = self._extract_specific_products(user_request)
+        healthy_only = self._extract_healthy_filter(user_request)
+        gluten_free = self._extract_gluten_free_filter(user_request)
+        min_protein = self._extract_min_protein(user_request)
+        max_calories = self._extract_max_calories(user_request)
         
         # Get template
         template = self.templates.get(event_type, self.templates["bbq"])
@@ -78,8 +82,14 @@ class SmartListBuilder:
             "dietary": dietary
         }
         
-        # Get all products
-        all_products = self.db.search_products(limit=200)
+        # Get all products with filters
+        all_products = self.db.search_products(
+            limit=200,
+            healthy_only=healthy_only,
+            gluten_free=gluten_free,
+            min_protein=min_protein,
+            max_calories=max_calories
+        )
         
         # Select products by category
         seen_ids = set()
@@ -105,7 +115,19 @@ class SmartListBuilder:
                         "unit_price": product.get('price', 0),
                         "total_price": round(product.get('price', 0) * quantity, 2),
                         "product_url": product.get('product_url'),
-                        "image_url": product.get('image_url')
+                        "image_url": product.get('image_url'),
+                        # Nutritional information
+                        "calories_per_100g": product.get('calories_per_100g'),
+                        "protein_per_100g": product.get('protein_per_100g'),
+                        "carbs_per_100g": product.get('carbs_per_100g'),
+                        "fats_per_100g": product.get('fats_per_100g'),
+                        "fiber_per_100g": product.get('fiber_per_100g'),
+                        # Dietary facts
+                        "is_gluten_free": bool(product.get('is_gluten_free', 0)),
+                        "is_vegetarian": bool(product.get('is_vegetarian', 0)),
+                        "is_vegan": bool(product.get('is_vegan', 0)),
+                        "is_healthy": bool(product.get('is_healthy', 0)),
+                        "is_organic": bool(product.get('is_organic', 0))
                     }
                     shopping_list["items"].append(item)
                     shopping_list["total_cost"] = round(shopping_list["total_cost"] + item["total_price"], 2)
@@ -127,7 +149,19 @@ class SmartListBuilder:
                         "unit_price": product.get('price', 0),
                         "total_price": round(product.get('price', 0) * quantity, 2),
                         "product_url": product.get('product_url'),
-                        "image_url": product.get('image_url')
+                        "image_url": product.get('image_url'),
+                        # Nutritional information
+                        "calories_per_100g": product.get('calories_per_100g'),
+                        "protein_per_100g": product.get('protein_per_100g'),
+                        "carbs_per_100g": product.get('carbs_per_100g'),
+                        "fats_per_100g": product.get('fats_per_100g'),
+                        "fiber_per_100g": product.get('fiber_per_100g'),
+                        # Dietary facts
+                        "is_gluten_free": bool(product.get('is_gluten_free', 0)),
+                        "is_vegetarian": bool(product.get('is_vegetarian', 0)),
+                        "is_vegan": bool(product.get('is_vegan', 0)),
+                        "is_healthy": bool(product.get('is_healthy', 0)),
+                        "is_organic": bool(product.get('is_organic', 0))
                     }
                     shopping_list["items"].append(item)
                     shopping_list["total_cost"] = round(shopping_list["total_cost"] + item["total_price"], 2)
@@ -156,7 +190,19 @@ class SmartListBuilder:
                     "unit_price": default_price,
                     "total_price": round(default_price * quantity, 2),
                     "product_url": f"https://www.talabat.com/jordan/search?q={product_name.replace(' ', '+')}",
-                    "image_url": None
+                    "image_url": None,
+                    # Nutritional information (defaults)
+                    "calories_per_100g": None,
+                    "protein_per_100g": None,
+                    "carbs_per_100g": None,
+                    "fats_per_100g": None,
+                    "fiber_per_100g": None,
+                    # Dietary facts (defaults)
+                    "is_gluten_free": False,
+                    "is_vegetarian": False,
+                    "is_vegan": False,
+                    "is_healthy": False,
+                    "is_organic": False
                 }
                 shopping_list["items"].append(item)
                 shopping_list["total_cost"] = round(shopping_list["total_cost"] + item["total_price"], 2)
@@ -294,6 +340,32 @@ class SmartListBuilder:
         elif 'no chicken' in text_lower:
             return 'no-chicken'
         return 'all'
+    
+    def _extract_healthy_filter(self, text: str) -> bool:
+        """Extract healthy food filter"""
+        text_lower = text.lower()
+        return 'healthy' in text_lower and ('food' in text_lower or 'only' in text_lower)
+    
+    def _extract_gluten_free_filter(self, text: str) -> bool:
+        """Extract gluten-free filter"""
+        text_lower = text.lower()
+        return 'gluten-free' in text_lower or 'gluten free' in text_lower
+    
+    def _extract_min_protein(self, text: str) -> Optional[float]:
+        """Extract minimum protein requirement"""
+        import re
+        match = re.search(r'minimum\s+(\d+(?:\.\d+)?)\s*g\s*protein', text, re.I)
+        if match:
+            return float(match.group(1))
+        return None
+    
+    def _extract_max_calories(self, text: str) -> Optional[float]:
+        """Extract maximum calories requirement"""
+        import re
+        match = re.search(r'maximum\s+(\d+(?:\.\d+)?)\s*calories', text, re.I)
+        if match:
+            return float(match.group(1))
+        return None
     
     def _matches_dietary(self, product: Dict, dietary: str) -> bool:
         """Check if product matches dietary restrictions"""

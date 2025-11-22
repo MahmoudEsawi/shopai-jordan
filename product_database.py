@@ -40,6 +40,22 @@ class ProductDatabase:
                 description TEXT,
                 in_stock INTEGER DEFAULT 1,
                 scraped_at TEXT,
+                -- Nutritional information (per 100g)
+                calories_per_100g REAL,
+                protein_per_100g REAL,
+                carbs_per_100g REAL,
+                fats_per_100g REAL,
+                fiber_per_100g REAL,
+                -- Dietary facts
+                is_gluten_free INTEGER DEFAULT 0,
+                is_vegetarian INTEGER DEFAULT 0,
+                is_vegan INTEGER DEFAULT 0,
+                is_halal INTEGER DEFAULT 1,
+                is_organic INTEGER DEFAULT 0,
+                is_healthy INTEGER DEFAULT 0,
+                -- Additional info
+                weight_grams REAL,
+                brand TEXT,
                 UNIQUE(store_name, product_url)
             )
         """)
@@ -90,29 +106,76 @@ class ProductDatabase:
         """Add a product to the database"""
         try:
             cursor = self.conn.cursor()
+            
+            # Check if columns exist, if not add them (for migration)
+            try:
+                cursor.execute("SELECT calories_per_100g FROM products LIMIT 1")
+            except sqlite3.OperationalError:
+                # Add new columns if they don't exist
+                self._migrate_database()
+            
             cursor.execute("""
                 INSERT OR REPLACE INTO products 
                 (id, name, price, currency, category, image_url, product_url, 
-                 store_name, description, in_stock, scraped_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 store_name, description, in_stock, scraped_at,
+                 calories_per_100g, protein_per_100g, carbs_per_100g, fats_per_100g, fiber_per_100g,
+                 is_gluten_free, is_vegetarian, is_vegan, is_halal, is_organic, is_healthy,
+                 weight_grams, brand)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 product.get('id'),
                 product.get('name'),
                 product.get('price'),
-                product.get('currency', 'USD'),
+                product.get('currency', 'JOD'),
                 product.get('category'),
                 product.get('image_url'),
                 product.get('product_url'),
                 product.get('store_name'),
                 product.get('description'),
                 1 if product.get('in_stock', True) else 0,
-                product.get('scraped_at', datetime.now().isoformat())
+                product.get('scraped_at', datetime.now().isoformat()),
+                product.get('calories_per_100g'),
+                product.get('protein_per_100g'),
+                product.get('carbs_per_100g'),
+                product.get('fats_per_100g'),
+                product.get('fiber_per_100g'),
+                1 if product.get('is_gluten_free', False) else 0,
+                1 if product.get('is_vegetarian', False) else 0,
+                1 if product.get('is_vegan', False) else 0,
+                1 if product.get('is_halal', True) else 0,
+                1 if product.get('is_organic', False) else 0,
+                1 if product.get('is_healthy', False) else 0,
+                product.get('weight_grams'),
+                product.get('brand')
             ))
             self.conn.commit()
             return True
         except Exception as e:
             print(f"❌ Error adding product: {e}")
             return False
+    
+    def _migrate_database(self):
+        """Migrate existing database to add new columns"""
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("ALTER TABLE products ADD COLUMN calories_per_100g REAL")
+            cursor.execute("ALTER TABLE products ADD COLUMN protein_per_100g REAL")
+            cursor.execute("ALTER TABLE products ADD COLUMN carbs_per_100g REAL")
+            cursor.execute("ALTER TABLE products ADD COLUMN fats_per_100g REAL")
+            cursor.execute("ALTER TABLE products ADD COLUMN fiber_per_100g REAL")
+            cursor.execute("ALTER TABLE products ADD COLUMN is_gluten_free INTEGER DEFAULT 0")
+            cursor.execute("ALTER TABLE products ADD COLUMN is_vegetarian INTEGER DEFAULT 0")
+            cursor.execute("ALTER TABLE products ADD COLUMN is_vegan INTEGER DEFAULT 0")
+            cursor.execute("ALTER TABLE products ADD COLUMN is_halal INTEGER DEFAULT 1")
+            cursor.execute("ALTER TABLE products ADD COLUMN is_organic INTEGER DEFAULT 0")
+            cursor.execute("ALTER TABLE products ADD COLUMN is_healthy INTEGER DEFAULT 0")
+            cursor.execute("ALTER TABLE products ADD COLUMN weight_grams REAL")
+            cursor.execute("ALTER TABLE products ADD COLUMN brand TEXT")
+            self.conn.commit()
+            print("✅ Database migrated successfully")
+        except sqlite3.OperationalError as e:
+            # Column might already exist
+            pass
     
     def add_products_bulk(self, products: List[Dict[str, Any]]) -> int:
         """Add multiple products"""
@@ -129,7 +192,11 @@ class ProductDatabase:
         category: Optional[str] = None,
         min_price: Optional[float] = None,
         max_price: Optional[float] = None,
-        limit: int = 50
+        limit: int = 50,
+        healthy_only: bool = False,
+        gluten_free: bool = False,
+        min_protein: Optional[float] = None,
+        max_calories: Optional[float] = None
     ) -> List[Dict[str, Any]]:
         """Search products with filters"""
         
@@ -163,6 +230,20 @@ class ProductDatabase:
         if max_price is not None:
             sql += " AND price <= ?"
             params.append(max_price)
+        
+        if healthy_only:
+            sql += " AND is_healthy = 1"
+        
+        if gluten_free:
+            sql += " AND is_gluten_free = 1"
+        
+        if min_protein is not None:
+            sql += " AND protein_per_100g >= ?"
+            params.append(min_protein)
+        
+        if max_calories is not None:
+            sql += " AND calories_per_100g <= ?"
+            params.append(max_calories)
         
         sql += f" LIMIT {limit}"
         

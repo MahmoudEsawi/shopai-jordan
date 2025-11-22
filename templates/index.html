@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShopAI Jordan - Smart Shopping Assistant</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cart-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
 </head>
 <body>
     <nav class="navbar">
@@ -21,23 +23,32 @@
             </div>
             
             <div class="nav-menu" id="navMenu">
-                <a href="#home" class="nav-link">Home</a>
-                <a href="#features" class="nav-link">Features</a>
-                <a href="#how-it-works" class="nav-link">How It Works</a>
-                <a href="#about" class="nav-link">About</a>
+                <a href="#home" class="nav-link" data-translate="home">Home</a>
+                <a href="#features" class="nav-link" data-translate="features">Features</a>
+                <a href="#browse" class="nav-link" data-translate="browse_products">Browse Products</a>
+                <a href="#how-it-works" class="nav-link" data-translate="how_it_works">How It Works</a>
+                <a href="#about" class="nav-link" data-translate="about">About</a>
             </div>
             <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
                 <i class="fas fa-bars"></i>
             </button>
             
             <div class="nav-actions">
+                <button class="language-toggle" id="languageToggle" onclick="toggleLanguage()" title="Switch Language / تبديل اللغة">
+                    <i class="fas fa-language"></i>
+                    <span id="languageText">EN</span>
+                </button>
+                <button class="cart-toggle-btn" id="cartToggleBtn" onclick="toggleCart()" title="Shopping Cart / سلة التسوق">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="navCartCount" class="cart-badge">0</span>
+                </button>
                 <div class="location-badge">
                     <i class="fas fa-map-marker-alt"></i>
-                    <span>Jordan</span>
+                    <span data-translate="jordan">Jordan</span>
                 </div>
                 <a href="#start" class="nav-cta" onclick="document.getElementById('navMenu')?.classList.remove('active')">
                     <i class="fas fa-rocket"></i>
-                    Get Started
+                    <span data-translate="get_started">Get Started</span>
                 </a>
             </div>
         </div>
@@ -49,15 +60,15 @@
             <div class="hero-content">
                 <div class="hero-badge">
                     <i class="fas fa-circle" style="font-size: 0.5rem; color: #10b981;"></i>
-                    <span>Powered by Groq AI</span>
+                    <span data-translate="powered_by">Powered by Groq AI</span>
                 </div>
                 
                 <h1 class="hero-title">
-                    Intelligent Shopping<br>
-                    <span class="gradient-text">Assistant for Jordan</span>
+                    <span data-translate="hero_title_line1">Intelligent Shopping</span><br>
+                    <span class="gradient-text" data-translate="hero_title_line2">Assistant for Jordan</span>
                 </h1>
                 
-                <p class="hero-description">
+                <p class="hero-description" data-translate="hero_description">
                     Transform your event planning with AI-powered shopping lists. 
                     Simply describe your needs, set your budget, and receive a complete 
                     shopping list with real prices from Talabat Jordan. Smart, fast, and 
@@ -69,25 +80,25 @@
                         <div class="hero-feature-icon">
                             <i class="fas fa-brain"></i>
                         </div>
-                        <span>AI-Powered Intelligence</span>
+                        <span data-translate="hero_feature_ai">AI-Powered Intelligence</span>
                     </div>
                     <div class="hero-feature">
                         <div class="hero-feature-icon">
                             <i class="fas fa-wallet"></i>
                         </div>
-                        <span>Budget Optimization</span>
+                        <span data-translate="hero_feature_budget">Budget Optimization</span>
                     </div>
                     <div class="hero-feature">
                         <div class="hero-feature-icon">
                             <i class="fas fa-shopping-bag"></i>
                         </div>
-                        <span>Direct Talabat Integration</span>
+                        <span data-translate="hero_feature_talabat">Direct Talabat Integration</span>
                     </div>
                     <div class="hero-feature">
                         <div class="hero-feature-icon">
                             <i class="fas fa-bolt"></i>
                         </div>
-                        <span>Instant Results</span>
+                        <span data-translate="hero_feature_instant">Instant Results</span>
                     </div>
                 </div>
             </div>
@@ -96,56 +107,56 @@
         <!-- Features Section -->
         <section id="features" class="features-section">
             <div class="section-content">
-                <h2 class="section-title">Powerful Features</h2>
-                <p class="section-subtitle">Everything you need for smart shopping</p>
+                <h2 class="section-title" data-translate="features_title">Powerful Features</h2>
+                <p class="section-subtitle" data-translate="features_subtitle">Everything you need for smart shopping</p>
                 
                 <div class="features-grid">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-brain"></i>
                         </div>
-                        <h3>AI-Powered Intelligence</h3>
-                        <p>Natural language understanding powered by Groq AI. Just describe what you need in plain English.</p>
+                        <h3 data-translate="feature_ai_title">AI-Powered Intelligence</h3>
+                        <p data-translate="feature_ai_desc">Natural language understanding powered by Groq AI. Just describe what you need in plain English.</p>
                     </div>
                     
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-wallet"></i>
                         </div>
-                        <h3>Budget Optimization</h3>
-                        <p>Set your budget and get optimized shopping lists that stay within your limits.</p>
+                        <h3 data-translate="feature_budget_title">Budget Optimization</h3>
+                        <p data-translate="feature_budget_desc">Set your budget and get optimized shopping lists that stay within your limits.</p>
                     </div>
                     
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-shopping-bag"></i>
                         </div>
-                        <h3>Talabat Integration</h3>
-                        <p>Real products with JOD prices and direct links to Talabat Jordan for easy ordering.</p>
+                        <h3 data-translate="feature_talabat_title">Talabat Integration</h3>
+                        <p data-translate="feature_talabat_desc">Real products with JOD prices and direct links to Talabat Jordan for easy ordering.</p>
                     </div>
                     
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-utensils"></i>
                         </div>
-                        <h3>Recipe Suggestions</h3>
-                        <p>Get recipe recommendations based on your shopping list with ingredient matching.</p>
+                        <h3 data-translate="feature_recipe_title">Recipe Suggestions</h3>
+                        <p data-translate="feature_recipe_desc">Get recipe recommendations based on your shopping list with ingredient matching.</p>
                     </div>
                     
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-share-alt"></i>
                         </div>
-                        <h3>Easy Sharing</h3>
-                        <p>Share your shopping lists via link or export to JSON/Text format.</p>
+                        <h3 data-translate="feature_sharing_title">Easy Sharing</h3>
+                        <p data-translate="feature_sharing_desc">Share your shopping lists via link or export to JSON/Text format.</p>
                     </div>
                     
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-mobile-alt"></i>
                         </div>
-                        <h3>Mobile Friendly</h3>
-                        <p>Fully responsive design that works perfectly on all devices.</p>
+                        <h3 data-translate="feature_mobile_title">Mobile Friendly</h3>
+                        <p data-translate="feature_mobile_desc">Fully responsive design that works perfectly on all devices.</p>
                     </div>
                 </div>
             </div>
@@ -154,26 +165,26 @@
         <!-- How It Works Section -->
         <section id="how-it-works" class="how-it-works-section">
             <div class="section-content">
-                <h2 class="section-title">How It Works</h2>
-                <p class="section-subtitle">Get your shopping list in 3 simple steps</p>
+                <h2 class="section-title" data-translate="how_it_works_title">How It Works</h2>
+                <p class="section-subtitle" data-translate="how_it_works_subtitle">Get your shopping list in 3 simple steps</p>
                 
                 <div class="steps-container">
                     <div class="step-card">
                         <div class="step-number">1</div>
-                        <h3>Describe Your Needs</h3>
-                        <p>Tell the AI what you need. For example: "I want a BBQ for 14 people" or use the form to provide details.</p>
+                        <h3 data-translate="step1_title">Describe Your Needs</h3>
+                        <p data-translate="step1_desc">Tell the AI what you need. For example: "I want a BBQ for 14 people" or use the form to provide details.</p>
                     </div>
                     
                     <div class="step-card">
                         <div class="step-number">2</div>
-                        <h3>AI Creates Your List</h3>
-                        <p>Our AI analyzes your request, calculates quantities, and selects the best products from Talabat Jordan.</p>
+                        <h3 data-translate="step2_title">AI Creates Your List</h3>
+                        <p data-translate="step2_desc">Our AI analyzes your request, calculates quantities, and selects the best products from Talabat Jordan.</p>
                     </div>
                     
                     <div class="step-card">
                         <div class="step-number">3</div>
-                        <h3>Shop & Share</h3>
-                        <p>Review your list, get recipe suggestions, share with others, or export for later use.</p>
+                        <h3 data-translate="step3_title">Shop & Share</h3>
+                        <p data-translate="step3_desc">Review your list, get recipe suggestions, share with others, or export for later use.</p>
                     </div>
                 </div>
             </div>
@@ -182,23 +193,23 @@
         <!-- About Section -->
         <section id="about" class="about-section">
             <div class="section-content">
-                <h2 class="section-title">About ShopAI Jordan</h2>
+                <h2 class="section-title" data-translate="about_title">About ShopAI Jordan</h2>
                 <div class="about-content">
                     <div class="about-text">
-                        <p>ShopAI Jordan is an intelligent shopping assistant designed specifically for Jordan. It helps you create smart shopping lists for any event, from family dinners to large parties.</p>
-                        <p>Powered by Groq AI, our system understands natural language and creates optimized shopping lists with real prices from Talabat Jordan. No more guessing quantities or forgetting items!</p>
+                        <p data-translate="about_text1">ShopAI Jordan is an intelligent shopping assistant designed specifically for Jordan. It helps you create smart shopping lists for any event, from family dinners to large parties.</p>
+                        <p data-translate="about_text2">Powered by Groq AI, our system understands natural language and creates optimized shopping lists with real prices from Talabat Jordan. No more guessing quantities or forgetting items!</p>
                         <div class="about-stats">
                             <div class="stat-item">
                                 <div class="stat-value">31+</div>
-                                <div class="stat-label">Products</div>
+                                <div class="stat-label" data-translate="stat_products">Products</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-value">100%</div>
-                                <div class="stat-label">Free</div>
+                                <div class="stat-label" data-translate="stat_free">Free</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-value">24/7</div>
-                                <div class="stat-label">Available</div>
+                                <div class="stat-label" data-translate="stat_available">Available</div>
                             </div>
                         </div>
                     </div>
@@ -209,19 +220,19 @@
         <div class="dashboard">
             <div class="stat-card">
                 <div class="stat-number" id="totalProducts">0</div>
-                <div class="stat-label">Products with Photos</div>
+                <div class="stat-label" data-translate="stat_products_photos">Products with Photos</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="totalCategories">0</div>
-                <div class="stat-label">Categories</div>
+                <div class="stat-label" data-translate="stat_categories">Categories</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">JOD</div>
-                <div class="stat-label">Jordan Currency</div>
+                <div class="stat-label" data-translate="stat_currency">Jordan Currency</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">FREE</div>
-                <div class="stat-label">AI Powered</div>
+                <div class="stat-label" data-translate="stat_ai_powered">AI Powered</div>
             </div>
         </div>
         
@@ -231,34 +242,34 @@
             <div class="card">
                 <div class="card-header">
                     <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
-                    <div class="card-title">Smart Shopping Planner</div>
+                    <div class="card-title" data-translate="planner_title">Smart Shopping Planner</div>
                 </div>
                 
                 <!-- Questionnaire Form -->
                 <div class="questionnaire">
                     <h3 style="margin-bottom: 1.5rem; color: var(--dark); font-size: 1.3rem; font-weight: 700;">
                         <i class="fas fa-clipboard-list" style="color: var(--primary); margin-right: 0.5rem;"></i>
-                        Event Planning Form
+                        <span data-translate="form_title">Event Planning Form</span>
                     </h3>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">
-                                <i class="fas fa-calendar-alt"></i> Event Type
+                                <i class="fas fa-calendar-alt"></i> <span data-translate="event_type">Event Type</span>
                             </label>
                             <select class="form-select" id="eventType">
-                                <option value="bbq">BBQ / Grilling</option>
-                                <option value="dinner">Dinner Party</option>
-                                <option value="lunch">Lunch Gathering</option>
-                                <option value="party">Party / Celebration</option>
-                                <option value="family">Family Meal</option>
-                                <option value="traditional">Traditional Jordanian</option>
+                                <option value="bbq" data-translate="event_bbq">BBQ / Grilling</option>
+                                <option value="dinner" data-translate="event_dinner">Dinner Party</option>
+                                <option value="lunch" data-translate="event_lunch">Lunch Gathering</option>
+                                <option value="party" data-translate="event_party">Party / Celebration</option>
+                                <option value="family" data-translate="event_family">Family Meal</option>
+                                <option value="traditional" data-translate="event_traditional">Traditional Jordanian</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">
-                                <i class="fas fa-users"></i> Number of People
+                                <i class="fas fa-users"></i> <span data-translate="num_people">Number of People</span>
                             </label>
                             <input type="number" class="form-input" id="numPeople" 
                                    value="14" min="1" max="100">
@@ -268,60 +279,88 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">
-                                <i class="fas fa-wallet"></i> Budget (JOD)
+                                <i class="fas fa-wallet"></i> <span data-translate="budget_label">Budget (JOD)</span>
                             </label>
                             <input type="number" class="form-input" id="budget" 
-                                   placeholder="e.g., 100" min="0" step="10">
+                                   data-translate="budget_placeholder" placeholder="e.g., 100" min="0" step="10">
                         </div>
                         
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fas fa-leaf"></i> Dietary Preferences
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-leaf"></i> <span data-translate="dietary_preferences">Dietary Preferences</span>
+                        </label>
+                        <select class="form-select" id="dietary">
+                            <option value="all" data-translate="dietary_all">All Foods</option>
+                            <option value="vegetarian" data-translate="dietary_vegetarian">Vegetarian</option>
+                            <option value="halal" data-translate="dietary_halal">Halal Only</option>
+                            <option value="no-beef" data-translate="dietary_no_beef">No Beef</option>
+                            <option value="no-chicken" data-translate="dietary_no_chicken">No Chicken</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-filter"></i> <span data-translate="filters_label">Filters</span>
+                        </label>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" id="filterHealthy" style="width: auto;">
+                                <span data-translate="filter_healthy">💚 Healthy Food</span>
                             </label>
-                            <select class="form-select" id="dietary">
-                                <option value="all">All Foods</option>
-                                <option value="vegetarian">Vegetarian</option>
-                                <option value="halal">Halal Only</option>
-                                <option value="no-beef">No Beef</option>
-                                <option value="no-chicken">No Chicken</option>
-                            </select>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" id="filterGlutenFree" style="width: auto;">
+                                <span data-translate="filter_gluten_free">🌾 Gluten-Free</span>
+                            </label>
                         </div>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">
-                            <i class="fas fa-comment"></i> Additional Requests (Optional)
+                            <i class="fas fa-sliders-h"></i> <span data-translate="nutritional_filters">Nutritional Filters</span>
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <input type="number" class="form-input" id="minProtein" data-translate="min_protein" placeholder="Min Protein (g/100g)" min="0" step="1" style="font-size: 0.9rem;">
+                            <input type="number" class="form-input" id="maxCalories" data-translate="max_calories" placeholder="Max Calories (cal/100g)" min="0" step="10" style="font-size: 0.9rem;">
+                        </div>
+                    </div>
+                </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i> <span data-translate="additional_requests">Additional Requests (Optional)</span>
                         </label>
                         <input type="text" class="form-input" id="additionalRequests" 
-                               placeholder="e.g., Extra vegetables, low budget, more drinks...">
+                               data-translate="additional_placeholder" placeholder="e.g., Extra vegetables, low budget, more drinks...">
                     </div>
                     
                     <button class="btn btn-primary" style="width: 100%; padding: 1.1rem; font-size: 1.05rem;" onclick="createSmartList()">
-                        <i class="fas fa-magic"></i> Generate Shopping List
+                        <i class="fas fa-magic"></i> <span data-translate="generate_list">Generate Shopping List</span>
                     </button>
                 </div>
                 
                 <!-- Or Chat Freely -->
-                <div style="text-align: center; margin: 1.5rem 0; color: var(--gray); font-weight: 600;">
+                <div style="text-align: center; margin: 1.5rem 0; color: var(--gray); font-weight: 600;" data-translate="or_text">
                     OR
                 </div>
                 
                 <div class="chat-container" id="chatContainer">
                     <div class="message bot">
-                        <strong>Welcome to ShopAI</strong><br><br>
-                        I'm your intelligent shopping assistant. Use the form above for detailed planning, 
+                        <strong data-translate="welcome_message">Welcome to ShopAI</strong><br><br>
+                        <span data-translate="welcome_desc">I'm your intelligent shopping assistant. Use the form above for detailed planning, 
                         or chat with me naturally about your shopping needs. I'll create perfect shopping 
-                        lists with real prices from Talabat Jordan.
-                        <div class="message-time">Just now</div>
+                        lists with real prices from Talabat Jordan.</span>
+                        <div class="message-time" data-translate="just_now">Just now</div>
                     </div>
                 </div>
                 
                 <div style="display: flex; gap: 1rem;">
                     <input type="text" id="chatInput" 
                            style="flex: 1; padding: 1rem 1.5rem; border: 2px solid var(--light); border-radius: 12px; font-size: 1rem;"
-                           placeholder="Or type freely...">
+                           data-translate="type_message" placeholder="Or type freely...">
                     <button class="btn btn-primary" onclick="sendMessage()">
-                        <i class="fas fa-paper-plane"></i> Send
+                        <i class="fas fa-paper-plane"></i> <span data-translate="send">Send</span>
                     </button>
                 </div>
             </div>
@@ -329,8 +368,185 @@
         </section>
         
         <div id="shoppingList"></div>
+        
+        <!-- Side Cart Panel -->
+        <div id="cartOverlay" class="cart-overlay" onclick="toggleCart()"></div>
+        <div id="sideCart" class="side-cart">
+            <div class="side-cart-header">
+                <h2 class="side-cart-title">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span data-translate="shopping_cart">Shopping Cart</span>
+                </h2>
+                <button class="cart-close-btn" onclick="toggleCart()" aria-label="Close Cart">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="side-cart-summary">
+                <span id="cartItemCount">0</span>
+                <span data-translate="items">items</span> • 
+                <span id="cartTotal">0.00</span> JOD
+            </div>
+            
+            <div id="cartItems" class="side-cart-items">
+                <div class="cart-empty">
+                    <i class="fas fa-shopping-cart"></i>
+                    <div data-translate="cart_empty">Your cart is empty</div>
+                    <div class="cart-empty-hint" data-translate="cart_empty_hint">Add items from chat or browse products</div>
+                </div>
+            </div>
+            
+            <div class="side-cart-footer" id="cartFooter" style="display: none;">
+                <div class="cart-total-section">
+                    <div class="cart-total-row">
+                        <span data-translate="total_items">Total Items:</span>
+                        <span id="cartFooterItemCount"><strong>0</strong></span>
+                    </div>
+                    <div class="cart-total-row">
+                        <span data-translate="total_cost">Total Cost:</span>
+                        <span class="cart-total-amount" id="cartFooterTotal"><strong>0.00 JOD</strong></span>
+                    </div>
+                </div>
+                <button class="btn btn-primary cart-checkout-btn" onclick="checkoutCart()">
+                    <i class="fas fa-credit-card"></i>
+                    <span data-translate="proceed_checkout">Proceed to Checkout</span>
+                </button>
+                <button class="btn btn-secondary cart-clear-btn" onclick="clearCart()">
+                    <i class="fas fa-trash-alt"></i>
+                    <span data-translate="clear_cart">Clear Cart</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Product Browse Section -->
+        <section id="browse" class="browse-section" style="margin-top: 4rem; padding: 3rem 0;">
+            <div class="section-content">
+                <h2 class="section-title">Browse Products</h2>
+                <p class="section-subtitle">Explore our full catalog with filters</p>
+                
+                <!-- Search and Filters -->
+                <div class="browse-controls">
+                    <div class="browse-filters-grid">
+                        <input type="text" id="productSearch" class="form-input" data-translate="search_products" placeholder="🔍 Search products..." style="font-size: 1.1rem; padding: 1rem 1.5rem;">
+                        <select id="categoryFilter" class="form-select" style="font-size: 1rem; padding: 1rem 1.5rem; transition: all 0.3s;">
+                            <option value="" data-translate="all_categories">📂 All Categories</option>
+                        </select>
+                        <select id="sortFilter" class="form-select" style="font-size: 1rem; padding: 1rem 1.5rem;">
+                            <option value="name" data-translate="sort_name">Sort by Name</option>
+                            <option value="price_low" data-translate="sort_price_low">Price: Low to High</option>
+                            <option value="price_high" data-translate="sort_price_high">Price: High to Low</option>
+                            <option value="calories_low" data-translate="sort_calories_low">Calories: Low to High</option>
+                            <option value="protein_high" data-translate="sort_protein_high">Protein: High to Low</option>
+                        </select>
+                    </div>
+                    
+                    <div class="browse-filters-row">
+                        <label class="browse-filter-checkbox">
+                            <input type="checkbox" id="browseHealthy">
+                            <span data-translate="healthy_only">💚 Healthy Only</span>
+                        </label>
+                        <label class="browse-filter-checkbox">
+                            <input type="checkbox" id="browseGlutenFree">
+                            <span data-translate="gluten_free">🌾 Gluten-Free</span>
+                        </label>
+                        <label class="browse-filter-checkbox">
+                            <input type="checkbox" id="browseVegetarian">
+                            <span data-translate="vegetarian">🥬 Vegetarian</span>
+                        </label>
+                        <label class="browse-filter-checkbox">
+                            <input type="checkbox" id="browseVegan">
+                            <span data-translate="vegan">🌱 Vegan</span>
+                        </label>
+                        <label class="browse-filter-checkbox">
+                            <input type="checkbox" id="browseOrganic">
+                            <span data-translate="organic">🌿 Organic</span>
+                        </label>
+                        <label class="browse-filter-checkbox">
+                            <input type="checkbox" id="browseHalal">
+                            <span data-translate="halal">🕌 Halal</span>
+                        </label>
+                    </div>
+                    
+                    <div class="browse-filters-row" style="margin-top: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <label style="font-weight: 600; color: var(--dark);">Min Protein (g/100g):</label>
+                            <input type="number" id="browseMinProtein" class="form-input" placeholder="0" min="0" step="1" style="width: 100px; padding: 0.5rem; font-size: 0.9rem;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <label style="font-weight: 600; color: var(--dark);">Max Calories (cal/100g):</label>
+                            <input type="number" id="browseMaxCalories" class="form-input" placeholder="∞" min="0" step="10" style="width: 100px; padding: 0.5rem; font-size: 0.9rem;">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Products Grid -->
+                <div id="productsGrid">
+                    <!-- Products will be loaded here -->
+                </div>
+                
+                <div id="productsLoading">
+                    <div class="spinner"></div>
+                    <div>Loading products...</div>
+                </div>
+            </div>
+        </section>
     </div>
     
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 class="footer-title" data-translate="footer_about_title">About ShopAI</h3>
+                <p class="footer-text" data-translate="footer_about_text">Your intelligent shopping assistant for Jordan. Powered by Groq AI, helping you create smart shopping lists with real prices from Talabat Jordan.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="footer-title" data-translate="footer_quick_links">Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="#home" data-translate="home">Home</a></li>
+                    <li><a href="#features" data-translate="features">Features</a></li>
+                    <li><a href="#browse" data-translate="browse_products">Browse Products</a></li>
+                    <li><a href="#how-it-works" data-translate="how_it_works">How It Works</a></li>
+                    <li><a href="#about" data-translate="about">About</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="footer-title" data-translate="footer_contact">Contact</h3>
+                <ul class="footer-links">
+                    <li><i class="fas fa-map-marker-alt"></i> <span data-translate="jordan">Jordan</span></li>
+                    <li><i class="fas fa-envelope"></i> <span data-translate="footer_email">support@shopai.jo</span></li>
+                    <li><i class="fas fa-globe"></i> <span data-translate="footer_website">www.shopai.jo</span></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="footer-title" data-translate="footer_follow">Follow Us</h3>
+                <div class="footer-social">
+                    <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                </div>
+                <p class="footer-text" style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;" data-translate="footer_powered_by">Powered by Groq AI</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p data-translate="footer_copyright">© 2024 ShopAI Jordan. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <!-- Scroll Buttons -->
+    <button id="scrollToTop" class="scroll-btn scroll-top" onclick="scrollToTop()" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    
+    <button id="scrollToBottom" class="scroll-btn scroll-bottom" onclick="scrollToBottom()" aria-label="Scroll to bottom">
+        <i class="fas fa-arrow-down"></i>
+    </button>
+    
+    <script src="{{ url_for('static', filename='js/translations.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

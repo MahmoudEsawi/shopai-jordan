@@ -16,7 +16,10 @@ flask-cors>=4.0.0
 # Selenium for dynamic content scraping
 selenium>=4.15.0
 
-# OpenAI for AI chat (optional but recommended)
+# AI Chat - Groq (FREE and FAST - recommended!)
+groq>=0.4.0
+
+# OpenAI for AI chat (optional alternative)
 openai>=1.3.0
 
 # Additional utilities
