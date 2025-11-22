@@ -7,7 +7,6 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0+-green?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)](https://github.com/MahmoudEsawi/shopai-jordan)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 **Transform your event planning with AI-powered shopping lists. Simply describe your needs, set your budget, and receive a complete shopping list with real prices from Talabat Jordan.**
 
@@ -30,6 +29,12 @@
 |:---:|:---:|:---:|:---:|
 | English & Arabic | Responsive design | Sliding side cart | Calories, protein, etc. |
 | RTL/LTR support | Smooth animations | Chat-based management | Dietary filters |
+
+| 🔐 User Accounts | 📈 Lose It Tracker | 🎯 UX Enhanced | 🌙 Dark Mode |
+|:---:|:---:|:---:|:---:|
+| Sign up/Sign in | Calorie & macro tracking | Smooth scrolling & animations | Toggle dark theme |
+| Personal data storage | AI food analysis | Form validation | Theme persistence |
+| Food logging | Weight & water tracking | Loading states | Beautiful dark UI |
 
 </div>
 
@@ -61,10 +66,30 @@
 - **🔍 Advanced Filters** - Filter by protein, calories, dietary preferences
 
 #### 🎨 User Experience
-- **📱 Responsive Design** - Works perfectly on all devices
+- **📱 Responsive Design** - Works perfectly on all devices (mobile, tablet, desktop)
 - **🎭 Smooth Animations** - Beautiful transitions and effects
 - **⬆️⬇️ Scroll Buttons** - Quick navigation with scroll to top/bottom
 - **📄 Professional Footer** - Complete footer with links and social media
+- **✨ UX Enhancements** - Loading states, form validation, empty states, tooltips
+- **⌨️ Keyboard Shortcuts** - Power user features (Ctrl+K for search, Escape to close)
+- **🎯 Focus States** - Accessible navigation with visible focus indicators
+- **🌙 Dark Mode** - Toggle between light and dark themes with persistence
+
+#### 🔐 Authentication & User Features
+- **👤 User Accounts** - Sign up and sign in functionality
+- **💾 Personal Data** - Save your shopping lists, food logs, and preferences
+- **🔒 Secure Sessions** - Password hashing and session management
+- **📊 User Profiles** - Store goals, activity level, weight, height, age, gender
+
+#### 📈 Lose It - Nutrition Tracker
+- **🍎 Food Logging** - Log meals with AI-powered nutrition analysis
+- **📊 Daily Summary** - Track calories, macros (protein, carbs, fats)
+- **💧 Water Tracking** - Log daily water intake
+- **⚖️ Weight Tracking** - Record and visualize weight progress
+- **🎯 Goal Setting** - AI-calculated calorie and macro goals
+- **📅 Weekly View** - Track calorie deficit/surplus over 7 days
+- **📈 Analytics Dashboard** - Beautiful charts and progress visualization
+- **🤖 AI Food Analysis** - Describe food naturally, get nutrition facts
 
 ---
 
@@ -170,6 +195,25 @@ Simply type your request naturally:
 4. Sort by price, calories, or protein
 5. Click "Add to Cart" on any product
 
+### Lose It - Nutrition Tracking
+
+1. **Sign Up/Sign In**: Create an account or sign in to save your data
+2. **Set Profile**: Enter your goals, activity level, weight, height, age, gender
+3. **Log Food**: 
+   - Use Smart Search to find foods
+   - Describe food naturally (e.g., "grilled chicken breast 200g")
+   - AI analyzes and provides nutrition facts
+   - Log to Breakfast, Lunch, Dinner, or Snacks
+4. **Track Progress**: View daily calories, macros, water intake, and weight trends
+5. **Weekly View**: See your weekly calorie deficit/surplus
+
+### User Account Features
+
+- **Sign Up**: Create account with email and password
+- **Sign In**: Access your saved data
+- **Profile**: Set goals and personal information
+- **Data Persistence**: All your food logs, weight, and water intake are saved
+
 ---
 
 ## 🏗️ Project Structure
@@ -183,16 +227,39 @@ shopai-jordan/
 ├── cart_manager.py              # Cart management
 ├── recipe_suggestions.py        # Recipe recommendations
 ├── list_sharing.py              # List sharing functionality
+├── user_database.py              # User authentication & data
+├── food_analyzer.py              # AI food nutrition analysis
+├── calorie_calculator.py         # BMR, TDEE, goal calculations
 ├── templates/
-│   └── index.html              # Main HTML template
+│   ├── index.html              # Main HTML template
+│   ├── auth.html               # Sign up/Sign in page
+│   └── loseit.html             # Lose It nutrition tracker
 ├── static/
 │   ├── css/
 │   │   ├── style.css           # Main stylesheet
 │   │   ├── cart-sidebar.css   # Cart panel styles
-│   │   └── footer.css          # Footer styles
+│   │   ├── footer.css          # Footer styles
+│   │   ├── auth.css            # Authentication styles
+│   │   ├── loseit-premium.css  # Lose It tracker styles
+│   │   ├── darkmode.css        # Dark mode styles
+│   │   ├── toast.css           # Toast notifications
+│   │   ├── wishlist.css        # Wishlist styles
+│   │   ├── loading.css          # Loading skeletons
+│   │   ├── modal.css            # Modal styles
+│   │   ├── quick-view.css       # Product quick view
+│   │   └── ux-enhancements.css  # UX improvements
 │   └── js/
 │       ├── main.js            # Main JavaScript
-│       └── translations.js     # Translation system
+│       ├── translations.js     # Translation system
+│       ├── auth.js             # Authentication logic
+│       ├── loseit-premium.js   # Lose It tracker logic
+│       ├── darkmode.js         # Dark mode toggle
+│       ├── toast.js            # Toast notifications
+│       ├── wishlist.js         # Wishlist functionality
+│       ├── shortcuts.js        # Keyboard shortcuts
+│       ├── product-modal.js    # Product quick view
+│       ├── wishlist-panel.js   # Wishlist panel
+│       └── ux-enhancements.js  # UX improvements
 ├── scripts/
 │   └── talabat_mart_jordan_products.py  # Product data
 ├── docs/                       # Documentation
@@ -238,6 +305,25 @@ shopai-jordan/
 - Remove items with "remove [product name]"
 - Update quantities with "change [item] to [quantity]"
 - Conversational requests like "add something with protein"
+
+### 🔐 Authentication System
+- User registration and login
+- Secure password hashing
+- Session management
+- Personal data storage
+- User profiles with goals and preferences
+
+### 📈 Lose It Nutrition Tracker
+- **3-Column Premium Dashboard** - Desktop-optimized layout (1920x1080)
+- **Smart Food Search** - AI-powered food search with predictions
+- **Food Logging** - Log meals to Breakfast, Lunch, Dinner, Snacks
+- **AI Nutrition Analysis** - Describe food naturally, get accurate nutrition facts
+- **Daily Summary** - Track calories, macros, water, weight
+- **Weekly View** - See calorie deficit/surplus over 7 days
+- **Goal Tracking** - AI-calculated calorie and macro goals
+- **Weight Progress** - Sparkline graph showing weight trends
+- **Hydration Tracker** - Quick-click water logging
+- **Fasting Timer** - Intermittent fasting support (coming soon)
 
 ---
 
@@ -323,6 +409,64 @@ Update product quantity in cart.
 ### `POST /api/cart/clear`
 Clear entire cart.
 
+### `POST /api/auth/register`
+Register a new user.
+
+**Request:**
+```json
+{
+  "username": "user@example.com",
+  "password": "securepassword"
+}
+```
+
+### `POST /api/auth/login`
+Sign in user.
+
+### `GET /api/loseit/daily-summary`
+Get daily nutrition summary for authenticated user.
+
+**Headers:**
+- `X-User-ID`: User ID from session
+
+**Query Parameters:**
+- `date` - Date in ISO format (optional, defaults to today)
+
+### `POST /api/loseit/analyze-food`
+Analyze food description and get nutrition facts.
+
+**Request:**
+```json
+{
+  "description": "grilled chicken breast 200g"
+}
+```
+
+### `POST /api/loseit/log-food`
+Log food entry.
+
+**Request:**
+```json
+{
+  "food_name": "Grilled Chicken Breast",
+  "quantity": 200,
+  "meal_type": "lunch",
+  "calories": 330,
+  "protein": 62,
+  "carbs": 0,
+  "fats": 7.2
+}
+```
+
+### `POST /api/loseit/log-weight`
+Log weight entry.
+
+### `POST /api/loseit/log-water`
+Log water intake.
+
+### `GET /api/loseit/weekly-summary`
+Get weekly nutrition summary and deficit.
+
 ---
 
 ## 🛠️ Development
@@ -369,6 +513,8 @@ Then add `data-translate="new_key"` to HTML elements.
 - **requests** - HTTP requests
 - **groq** - Groq AI SDK
 - **python-dotenv** - Environment variables
+- **Chart.js** - Charts and graphs (via CDN)
+- **Font Awesome** - Icons (via CDN)
 
 See `requirements.txt` for complete list.
 
@@ -437,7 +583,22 @@ python3 scripts/talabat_mart_jordan_products.py
 
 ## 🎯 Recent Updates
 
-### Version 2.0 - Major Features
+### Version 3.0 - Major Features
+- ✅ **User Authentication** - Sign up, sign in, user profiles
+- ✅ **Lose It Nutrition Tracker** - Complete calorie and macro tracking system
+- ✅ **AI Food Analysis** - Natural language food description to nutrition facts
+- ✅ **3-Column Premium Dashboard** - Desktop-optimized layout for nutrition tracking
+- ✅ **Daily & Weekly Analytics** - Track calories, macros, deficit/surplus
+- ✅ **Weight & Water Tracking** - Progress visualization
+- ✅ **Dark Mode** - Toggle between light and dark themes
+- ✅ **UX Enhancements** - Loading states, form validation, smooth animations
+- ✅ **Keyboard Shortcuts** - Power user features
+- ✅ **Wishlist** - Save products for later
+- ✅ **Toast Notifications** - Replace alerts with beautiful notifications
+- ✅ **Product Quick View** - Modal with detailed product information
+- ✅ **Mobile Responsive** - Full mobile support for all features
+
+### Version 2.0 - Previous Features
 - ✅ Sliding side cart with smooth animations
 - ✅ Full Arabic language support with RTL/LTR
 - ✅ Chat-based cart management
@@ -474,10 +635,6 @@ For issues or questions:
 - 💬 Start a [Discussion](https://github.com/MahmoudEsawi/shopai-jordan/discussions)
 
 ---
-
-## 📄 License
-
-This project is licensed under the MIT License.
 
 ---
 
