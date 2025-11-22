@@ -5,8 +5,52 @@ body.dark-mode {
 }
 
 body.dark-mode .navbar {
-    background: #2c2c2c;
+    background: rgba(44, 44, 44, 0.95);
     border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .nav-content {
+    background: transparent;
+}
+
+body.dark-mode .nav-icon-btn {
+    color: #e0e0e0;
+}
+
+body.dark-mode .nav-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #3b82f6;
+}
+
+body.dark-mode .nav-link {
+    color: #e0e0e0;
+}
+
+body.dark-mode .nav-link:hover {
+    color: #3b82f6;
+}
+
+body.dark-mode .nav-btn {
+    background: #3b82f6;
+    color: white;
+}
+
+body.dark-mode .nav-btn:hover {
+    background: #2563eb;
+}
+
+body.dark-mode .mobile-menu-toggle {
+    color: #e0e0e0;
+}
+
+@media (max-width: 1024px) {
+    body.dark-mode .nav-menu {
+        background: #2c2c2c;
+    }
+    
+    body.dark-mode .nav-link {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
 }
 
 body.dark-mode .nav-link {

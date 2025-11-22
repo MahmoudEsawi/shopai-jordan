@@ -1,19 +1,33 @@
-// Cart Toggle Functions
+// Cart Toggle Functions - Improved to prevent glitching
 function toggleCart() {
     const sideCart = document.getElementById('sideCart');
     const overlay = document.getElementById('cartOverlay');
     
-    if (sideCart && overlay) {
-        sideCart.classList.toggle('active');
-        overlay.classList.toggle('active');
-        
-        // Prevent body scroll when cart is open
-        if (sideCart.classList.contains('active')) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
+    if (!sideCart || !overlay) return;
+    
+    // Prevent multiple rapid toggles
+    if (sideCart.classList.contains('toggling')) return;
+    sideCart.classList.add('toggling');
+    
+    const isActive = sideCart.classList.contains('active');
+    
+    if (isActive) {
+        // Closing cart
+        sideCart.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    } else {
+        // Opening cart - load cart first
+        loadCart();
+        sideCart.classList.add('active');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
+    
+    // Remove toggling flag after animation completes
+    setTimeout(() => {
+        sideCart.classList.remove('toggling');
+    }, 300);
 }
 
 // Close cart when clicking outside
@@ -917,77 +931,86 @@ let cartUpdateTimeout = null;
 let isUpdatingCart = false;
 
 function updateCartDisplay(cart) {
-    // Debounce rapid updates
+    // Debounce rapid updates - prevent glitching from multiple rapid calls
     if (cartUpdateTimeout) {
         clearTimeout(cartUpdateTimeout);
     }
     
     cartUpdateTimeout = setTimeout(() => {
         _updateCartDisplay(cart);
-    }, 50); // Small delay to batch rapid updates
+    }, 150); // Increased delay for stability
 }
 
 function _updateCartDisplay(cart) {
-    if (isUpdatingCart) return; // Prevent concurrent updates
+    // Prevent concurrent updates - queue if already updating
+    if (isUpdatingCart) {
+        // Queue this update for after current one completes
+        setTimeout(() => _updateCartDisplay(cart), 200);
+        return;
+    }
+    
     isUpdatingCart = true;
     
-    // Use requestAnimationFrame for smooth updates
+    // Use requestAnimationFrame for smooth DOM updates
     requestAnimationFrame(() => {
         try {
-            const cartItemsEl = document.getElementById('cartItems');
-            const cartItemCountEl = document.getElementById('cartItemCount');
-            const cartTotalEl = document.getElementById('cartTotal');
-            const navCartCount = document.getElementById('navCartCount');
-            const cartFooter = document.getElementById('cartFooter');
-            const cartFooterItemCount = document.getElementById('cartFooterItemCount');
-            const cartFooterTotal = document.getElementById('cartFooterTotal');
-            
-            // Store cart data for language switching
-            localStorage.setItem('lastCartData', JSON.stringify(cart));
-            
-            if (!cartItemsEl) {
-                isUpdatingCart = false;
-                return;
-            }
-            
-            // Update summary (fast, no DOM manipulation)
-            const itemCount = cart.total_items || 0;
-            if (cartItemCountEl) {
-                cartItemCountEl.textContent = itemCount;
-            }
-            if (cartTotalEl) {
-                cartTotalEl.textContent = (cart.total_cost || 0).toFixed(2);
-            }
-            if (navCartCount) {
-                navCartCount.textContent = itemCount;
-                navCartCount.style.display = itemCount > 0 ? 'inline-block' : 'none';
-            }
-            
-            // Update footer totals
-            if (cartFooterItemCount) {
-                cartFooterItemCount.innerHTML = `<strong>${itemCount}</strong>`;
-            }
-            if (cartFooterTotal) {
-                cartFooterTotal.innerHTML = `<strong>${(cart.total_cost || 0).toFixed(2)} JOD</strong>`;
-            }
-            
-            // Show/hide footer with smooth transition
-            if (cartFooter) {
-                const shouldShow = cart.items && cart.items.length > 0;
-                if (shouldShow && cartFooter.style.display === 'none') {
+        const cartItemsEl = document.getElementById('cartItems');
+        const cartItemCountEl = document.getElementById('cartItemCount');
+        const cartTotalEl = document.getElementById('cartTotal');
+        const navCartCount = document.getElementById('navCartCount');
+        const cartFooter = document.getElementById('cartFooter');
+        const cartFooterItemCount = document.getElementById('cartFooterItemCount');
+        const cartFooterTotal = document.getElementById('cartFooterTotal');
+        
+        // Store cart data for language switching
+        localStorage.setItem('lastCartData', JSON.stringify(cart));
+        
+        if (!cartItemsEl) {
+            isUpdatingCart = false;
+            return;
+        }
+        
+        // Update summary (fast, no DOM manipulation)
+        const itemCount = cart.total_items || 0;
+        if (cartItemCountEl) {
+            cartItemCountEl.textContent = itemCount;
+        }
+        if (cartTotalEl) {
+            cartTotalEl.textContent = (cart.total_cost || 0).toFixed(2);
+        }
+        if (navCartCount) {
+            navCartCount.textContent = itemCount;
+            navCartCount.style.display = itemCount > 0 ? 'inline-block' : 'none';
+        }
+        
+        // Update footer totals
+        if (cartFooterItemCount) {
+            cartFooterItemCount.innerHTML = `<strong>${itemCount}</strong>`;
+        }
+        if (cartFooterTotal) {
+            cartFooterTotal.innerHTML = `<strong>${(cart.total_cost || 0).toFixed(2)} JOD</strong>`;
+        }
+        
+        // Show/hide footer with smooth transition
+        if (cartFooter) {
+            const shouldShow = cart.items && cart.items.length > 0;
+            if (shouldShow) {
+                if (cartFooter.style.display === 'none') {
                     cartFooter.style.display = 'block';
-                    // Trigger reflow for animation
-                    cartFooter.offsetHeight;
-                    cartFooter.style.opacity = '1';
-                } else if (!shouldShow) {
-                    cartFooter.style.opacity = '0';
-                    setTimeout(() => {
-                        if (cartFooter.style.opacity === '0') {
-                            cartFooter.style.display = 'none';
-                        }
-                    }, 200);
+                    // Use requestAnimationFrame for smooth transition
+                    requestAnimationFrame(() => {
+                        cartFooter.style.opacity = '1';
+                    });
                 }
+            } else {
+                cartFooter.style.opacity = '0';
+                setTimeout(() => {
+                    if (cartFooter && cartFooter.style.opacity === '0') {
+                        cartFooter.style.display = 'none';
+                    }
+                }, 200);
             }
+        }
             
             // Display cart items - build HTML string for better performance
             let html = '';
@@ -1025,7 +1048,7 @@ function _updateCartDisplay(cart) {
                     const productUrl = item.product_url ? escapeHtml(item.product_url) : '';
                     
                     html += `
-                        <div class="cart-item" data-product-id="${productId}" style="opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease ${index * 0.05}s, transform 0.3s ease ${index * 0.05}s;">
+                        <div class="cart-item" data-product-id="${productId}">
                             <div class="cart-item-image">
                                 <img src="${imageUrl}" 
                                      alt="${productName}"
@@ -1072,17 +1095,8 @@ function _updateCartDisplay(cart) {
                 });
             }
             
-            // Replace content smoothly
+            // Replace content smoothly - use single DOM update
             cartItemsEl.innerHTML = html;
-            
-            // Trigger animations after a brief delay
-            setTimeout(() => {
-                const items = cartItemsEl.querySelectorAll('.cart-item');
-                items.forEach((item, index) => {
-                    item.style.opacity = '1';
-                    item.style.transform = 'translateY(0)';
-                });
-            }, 10);
             
             // Re-translate if language system is loaded
             if (typeof setLanguage === 'function') {
@@ -1091,8 +1105,12 @@ function _updateCartDisplay(cart) {
             
         } catch (error) {
             console.error('Error updating cart display:', error);
-        } finally {
             isUpdatingCart = false;
+        } finally {
+            // Reset flag after DOM settles
+            setTimeout(() => {
+                isUpdatingCart = false;
+            }, 100);
         }
     });
 }

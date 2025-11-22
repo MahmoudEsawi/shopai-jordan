@@ -25,3 +25,6 @@ openai>=1.3.0
 # Additional utilities
 python-dotenv>=1.0.0
 
+# Payment processing
+stripe>=7.0.0
+

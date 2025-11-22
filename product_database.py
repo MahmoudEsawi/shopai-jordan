@@ -95,12 +95,83 @@ class ProductDatabase:
             END
         """)
         
+        # Create product_brands table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS product_brands (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                description TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+        
+        # Create product_types table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS product_types (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                description TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+        
+        # Add product_type_id column if it doesn't exist
+        try:
+            cursor.execute("ALTER TABLE products ADD COLUMN product_type_id INTEGER")
+            cursor.execute("ALTER TABLE products ADD COLUMN product_brand_id INTEGER")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        
         # Create indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_store ON products(store_name)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_category ON products(category)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_price ON products(price)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_brand ON products(product_brand_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_type ON products(product_type_id)")
+        
+        # Insert default brands and types if they don't exist
+        self._seed_brands_and_types(cursor)
         
         self.conn.commit()
+    
+    def _seed_brands_and_types(self, cursor):
+        """Seed default brands and types"""
+        # Default brands
+        brands = [
+            ('Almarai', 'Leading dairy and food products brand'),
+            ('Nestle', 'Global food and beverage company'),
+            ('Coca-Cola', 'Beverage company'),
+            ('Pepsi', 'Beverage company'),
+            ('Danone', 'Food products company'),
+            ('Unilever', 'Consumer goods company'),
+            ('Local Brand', 'Local Jordanian brand')
+        ]
+        
+        for brand_name, description in brands:
+            cursor.execute("""
+                INSERT OR IGNORE INTO product_brands (name, description, created_at)
+                VALUES (?, ?, ?)
+            """, (brand_name, description, datetime.now().isoformat()))
+        
+        # Default types
+        types = [
+            ('Dairy', 'Milk, cheese, yogurt products'),
+            ('Meat', 'Fresh and processed meat products'),
+            ('Beverages', 'Drinks and juices'),
+            ('Fruits & Vegetables', 'Fresh produce'),
+            ('Bakery', 'Bread and baked goods'),
+            ('Snacks', 'Chips, crackers, snacks'),
+            ('Frozen', 'Frozen food products'),
+            ('Pantry', 'Canned and dry goods'),
+            ('Personal Care', 'Health and beauty products'),
+            ('Household', 'Cleaning and household items')
+        ]
+        
+        for type_name, description in types:
+            cursor.execute("""
+                INSERT OR IGNORE INTO product_types (name, description, created_at)
+                VALUES (?, ?, ?)
+            """, (type_name, description, datetime.now().isoformat()))
     
     def add_product(self, product: Dict[str, Any]) -> bool:
         """Add a product to the database"""
@@ -185,6 +256,18 @@ class ProductDatabase:
                 count += 1
         return count
     
+    def get_brands(self) -> List[Dict[str, Any]]:
+        """Get all product brands"""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM product_brands ORDER BY name")
+        return [dict(row) for row in cursor.fetchall()]
+    
+    def get_types(self) -> List[Dict[str, Any]]:
+        """Get all product types"""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM product_types ORDER BY name")
+        return [dict(row) for row in cursor.fetchall()]
+    
     def search_products(
         self,
         query: Optional[str] = None,
@@ -193,64 +276,125 @@ class ProductDatabase:
         min_price: Optional[float] = None,
         max_price: Optional[float] = None,
         limit: int = 50,
+        offset: int = 0,
+        sort: Optional[str] = None,
+        brand_id: Optional[int] = None,
+        type_id: Optional[int] = None,
         healthy_only: bool = False,
         gluten_free: bool = False,
+        vegetarian: bool = False,
+        vegan: bool = False,
+        organic: bool = False,
+        halal: bool = False,
         min_protein: Optional[float] = None,
         max_calories: Optional[float] = None
-    ) -> List[Dict[str, Any]]:
-        """Search products with filters"""
+    ) -> Dict[str, Any]:
+        """Search products with filters and pagination"""
         
         cursor = self.conn.cursor()
         
+        # Build base query
         if query:
             # Full-text search
-            sql = """
+            base_sql = """
                 SELECT p.* FROM products p
                 JOIN products_fts fts ON p.rowid = fts.rowid
                 WHERE products_fts MATCH ?
             """
             params = [query]
         else:
-            sql = "SELECT * FROM products WHERE 1=1"
+            base_sql = "SELECT * FROM products WHERE 1=1"
             params = []
         
         # Add filters
         if store_name:
-            sql += " AND store_name = ?"
+            base_sql += " AND store_name = ?"
             params.append(store_name)
         
         if category:
-            sql += " AND category LIKE ?"
+            base_sql += " AND category LIKE ?"
             params.append(f"%{category}%")
         
+        if brand_id:
+            base_sql += " AND product_brand_id = ?"
+            params.append(brand_id)
+        
+        if type_id:
+            base_sql += " AND product_type_id = ?"
+            params.append(type_id)
+        
         if min_price is not None:
-            sql += " AND price >= ?"
+            base_sql += " AND price >= ?"
             params.append(min_price)
         
         if max_price is not None:
-            sql += " AND price <= ?"
+            base_sql += " AND price <= ?"
             params.append(max_price)
         
         if healthy_only:
-            sql += " AND is_healthy = 1"
+            base_sql += " AND is_healthy = 1"
         
         if gluten_free:
-            sql += " AND is_gluten_free = 1"
+            base_sql += " AND is_gluten_free = 1"
+        
+        if vegetarian:
+            base_sql += " AND is_vegetarian = 1"
+        
+        if vegan:
+            base_sql += " AND is_vegan = 1"
+        
+        if organic:
+            base_sql += " AND is_organic = 1"
+        
+        if halal:
+            base_sql += " AND is_halal = 1"
         
         if min_protein is not None:
-            sql += " AND protein_per_100g >= ?"
+            base_sql += " AND protein_per_100g >= ?"
             params.append(min_protein)
         
         if max_calories is not None:
-            sql += " AND calories_per_100g <= ?"
+            base_sql += " AND calories_per_100g <= ?"
             params.append(max_calories)
         
-        sql += f" LIMIT {limit}"
+        # Get total count for pagination
+        count_sql = f"SELECT COUNT(*) FROM ({base_sql})"
+        cursor.execute(count_sql, params)
+        total_count = cursor.fetchone()[0]
         
-        cursor.execute(sql, params)
+        # Add sorting
+        if sort:
+            if sort == 'price_asc' or sort == 'price_low':
+                base_sql += " ORDER BY price ASC"
+            elif sort == 'price_desc' or sort == 'price_high':
+                base_sql += " ORDER BY price DESC"
+            elif sort == 'name_asc':
+                base_sql += " ORDER BY name ASC"
+            elif sort == 'name_desc':
+                base_sql += " ORDER BY name DESC"
+            elif sort == 'calories_low':
+                base_sql += " ORDER BY calories_per_100g ASC"
+            elif sort == 'protein_high':
+                base_sql += " ORDER BY protein_per_100g DESC"
+        else:
+            base_sql += " ORDER BY name ASC"
+        
+        # Add pagination
+        base_sql += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+        
+        cursor.execute(base_sql, params)
         rows = cursor.fetchall()
         
-        return [dict(row) for row in rows]
+        products = [dict(row) for row in rows]
+        
+        return {
+            "products": products,
+            "total": total_count,
+            "page": (offset // limit) + 1 if limit > 0 else 1,
+            "page_size": limit,
+            "total_pages": (total_count + limit - 1) // limit if limit > 0 else 1
+        }
     
     def get_categories(self, store_name: Optional[str] = None) -> List[str]:
         """Get all categories"""

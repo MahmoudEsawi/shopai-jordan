@@ -95,6 +95,25 @@ class UserDatabase:
             )
         """)
         
+        # User addresses
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_addresses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                street TEXT NOT NULL,
+                city TEXT NOT NULL,
+                country TEXT NOT NULL,
+                postal_code TEXT,
+                phone_number TEXT,
+                is_default INTEGER DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+        
         # Water intake
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS water_logs (
@@ -111,6 +130,7 @@ class UserDatabase:
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_food_logs_user_date ON food_logs(user_id, date)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_weight_logs_user_date ON weight_logs(user_id, date)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_water_logs_user_date ON water_logs(user_id, date)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_addresses_user_id ON user_addresses(user_id)")
         
         self.conn.commit()
     
@@ -422,5 +442,117 @@ class UserDatabase:
             self.conn.commit()
             return cursor.rowcount > 0
         except Exception as e:
+            return False
+    
+    # Address Management Methods
+    def add_address(self, user_id: int, first_name: str, last_name: str,
+                   street: str, city: str, country: str,
+                   postal_code: str = None, phone_number: str = None,
+                   is_default: bool = False) -> Dict[str, Any]:
+        """Add a new address for user"""
+        try:
+            # If this is default, unset other defaults
+            if is_default:
+                cursor = self.conn.cursor()
+                cursor.execute("""
+                    UPDATE user_addresses SET is_default = 0 WHERE user_id = ?
+                """, (user_id,))
+            
+            created_at = datetime.now().isoformat()
+            cursor = self.conn.cursor()
+            cursor.execute("""
+                INSERT INTO user_addresses 
+                (user_id, first_name, last_name, street, city, country,
+                 postal_code, phone_number, is_default, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (user_id, first_name, last_name, street, city, country,
+                  postal_code, phone_number, 1 if is_default else 0,
+                  created_at, created_at))
+            
+            address_id = cursor.lastrowid
+            self.conn.commit()
+            
+            return {
+                "success": True,
+                "address_id": address_id,
+                "message": "Address added successfully"
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    def get_user_addresses(self, user_id: int) -> List[Dict[str, Any]]:
+        """Get all addresses for a user"""
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT * FROM user_addresses
+            WHERE user_id = ?
+            ORDER BY is_default DESC, created_at DESC
+        """, (user_id,))
+        return [dict(row) for row in cursor.fetchall()]
+    
+    def get_default_address(self, user_id: int) -> Optional[Dict[str, Any]]:
+        """Get default address for user"""
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT * FROM user_addresses
+            WHERE user_id = ? AND is_default = 1
+            LIMIT 1
+        """, (user_id,))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+    
+    def update_address(self, address_id: int, user_id: int, **kwargs) -> bool:
+        """Update an address"""
+        try:
+            allowed_fields = [
+                'first_name', 'last_name', 'street', 'city', 'country',
+                'postal_code', 'phone_number', 'is_default'
+            ]
+            
+            updates = []
+            values = []
+            
+            for key, value in kwargs.items():
+                if key in allowed_fields:
+                    if key == 'is_default' and value:
+                        # Unset other defaults first
+                        cursor = self.conn.cursor()
+                        cursor.execute("""
+                            UPDATE user_addresses SET is_default = 0 WHERE user_id = ?
+                        """, (user_id,))
+                    updates.append(f"{key} = ?")
+                    values.append(value)
+            
+            if not updates:
+                return False
+            
+            values.append(datetime.now().isoformat())  # updated_at
+            values.append(address_id)
+            values.append(user_id)  # Ensure user owns this address
+            
+            cursor = self.conn.cursor()
+            cursor.execute(f"""
+                UPDATE user_addresses
+                SET {', '.join(updates)}, updated_at = ?
+                WHERE id = ? AND user_id = ?
+            """, values)
+            
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error updating address: {e}")
+            return False
+    
+    def delete_address(self, address_id: int, user_id: int) -> bool:
+        """Delete an address"""
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("""
+                DELETE FROM user_addresses WHERE id = ? AND user_id = ?
+            """, (address_id, user_id))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error deleting address: {e}")
             return False
 

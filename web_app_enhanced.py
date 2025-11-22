@@ -22,6 +22,12 @@ from cart_manager import CartManager
 from user_database import UserDatabase
 from food_analyzer import FoodAnalyzer
 from calorie_calculator import CalorieCalculator
+from order_manager import OrderManager
+from payment_service import PaymentService
+from api_error_handler import (
+    APIError, BadRequestError, UnauthorizedError, NotFoundError, InternalServerError,
+    error_response, handle_error, success_response
+)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -35,6 +41,8 @@ list_sharing = ListSharing()
 user_db = UserDatabase()
 food_analyzer = FoodAnalyzer()
 calorie_calculator = CalorieCalculator()
+order_manager = OrderManager()
+payment_service = PaymentService()
 
 # Cart storage (in production, use session or database)
 user_carts = {}  # {session_id: CartManager}
@@ -147,20 +155,48 @@ def get_products():
         category = request.args.get('category')
         search_query = request.args.get('q')
         
-        # Search products with filters
-        products = db.search_products(
+        # Pagination
+        page_size = int(request.args.get('PageSize', request.args.get('page_size', 50)))
+        page_index = int(request.args.get('PageIndex', request.args.get('page_index', 1)))
+        offset = (page_index - 1) * page_size if page_index > 0 else 0
+        
+        # Sorting
+        sort = request.args.get('sort', '').strip()
+        
+        # Brand and Type filters
+        brand_id = request.args.get('BrandId') or request.args.get('brand_id')
+        type_id = request.args.get('TypeId') or request.args.get('type_id')
+        brand_id = int(brand_id) if brand_id else None
+        type_id = int(type_id) if type_id else None
+        
+        # Additional filters
+        vegetarian = request.args.get('vegetarian', 'false').lower() == 'true'
+        vegan = request.args.get('vegan', 'false').lower() == 'true'
+        organic = request.args.get('organic', 'false').lower() == 'true'
+        halal = request.args.get('halal', 'false').lower() == 'true'
+        
+        # Search products with filters and pagination
+        result = db.search_products(
             query=search_query,
             category=category,
+            brand_id=brand_id,
+            type_id=type_id,
             healthy_only=healthy_only,
             gluten_free=gluten_free,
+            vegetarian=vegetarian,
+            vegan=vegan,
+            organic=organic,
+            halal=halal,
             min_protein=min_protein,
             max_calories=max_calories,
-            limit=500
+            limit=page_size,
+            offset=offset,
+            sort=sort if sort else None
         )
         
         # Convert to JSON-serializable format
         products_list = []
-        for product in products:
+        for product in result.get("products", []):
             # Handle both integer (0/1) and boolean values
             is_gluten_free = product.get('is_gluten_free')
             is_vegetarian = product.get('is_vegetarian')
@@ -188,19 +224,43 @@ def get_products():
                 'is_vegan': bool(is_vegan) if is_vegan is not None else False,
                 'is_healthy': bool(is_healthy) if is_healthy is not None else False,
                 'is_organic': bool(is_organic) if is_organic is not None else False,
-                'is_halal': bool(product.get('is_halal', 1)) if product.get('is_halal') is not None else True
+                'is_halal': bool(product.get('is_halal', 1)) if product.get('is_halal') is not None else True,
+                'brand': product.get('brand'),
+                'product_brand_id': product.get('product_brand_id'),
+                'product_type_id': product.get('product_type_id')
             })
         
         return jsonify({
             "success": True,
             "products": products_list,
-            "count": len(products_list)
+            "total": result.get("total", 0),
+            "page": result.get("page", 1),
+            "page_size": result.get("page_size", page_size),
+            "total_pages": result.get("total_pages", 1)
         })
     except Exception as e:
         import traceback
         print(f"Error getting products: {e}")
         print(traceback.format_exc())
         return jsonify({"error": str(e), "success": False}), 500
+
+@app.route('/api/products/brands', methods=['GET'])
+def get_product_brands():
+    """Get all product brands"""
+    try:
+        brands = db.get_brands()
+        return jsonify({"success": True, "brands": brands})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/products/types', methods=['GET'])
+def get_product_types():
+    """Get all product types"""
+    try:
+        types = db.get_types()
+        return jsonify({"success": True, "types": types})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 def is_shopping_request(message: str) -> bool:
     """Check if message is a shopping request (not just greeting or simple cart)"""
@@ -1267,6 +1327,295 @@ def get_weekly_summary():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+# ============================================
+# ORDER API ENDPOINTS
+# ============================================
+
+@app.route('/api/orders/delivery-methods', methods=['GET'])
+def get_delivery_methods():
+    """Get all available delivery methods"""
+    try:
+        methods = order_manager.get_delivery_methods()
+        return jsonify({"success": True, "delivery_methods": methods})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/orders', methods=['GET'])
+def get_orders():
+    """Get all orders for current user"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        orders = order_manager.get_user_orders(int(user_id))
+        return jsonify({"success": True, "orders": orders})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/orders/<int:order_id>', methods=['GET'])
+def get_order(order_id):
+    """Get order by ID"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        order = order_manager.get_order_by_id(order_id)
+        if not order:
+            return jsonify({"success": False, "error": "Order not found"}), 404
+        
+        # Verify user owns this order
+        if order['user_id'] != int(user_id):
+            return jsonify({"success": False, "error": "Unauthorized"}), 403
+        
+        return jsonify({"success": True, "order": order})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/orders', methods=['POST'])
+def create_order():
+    """Create a new order from cart"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.get_json()
+        session_id = request.headers.get('X-Session-ID', 'default')
+        
+        # Get cart
+        if session_id not in user_carts:
+            return jsonify({"success": False, "error": "Cart is empty"}), 400
+        
+        cart = user_carts[session_id]
+        cart_items = cart.get_items()
+        
+        if not cart_items:
+            return jsonify({"success": False, "error": "Cart is empty"}), 400
+        
+        # Get delivery method and address
+        delivery_method_id = data.get('delivery_method_id', 1)
+        shipping_address = data.get('shipping_address')
+        
+        if not shipping_address:
+            return jsonify({"success": False, "error": "Shipping address is required"}), 400
+        
+        # Create order
+        order = order_manager.create_order(
+            user_id=int(user_id),
+            cart_items=cart_items,
+            delivery_method_id=delivery_method_id,
+            shipping_address=shipping_address,
+            payment_intent_id=data.get('payment_intent_id')
+        )
+        
+        # Clear cart after order creation
+        cart.clear()
+        
+        return jsonify({"success": True, "order": order})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# ============================================
+# ADDRESS API ENDPOINTS
+# ============================================
+
+@app.route('/api/addresses', methods=['GET'])
+def get_addresses():
+    """Get all addresses for current user"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        addresses = user_db.get_user_addresses(int(user_id))
+        return jsonify({"success": True, "addresses": addresses})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/addresses/default', methods=['GET'])
+def get_default_address():
+    """Get default address for current user"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        address = user_db.get_default_address(int(user_id))
+        if address:
+            return jsonify({"success": True, "address": address})
+        else:
+            return jsonify({"success": False, "error": "No default address found"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/addresses', methods=['POST'])
+def add_address():
+    """Add a new address"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.get_json()
+        result = user_db.add_address(
+            user_id=int(user_id),
+            first_name=data.get('first_name'),
+            last_name=data.get('last_name'),
+            street=data.get('street'),
+            city=data.get('city'),
+            country=data.get('country'),
+            postal_code=data.get('postal_code'),
+            phone_number=data.get('phone_number'),
+            is_default=data.get('is_default', False)
+        )
+        
+        if result['success']:
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/addresses/<int:address_id>', methods=['PUT'])
+def update_address(address_id):
+    """Update an address"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.get_json()
+        success = user_db.update_address(address_id, int(user_id), **data)
+        
+        if success:
+            return jsonify({"success": True, "message": "Address updated successfully"})
+        else:
+            return jsonify({"success": False, "error": "Failed to update address"}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/addresses/<int:address_id>', methods=['DELETE'])
+def delete_address(address_id):
+    """Delete an address"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        success = user_db.delete_address(address_id, int(user_id))
+        
+        if success:
+            return jsonify({"success": True, "message": "Address deleted successfully"})
+        else:
+            return jsonify({"success": False, "error": "Address not found"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# ============================================
+# PAYMENT API ENDPOINTS
+# ============================================
+
+@app.route('/api/payments/intent', methods=['POST'])
+def create_payment_intent():
+    """Create or update payment intent"""
+    user_id = request.headers.get('X-User-ID')
+    if not user_id:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        data = request.get_json()
+        basket_id = request.args.get('basketId') or data.get('basket_id')
+        session_id = request.headers.get('X-Session-ID', 'default')
+        
+        # Get cart total
+        if session_id not in user_carts:
+            return jsonify({"success": False, "error": "Cart is empty"}), 400
+        
+        cart = user_carts[session_id]
+        total = cart.get_total()
+        
+        # Get delivery method if provided
+        delivery_method_id = data.get('delivery_method_id', 1)
+        delivery_methods = order_manager.get_delivery_methods()
+        delivery_method = next((dm for dm in delivery_methods if dm['id'] == delivery_method_id), None)
+        delivery_fee = delivery_method['price'] if delivery_method else 0.0
+        
+        total_with_delivery = total + delivery_fee
+        
+        # Create payment intent
+        metadata = {
+            'user_id': str(user_id),
+            'session_id': session_id
+        }
+        
+        result = payment_service.create_payment_intent(
+            amount=total_with_delivery,
+            currency='jod',
+            metadata=metadata
+        )
+        
+        if result['success']:
+            return jsonify(result)
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/payments/webhook', methods=['POST'])
+def payment_webhook():
+    """Handle Stripe webhook events"""
+    try:
+        payload = request.data
+        signature = request.headers.get('Stripe-Signature')
+        webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+        
+        if not webhook_secret:
+            return jsonify({"success": False, "error": "Webhook secret not configured"}), 500
+        
+        result = payment_service.handle_webhook(payload, signature, webhook_secret)
+        
+        if result['success'] and result.get('event_type') == 'payment_intent.succeeded':
+            # Update order payment status
+            payment_intent_id = result['payment_intent_id']
+            order = order_manager.get_order_by_payment_intent(payment_intent_id)
+            
+            if order:
+                order_manager.update_payment_status(
+                    order['id'],
+                    'Succeeded',
+                    payment_intent_id
+                )
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# ============================================
+# ERROR HANDLERS
+# ============================================
+
+@app.errorhandler(APIError)
+def handle_api_error(error):
+    """Handle API errors"""
+    return error_response(error)
+
+@app.errorhandler(404)
+def handle_not_found(error):
+    """Handle 404 errors"""
+    return error_response(NotFoundError("Resource not found"))
+
+@app.errorhandler(500)
+def handle_internal_error(error):
+    """Handle 500 errors"""
+    return error_response(InternalServerError("Internal server error"))
+
+@app.errorhandler(Exception)
+def handle_generic_error(error):
+    """Handle all other exceptions"""
+    return handle_error(error)
+
 if __name__ == "__main__":
     print("=" * 70)
     print("🇯🇴 ShopAI Jordan - Enhanced Edition")
@@ -1278,6 +1627,10 @@ if __name__ == "__main__":
     print(f"   ✅ Dietary preferences")
     print(f"   ✅ Real Talabat links")
     print(f"   ✅ JOD pricing")
+    print(f"   ✅ Orders system (create, track, history)")
+    print(f"   ✅ Address management (multiple addresses)")
+    print(f"   ✅ Payment integration (Stripe)")
+    print(f"   ✅ Delivery methods (Standard, Express, Pickup)")
     print(f"\n📊 Database: {db.get_product_count()} products")
     print(f"🌐 Open: http://localhost:8080")
     print(f"\n🇯🇴 Ahlan wa Sahlan!")
