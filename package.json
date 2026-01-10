@@ -1,0 +1,30 @@
+{
+  "name": "shopai-jordan",
+  "version": "1.0.0",
+  "description": "AI Shopping Assistant - موقع إلكتروني مع AI chatbot",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "dev:watch": "nodemon --watch server.js --watch modules --watch static server.js"
+  },
+  "keywords": [
+    "shopping",
+    "ai",
+    "chatbot",
+    "jordan"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "groq-sdk": "^0.3.0",
+    "mongodb": "^6.21.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
