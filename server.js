@@ -619,6 +619,103 @@ async function searchProductsIntelligently(query, productsList = null) {
     }
 }
 
+// Get preferred product keywords for each event type
+function getPreferredProductKeywords(eventType) {
+    const normalizedEventType = eventType ? eventType.toLowerCase() : '';
+    
+    const preferredKeywords = {
+        'bbq': {
+            'meat': ['كفتة', 'كفتة أردنية', 'kofta', 'شيش طاووق', 'شيش', 'shish tawook', 'سجق', 'سجق حلال', 'sausage', 'sucuk'],
+            'vegetables': ['طماطم', 'طماطم طازجة', 'tomato', 'بصل أحمر', 'بصل', 'onion', 'فلفل رومي', 'فلفل', 'pepper', 'bell pepper'],
+            'salads': ['حمص', 'حمص جاهز', 'hummus', 'متبل', 'متبل باذنجان', 'moutabal', 'baba ganoush'],
+            'charcoal': ['فحم', 'فحم للشوي', 'charcoal'],
+            'bread': ['خبز صاج', 'خبز شراك', 'shrak', 'shrak bread']
+        },
+        'dinner': {
+            'meat': ['لحم مفروم', 'لحم', 'ground meat', 'minced meat', 'beef'],
+            'pasta': ['معكرونة', 'معكرونة إيطالية', 'pasta', 'macaroni', 'spaghetti'],
+            'dairy': ['كريمة طبخ', 'cream', 'cooking cream'],
+            'salads': ['سلطة خضراء', 'سلطة', 'green salad', 'salad'],
+            'desserts': ['بقلاوة', 'بقلاوة أردنية', 'baklava', 'شوكولاتة حليب', 'شوكولاتة', 'chocolate', 'milk chocolate'],
+            'drinks': ['عصير برتقال', 'عصير برتقال طبيعي', 'orange juice', 'قهوة تركية', 'turkish coffee', 'coffee']
+        },
+        'lunch': {
+            'meat': ['دجاج', 'دجاج طازج', 'دجاج كامل', 'chicken', 'whole chicken'],
+            'grains': ['أرز', 'أرز بسمتي', 'rice', 'basmati rice'],
+            'salads': ['تبولة', 'تبولة أردنية', 'tabouleh', 'فتوش', 'فتوش أردني', 'fattoush', 'مخلل', 'pickles'],
+            'desserts': ['كنافة', 'كنافة نابلسية', 'knafeh', 'knafah', 'kunafa'],
+            'drinks': ['لبن عيران', 'لبن عيران أردني', 'ayran', 'labneh', 'بيبسي', 'pepsi', 'cola']
+        },
+        'party': {
+            'snacks': ['مكسرات', 'مكسرات مشكلة', 'nuts', 'mixed nuts', 'شيبس', 'شيبس بطاطس', 'chips', 'فشار', 'فشار جاهز', 'popcorn'],
+            'desserts': ['معمول', 'معمول بالتمر', 'maamoul', 'آيس كريم', 'آيس كريم فانيليا', 'ice cream', 'vanilla ice cream'],
+            'fruits': ['فراولة', 'فراولة طازجة', 'strawberry', 'عنب', 'عنب أحمر', 'grapes', 'red grapes'],
+            'drinks': ['كوكاكولا', 'كولا', 'coca cola', 'cola', 'عصير تفاح', 'عصير تفاح طبيعي', 'apple juice']
+        },
+        'family': {
+            'meat': ['برجر', 'برجر لحم', 'burger', 'beef burger'],
+            'vegetables': ['بطاطس', 'بطاطس حمراء', 'potatoes', 'red potatoes'],
+            'grains': ['عدس', 'عدس أحمر', 'lentils', 'red lentils'],
+            'dairy': ['بيض', 'بيض دجاج', 'eggs', 'حليب', 'حليب كامل الدسم', 'milk', 'full cream milk']
+        },
+        'traditional': {
+            'meat': ['منسف', 'منسف أردني', 'mansaf', 'لحم', 'لحم خروف', 'lamb', 'mutton'],
+            'dairy': ['لبن', 'لبن زبادي', 'yogurt', 'labneh'],
+            'bread': ['خبز', 'خبز شراك', 'shrak', 'shrak bread'],
+            'drinks': ['قهوة', 'قهوة عربية', 'قهوة عربية أردنية', 'arabic coffee', 'coffee'],
+            'fruits': ['تمر', 'تمر أردني', 'dates', 'jordanian dates'],
+            'oils': ['زيت زيتون', 'زيت زيتون أردني', 'olive oil'],
+            'spices': ['زعتر', 'زعتر أردني', 'zaatar', 'thyme']
+        }
+    };
+    
+    if (normalizedEventType === 'bbq' || normalizedEventType === 'شواء' || normalizedEventType === 'grilling' || normalizedEventType === 'grill') {
+        return preferredKeywords['bbq'];
+    } else if (normalizedEventType === 'dinner' || normalizedEventType === 'عشاء') {
+        return preferredKeywords['dinner'];
+    } else if (normalizedEventType === 'lunch' || normalizedEventType === 'غداء') {
+        return preferredKeywords['lunch'];
+    } else if (normalizedEventType === 'party' || normalizedEventType === 'حفلة' || normalizedEventType === 'celebration' || normalizedEventType === 'احتفال') {
+        return preferredKeywords['party'];
+    } else if (normalizedEventType === 'family' || normalizedEventType === 'عائلة' || normalizedEventType === 'عائلي') {
+        return preferredKeywords['family'];
+    } else if (normalizedEventType === 'traditional' || normalizedEventType === 'تقليدي' || normalizedEventType === 'أردني') {
+        return preferredKeywords['traditional'];
+    }
+    
+    return {};
+}
+
+// Generate event-specific instructions for the chatbot
+function getEventSpecificInstructions(eventType) {
+    const normalizedEventType = eventType ? eventType.toLowerCase() : '';
+    
+    const instructions = {
+        'bbq': `Focus on local meats (لحوم بلدي), supplies (coal/فحم, skewers/أسياخ), and traditional appetizers (مقبلات تقليدية).`,
+        'dinner': `Focus on side dishes (أطباق جانبية), desserts (حلويات), and hospitality tools (أدوات الضيافة).`,
+        'lunch': `Focus on popular main dishes in Jordanian homes (الأطباق الرئيسية الشعبية في بيوت الأردنيين).`,
+        'party': `Focus on cakes (كيك), decorations (زينة), and logistical services (خدمات لوجستية).`,
+        'family': `Focus on economical meals suitable for groups (وجبات اقتصادية ومناسبة للمجموعات).`,
+        'traditional': `Focus primarily on Mansaf ingredients (جميد كركي، سمن بلقاوي، لحم بلدي) and associated rituals (الطقوس المرتبطة به).`
+    };
+    
+    if (normalizedEventType === 'bbq' || normalizedEventType === 'شواء' || normalizedEventType === 'grilling' || normalizedEventType === 'grill') {
+        return instructions['bbq'];
+    } else if (normalizedEventType === 'dinner' || normalizedEventType === 'عشاء') {
+        return instructions['dinner'];
+    } else if (normalizedEventType === 'lunch' || normalizedEventType === 'غداء') {
+        return instructions['lunch'];
+    } else if (normalizedEventType === 'party' || normalizedEventType === 'حفلة' || normalizedEventType === 'celebration' || normalizedEventType === 'احتفال') {
+        return instructions['party'];
+    } else if (normalizedEventType === 'family' || normalizedEventType === 'عائلة' || normalizedEventType === 'عائلي') {
+        return instructions['family'];
+    } else if (normalizedEventType === 'traditional' || normalizedEventType === 'تقليدي' || normalizedEventType === 'أردني') {
+        return instructions['traditional'];
+    }
+    
+    return '';
+}
+
 // Generate intelligent response based on user query (without external API)
 function generateIntelligentResponse(message, relevantProducts, categories) {
     const messageLower = message.toLowerCase();
@@ -798,8 +895,31 @@ app.post('/api/chat', async (req, res) => {
                 // Extract key info from message for better context
                 const numPeopleMatch = message.match(/(\d+)\s*(?:شخص|أشخاص|person|people|pcs|قطعة|وحدة)/i) || message.match(/(\d+)/);
                 const numPeople = numPeopleMatch ? parseInt(numPeopleMatch[1]) : null;
-                const eventTypeMatch = message.match(/\b(فطور|غداء|عشاء|شواء|bbq|breakfast|lunch|dinner|party)\b/i);
-                const eventType = eventTypeMatch ? eventTypeMatch[1] : null;
+                
+                // Use plannerEventType if available, otherwise extract from message
+                let eventType = null;
+                if (fromSmartPlanner && plannerEventType) {
+                    eventType = plannerEventType;
+                } else {
+                    const messageLower = message.toLowerCase();
+                    if (messageLower.includes('bbq') || messageLower.includes('شوي') || messageLower.includes('شواء') || messageLower.includes('grill')) {
+                        eventType = 'bbq';
+                    } else if (messageLower.includes('party') || messageLower.includes('حفلة') || messageLower.includes('celebration') || messageLower.includes('احتفال')) {
+                        eventType = 'party';
+                    } else if (messageLower.includes('dinner') || messageLower.includes('عشاء')) {
+                        eventType = 'dinner';
+                    } else if (messageLower.includes('lunch') || messageLower.includes('غداء')) {
+                        eventType = 'lunch';
+                    } else if (messageLower.includes('family') || messageLower.includes('عائلة') || messageLower.includes('عائلي')) {
+                        eventType = 'family';
+                    } else if (messageLower.includes('traditional') || messageLower.includes('تقليدي') || messageLower.includes('أردني')) {
+                        eventType = 'traditional';
+                    } else {
+                        const eventTypeMatch = message.match(/\b(فطور|غداء|عشاء|شواء|bbq|breakfast|lunch|dinner|party)\b/i);
+                        eventType = eventTypeMatch ? eventTypeMatch[1].toLowerCase() : null;
+                    }
+                }
+                
                 const budgetMatch = message.match(/(\d+)\s*(?:دينار|jod|jd|dinar)/i);
                 const budget = budgetMatch ? parseFloat(budgetMatch[1]) : null;
                 
@@ -808,16 +928,21 @@ app.post('/api/chat', async (req, res) => {
                 if (eventType) contextInfo.push(`event: ${eventType}`);
                 if (budget) contextInfo.push(`budget: ${budget} JOD`);
                 
+                // Get event-specific instructions
+                const eventInstructions = getEventSpecificInstructions(eventType);
+                
                 const systemPrompt = `You are a helpful shopping assistant for ShopAI Jordan, an online grocery store.
 You help users find products, answer questions about items, and provide shopping recommendations.
 Available product categories: ${categories.join(', ')}.
 ${relevantProducts.length > 0 ? `Relevant products found: ${relevantProducts.slice(0, 5).map(p => `${p.name_ar || p.name} (${p.price} JOD, ${p.category})`).join(', ')}` : 'No specific products found yet.'}
 ${contextInfo.length > 0 ? `User context: ${contextInfo.join(', ')}.` : ''}
+${eventInstructions ? `IMPORTANT: ${eventInstructions}` : ''}
 
 User message: "${message}"
 
 Respond naturally and helpfully in the same language the user uses (Arabic or English).
 ${relevantProducts.length > 0 ? 'Mention the relevant products and suggest creating a shopping list.' : 'Suggest searching for specific products or using categories.'}
+${eventInstructions ? 'Make sure to focus on the specific aspects mentioned above when responding.' : ''}
 Be friendly, concise, and focus on being helpful.`;
                 
                 const response = await axios.post(
@@ -1171,12 +1296,12 @@ Be friendly, concise, and focus on being helpful.`;
             // Get products from all relevant categories for the event type
             const eventCategories = {
                 'bbq': ['meat', 'charcoal', 'vegetables', 'bread', 'drinks', 'supplies', 'salads'],
-                'dinner': ['meat', 'vegetables', 'bread', 'dairy', 'salads', 'drinks'],
-                'lunch': ['meat', 'vegetables', 'bread', 'salads', 'drinks'],
+                'dinner': ['meat', 'vegetables', 'bread', 'dairy', 'salads', 'drinks', 'pasta', 'desserts'],
+                'lunch': ['meat', 'vegetables', 'bread', 'salads', 'drinks', 'grains', 'rice', 'desserts'],
                 'breakfast': ['bread', 'dairy', 'fruits', 'drinks'],
-                'party': ['meat', 'vegetables', 'bread', 'dairy', 'drinks', 'snacks', 'fruits'],
-                'family': ['meat', 'vegetables', 'bread', 'dairy', 'salads', 'drinks'],
-                'traditional': ['meat', 'vegetables', 'bread', 'dairy', 'salads', 'drinks'],
+                'party': ['meat', 'vegetables', 'bread', 'dairy', 'drinks', 'snacks', 'fruits', 'desserts'],
+                'family': ['meat', 'vegetables', 'bread', 'dairy', 'salads', 'drinks', 'grains'],
+                'traditional': ['meat', 'vegetables', 'bread', 'dairy', 'salads', 'drinks', 'oils', 'spices', 'fruits'],
                 'general': ['meat', 'vegetables', 'bread', 'dairy', 'drinks']
             };
             
@@ -1187,7 +1312,7 @@ Be friendly, concise, and focus on being helpful.`;
             if (db && products.length < 50) {
                 try {
                     const productsCollection = db.collection('prouducts');
-                    const mongoProducts = await productsCollection.find({}).limit(200).toArray();
+                    const mongoProducts = await productsCollection.find({}).limit(500).toArray(); // Increased limit to 500
                     if (mongoProducts && mongoProducts.length > 0) {
                         allAvailableProducts = mongoProducts.map(p => ({
                             id: p._id || p.id || `prod_${Math.random().toString(36).substr(2, 9)}`,
@@ -1218,6 +1343,49 @@ Be friendly, concise, and focus on being helpful.`;
                 } catch (error) {
                     console.error('Error loading products from MongoDB:', error);
                 }
+            } else if (products.length >= 50) {
+                // Use in-memory products if we have enough
+                allAvailableProducts = products;
+                console.log(`📦 Using ${allAvailableProducts.length} in-memory products for selection`);
+            }
+            
+            // NEW APPROACH: Search directly in allAvailableProducts using preferred keywords for event type
+            // This is more reliable than relying on categories
+            const preferredKeywords = getPreferredProductKeywords(eventType);
+            const eventSpecificProducts = [];
+            const usedProductIds = new Set();
+            
+            console.log(`🔍 Event type: ${eventType}, Searching for products using preferred keywords...`);
+            
+            // Search for products using preferred keywords for each category
+            if (Object.keys(preferredKeywords).length > 0) {
+                Object.entries(preferredKeywords).forEach(([category, keywords]) => {
+                    const matchedProducts = allAvailableProducts.filter(p => {
+                        if (usedProductIds.has(p.id || p._id)) return false;
+                        
+                        const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''} ${p.description || ''}`.toLowerCase();
+                        const matches = keywords.some(keyword => productName.includes(keyword.toLowerCase()));
+                        
+                        if (matches) {
+                            const price = parseFloat(p.price) || 0;
+                            // Price filter: accept products from 0.5 to 100 JOD
+                            return price >= 0.5 && price < 100;
+                        }
+                        return false;
+                    });
+                    
+                    if (matchedProducts.length > 0) {
+                        // Take first 2-3 products that match (more for meat)
+                        const count = category === 'meat' ? 3 : 2;
+                        const productsToAdd = matchedProducts.slice(0, count);
+                        productsToAdd.forEach(p => {
+                            p.category = category; // Set category
+                            eventSpecificProducts.push(p);
+                            usedProductIds.add(p.id || p._id);
+                        });
+                        console.log(`✅ Found ${productsToAdd.length} ${category} products for ${eventType}: ${productsToAdd.map(p => p.name_ar || p.name || p.name_en).join(', ')}`);
+                    }
+                });
             }
             
             // Select products from required categories, ensuring variety
@@ -1263,8 +1431,29 @@ Be friendly, concise, and focus on being helpful.`;
                     'bread': { priority: 3, count: 2, essential: false },
                     'dairy': { priority: 4, count: 2, essential: false },
                     'drinks': { priority: 5, count: 3, essential: false },
-                    'snacks': { priority: 6, count: 2, essential: false },
-                    'fruits': { priority: 7, count: 2, essential: false }
+                    'snacks': { priority: 6, count: 3, essential: false },
+                    'fruits': { priority: 7, count: 2, essential: false },
+                    'desserts': { priority: 6, count: 2, essential: false }
+                },
+                'family': {
+                    'meat': { priority: 1, count: 3, essential: true },
+                    'vegetables': { priority: 2, count: 3, essential: true },
+                    'bread': { priority: 3, count: 2, essential: false },
+                    'dairy': { priority: 4, count: 2, essential: true },
+                    'salads': { priority: 5, count: 2, essential: false },
+                    'drinks': { priority: 6, count: 2, essential: false },
+                    'grains': { priority: 3, count: 2, essential: false }
+                },
+                'traditional': {
+                    'meat': { priority: 1, count: 3, essential: true },
+                    'vegetables': { priority: 2, count: 3, essential: true },
+                    'bread': { priority: 3, count: 2, essential: false },
+                    'dairy': { priority: 4, count: 2, essential: true },
+                    'salads': { priority: 5, count: 2, essential: false },
+                    'drinks': { priority: 6, count: 2, essential: false },
+                    'oils': { priority: 7, count: 1, essential: false },
+                    'spices': { priority: 7, count: 1, essential: false },
+                    'fruits': { priority: 8, count: 1, essential: false }
                 },
                 'general': {
                     'meat': { priority: 1, count: 3, essential: true },
@@ -1340,13 +1529,40 @@ Be friendly, concise, and focus on being helpful.`;
                     // For non-essential, prefer cheaper options
                     if (config.essential && cat === 'meat') {
                         // For meat: filter out extremely cheap (likely low quality) or extremely expensive
-                        return price > 5 && price < 100; // Reasonable meat prices in Jordan (5-100 JOD)
+                        // Lower the minimum to 2 JOD to include more meat products
+                        return price >= 2 && price < 100; // Reasonable meat prices in Jordan (2-100 JOD)
                     }
                     // For other categories, prefer affordable but not the absolute cheapest
                     return price > 0 && price < (budget ? budget * 0.3 : 50);
                 });
                 
                 if (categoryProducts.length > 0) {
+                    // Get preferred keywords for this event type and category
+                    const preferredKeywordsForEvent = getPreferredProductKeywords(eventType);
+                    const preferredKeywordsForCategory = preferredKeywordsForEvent[cat] || [];
+                    
+                    // If we have preferred keywords, prioritize products matching them BEFORE sorting
+                    if (preferredKeywordsForCategory.length > 0) {
+                        const preferredProducts = categoryProducts.filter(p => {
+                            const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''} ${p.description || ''}`.toLowerCase();
+                            return preferredKeywordsForCategory.some(k => productName.includes(k.toLowerCase()));
+                        });
+                        
+                        const otherProducts = categoryProducts.filter(p => {
+                            const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''} ${p.description || ''}`.toLowerCase();
+                            return !preferredKeywordsForCategory.some(k => productName.includes(k.toLowerCase()));
+                        });
+                        
+                        // Prioritize preferred products - take most of them, then fill with others
+                        const preferredCount = Math.min(preferredProducts.length, Math.ceil(count * 0.8));
+                        const otherCount = count - preferredCount;
+                        
+                        categoryProducts = [
+                            ...preferredProducts.slice(0, preferredCount),
+                            ...otherProducts.slice(0, otherCount)
+                        ];
+                    }
+                    
                     // For BBQ meat category: Ensure we get chicken, non-chicken meat, and shish
                     if (eventType === 'bbq' && cat === 'meat') {
                         // Separate into: chicken, shish/kebab, other meat
@@ -1393,19 +1609,37 @@ Be friendly, concise, and focus on being helpful.`;
                         }
                     }
                     
-                    // Sort products: prioritize exact category match, then by name keywords, then by price
+                    // Sort products: prioritize preferred keywords for event type, then exact category match, then by price
+                    // Note: preferredKeywordsForCategory already declared above
                     categoryProducts.sort((a, b) => {
                         const categoryA = (a.category || 'general').toLowerCase();
                         const categoryB = (b.category || 'general').toLowerCase();
                         const productNameA = `${a.name || ''} ${a.name_ar || ''} ${a.name_en || ''}`.toLowerCase();
                         const productNameB = `${b.name || ''} ${b.name_ar || ''} ${b.name_en || ''}`.toLowerCase();
                         
-                        // First: prioritize products with correct category
+                        // First: prioritize products with preferred keywords for this event type
+                        if (preferredKeywordsForCategory.length > 0) {
+                            const hasPreferredA = preferredKeywordsForCategory.some(k => productNameA.includes(k.toLowerCase()));
+                            const hasPreferredB = preferredKeywordsForCategory.some(k => productNameB.includes(k.toLowerCase()));
+                            if (hasPreferredA && !hasPreferredB) return -1;
+                            if (!hasPreferredA && hasPreferredB) return 1;
+                            
+                            // Among preferred products, prioritize by order in preferredKeywords array
+                            if (hasPreferredA && hasPreferredB) {
+                                const indexA = preferredKeywordsForCategory.findIndex(k => productNameA.includes(k.toLowerCase()));
+                                const indexB = preferredKeywordsForCategory.findIndex(k => productNameB.includes(k.toLowerCase()));
+                                if (indexA !== -1 && indexB !== -1 && indexA !== indexB) {
+                                    return indexA - indexB; // Earlier in array = higher priority
+                                }
+                            }
+                        }
+                        
+                        // Second: prioritize products with correct category
                         if (categoryA === cat.toLowerCase() && categoryB !== cat.toLowerCase()) return -1;
                         if (categoryA !== cat.toLowerCase() && categoryB === cat.toLowerCase()) return 1;
                         
-                        // Second: for meat, prioritize chicken/djaj (most common for BBQ)
-                        if (cat === 'meat' && eventType !== 'bbq') {
+                        // Third: for meat, prioritize chicken/djaj (most common for BBQ)
+                        if (cat === 'meat' && eventType !== 'bbq' && preferredKeywordsForCategory.length === 0) {
                             const hasChickenA = chickenKeywords.some(k => productNameA.includes(k));
                             const hasChickenB = chickenKeywords.some(k => productNameB.includes(k));
                             if (hasChickenA && !hasChickenB) return -1;
@@ -1462,7 +1696,7 @@ Be friendly, concise, and focus on being helpful.`;
                             return meatKeywords.some(keyword => productName.includes(keyword.toLowerCase()));
                         }).filter(p => {
                             const price = parseFloat(p.price) || 0;
-                            return price > 5 && price < 100;
+                            return price >= 2 && price < 100;
                         }).sort((a, b) => {
                             const priceA = parseFloat(a.price) || 0;
                             const priceB = parseFloat(b.price) || 0;
@@ -1493,23 +1727,23 @@ Be friendly, concise, and focus on being helpful.`;
                 }
             });
             
-            // For BBQ: Ensure essential products (chicken, meat, shish) are always included
-            if (eventType === 'bbq') {
+            // Ensure essential meat products are always included for all event types that require meat
+            if (eventType === 'bbq' || eventType === 'dinner' || eventType === 'lunch' || eventType === 'party' || eventType === 'family' || eventType === 'traditional') {
                 const shishSearchKeywords = ['شيش', 'شيشة', 'كبات', 'كبة', 'كاب', 'kebab', 'kabab', 'kabob', 'shish', 'shish kebab', 'skewer', 'سيخ', 'سيخ مشوي'];
                 const chickenSearchKeywords = ['دجاج', 'جاج', 'فراخ', 'chicken', 'ديجاج'];
                 const nonChickenMeatSearchKeywords = ['لحم', 'لحمة', 'لحوم', 'خروف', 'عجل', 'beef', 'lamb', 'veal', 'steak', 'كفته', 'كفتة'];
                 
-                // Search for shish/kebab if not already found in selectedByCategory
-                if (!bbqEssentialProducts.shish || !selectedByCategory['meat'] || !selectedByCategory['meat'].some(p => {
+                // For BBQ only: Search for shish/kebab if not already found in selectedByCategory
+                if (eventType === 'bbq' && (!bbqEssentialProducts.shish || !selectedByCategory['meat'] || !selectedByCategory['meat'].some(p => {
                     const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
                     return shishSearchKeywords.some(k => productName.includes(k.toLowerCase()));
-                })) {
+                }))) {
                     const allShishProducts = allAvailableProducts.filter(p => {
                         const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''} ${p.description || ''}`.toLowerCase();
                         return shishSearchKeywords.some(k => productName.includes(k.toLowerCase()));
                     }).filter(p => {
                         const price = parseFloat(p.price) || 0;
-                        return price > 5 && price < 100;
+                        return price >= 2 && price < 100;
                     });
                     
                     if (allShishProducts.length > 0) {
@@ -1521,11 +1755,11 @@ Be friendly, concise, and focus on being helpful.`;
                             selectedByCategory['meat'] = [];
                         }
                         selectedByCategory['meat'].unshift(shishProduct); // Add at beginning
-                        console.log(`🍢 Added essential shish/kebab product to BBQ list: ${shishProduct.name_ar || shishProduct.name || shishProduct.name_en}`);
+                        console.log(`🍢 Added essential shish/kebab product to ${eventType} list: ${shishProduct.name_ar || shishProduct.name || shishProduct.name_en}`);
                     }
                 }
                 
-                // Ensure chicken is included if not already
+                // Ensure chicken is included if not already (for all event types)
                 if (!selectedByCategory['meat'] || !selectedByCategory['meat'].some(p => {
                     const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
                     return chickenSearchKeywords.some(k => productName.includes(k.toLowerCase()));
@@ -1535,7 +1769,7 @@ Be friendly, concise, and focus on being helpful.`;
                         return chickenSearchKeywords.some(k => productName.includes(k.toLowerCase()));
                     }).filter(p => {
                         const price = parseFloat(p.price) || 0;
-                        return price > 5 && price < 100;
+                        return price >= 2 && price < 100;
                     });
                     
                     if (allChickenProducts.length > 0) {
@@ -1547,25 +1781,25 @@ Be friendly, concise, and focus on being helpful.`;
                             selectedByCategory['meat'] = [];
                         }
                         selectedByCategory['meat'].unshift(chickenProduct);
-                        console.log(`🍗 Added essential chicken product to BBQ list: ${chickenProduct.name_ar || chickenProduct.name || chickenProduct.name_en}`);
+                        console.log(`🍗 Added essential chicken product to ${eventType} list: ${chickenProduct.name_ar || chickenProduct.name || chickenProduct.name_en}`);
                     }
                 }
                 
-                // Ensure non-chicken meat is included if not already
+                // Ensure non-chicken meat (like kofta, beef, lamb) is included if not already (for all event types)
                 if (!selectedByCategory['meat'] || !selectedByCategory['meat'].some(p => {
                     const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
                     const isChicken = chickenSearchKeywords.some(k => productName.includes(k.toLowerCase()));
-                    const isShish = shishSearchKeywords.some(k => productName.includes(k.toLowerCase()));
+                    const isShish = eventType === 'bbq' && shishSearchKeywords.some(k => productName.includes(k.toLowerCase()));
                     return !isChicken && !isShish && nonChickenMeatSearchKeywords.some(k => productName.includes(k.toLowerCase()));
                 })) {
                     const allOtherMeatProducts = allAvailableProducts.filter(p => {
                         const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''} ${p.description || ''}`.toLowerCase();
                         const isChicken = chickenSearchKeywords.some(k => productName.includes(k.toLowerCase()));
-                        const isShish = shishSearchKeywords.some(k => productName.includes(k.toLowerCase()));
+                        const isShish = eventType === 'bbq' && shishSearchKeywords.some(k => productName.includes(k.toLowerCase()));
                         return !isChicken && !isShish && nonChickenMeatSearchKeywords.some(k => productName.includes(k.toLowerCase()));
                     }).filter(p => {
                         const price = parseFloat(p.price) || 0;
-                        return price > 5 && price < 100;
+                        return price >= 2 && price < 100;
                     });
                     
                     if (allOtherMeatProducts.length > 0) {
@@ -1577,7 +1811,7 @@ Be friendly, concise, and focus on being helpful.`;
                             selectedByCategory['meat'] = [];
                         }
                         selectedByCategory['meat'].push(meatProduct);
-                        console.log(`🥩 Added essential meat product to BBQ list: ${meatProduct.name_ar || meatProduct.name || meatProduct.name_en}`);
+                        console.log(`🥩 Added essential meat product to ${eventType} list: ${meatProduct.name_ar || meatProduct.name || meatProduct.name_en}`);
                     }
                 }
             }
@@ -1592,7 +1826,16 @@ Be friendly, concise, and focus on being helpful.`;
             const combinedProducts = [];
             const productIdsAdded = new Set();
             
-            // First priority: Add ALL relevant products (these match the search and are shown in chat)
+            // First priority: Add event-specific products found using preferred keywords
+            eventSpecificProducts.forEach(p => {
+                if (!productIdsAdded.has(p.id || p._id)) {
+                    combinedProducts.push(p);
+                    productIdsAdded.add(p.id || p._id);
+                    console.log(`✅ Added event-specific product: ${p.name_ar || p.name || p.name_en} (${p.category})`);
+                }
+            });
+            
+            // Second priority: Add ALL relevant products (these match the search and are shown in chat)
             relevantProducts.forEach(p => {
                 if (!productIdsAdded.has(p.id || p._id)) {
                     combinedProducts.push(p);
@@ -1600,36 +1843,48 @@ Be friendly, concise, and focus on being helpful.`;
                 }
             });
             
-            // Second priority: For BBQ, add essential products first (chicken, shish, meat)
-            if (eventType === 'bbq' && selectedByCategory['meat']) {
+            // Second priority: Add meat products first (essential for all event types)
+            if (selectedByCategory['meat'] && selectedByCategory['meat'].length > 0) {
                 const meatProducts = selectedByCategory['meat'];
-                const chickenProducts = meatProducts.filter(p => {
-                    const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
-                    return ['دجاج', 'جاج', 'فراخ', 'chicken', 'ديجاج'].some(k => productName.includes(k.toLowerCase()));
-                });
-                const shishProducts = meatProducts.filter(p => {
-                    const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
-                    return ['شيش', 'شيشة', 'كبات', 'كبة', 'كاب', 'kebab', 'kabab', 'kabob', 'shish', 'shish kebab', 'skewer', 'سيخ', 'سيخ مشوي'].some(k => productName.includes(k.toLowerCase()));
-                });
-                const otherMeatProducts = meatProducts.filter(p => {
-                    const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
-                    const isChicken = ['دجاج', 'جاج', 'فراخ', 'chicken', 'ديجاج'].some(k => productName.includes(k.toLowerCase()));
-                    const isShish = ['شيش', 'شيشة', 'كبات', 'كبة', 'كاب', 'kebab', 'kabab', 'kabob', 'shish', 'shish kebab', 'skewer', 'سيخ', 'سيخ مشوي'].some(k => productName.includes(k.toLowerCase()));
-                    return !isChicken && !isShish;
-                });
                 
-                // Add in priority order: chicken first, then shish, then other meat
-                [...chickenProducts, ...shishProducts, ...otherMeatProducts].forEach(p => {
-                    if (!productIdsAdded.has(p.id || p._id)) {
-                        combinedProducts.push(p);
-                        productIdsAdded.add(p.id || p._id);
-                    }
-                });
+                // For BBQ: prioritize chicken, shish, then other meat
+                if (eventType === 'bbq') {
+                    const chickenProducts = meatProducts.filter(p => {
+                        const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
+                        return ['دجاج', 'جاج', 'فراخ', 'chicken', 'ديجاج'].some(k => productName.includes(k.toLowerCase()));
+                    });
+                    const shishProducts = meatProducts.filter(p => {
+                        const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
+                        return ['شيش', 'شيشة', 'كبات', 'كبة', 'كاب', 'kebab', 'kabab', 'kabob', 'shish', 'shish kebab', 'skewer', 'سيخ', 'سيخ مشوي'].some(k => productName.includes(k.toLowerCase()));
+                    });
+                    const otherMeatProducts = meatProducts.filter(p => {
+                        const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
+                        const isChicken = ['دجاج', 'جاج', 'فراخ', 'chicken', 'ديجاج'].some(k => productName.includes(k.toLowerCase()));
+                        const isShish = ['شيش', 'شيشة', 'كبات', 'كبة', 'كاب', 'kebab', 'kabab', 'kabob', 'shish', 'shish kebab', 'skewer', 'سيخ', 'سيخ مشوي'].some(k => productName.includes(k.toLowerCase()));
+                        return !isChicken && !isShish;
+                    });
+                    
+                    // Add in priority order: chicken first, then shish, then other meat
+                    [...chickenProducts, ...shishProducts, ...otherMeatProducts].forEach(p => {
+                        if (!productIdsAdded.has(p.id || p._id)) {
+                            combinedProducts.push(p);
+                            productIdsAdded.add(p.id || p._id);
+                        }
+                    });
+                } else {
+                    // For other event types: add all meat products
+                    meatProducts.forEach(p => {
+                        if (!productIdsAdded.has(p.id || p._id)) {
+                            combinedProducts.push(p);
+                            productIdsAdded.add(p.id || p._id);
+                        }
+                    });
+                }
             }
             
-            // Add products from other categories
+            // Add products from other categories (excluding meat - already added above)
             Object.entries(selectedByCategory).forEach(([cat, categoryProducts]) => {
-                if (eventType === 'bbq' && cat === 'meat') {
+                if (cat === 'meat') {
                     // Already added above, skip
                     return;
                 }
@@ -1640,6 +1895,61 @@ Be friendly, concise, and focus on being helpful.`;
                     }
                 });
             });
+            
+            // FINAL FALLBACK: If no meat products found yet, search directly in allAvailableProducts and add them
+            if ((eventType === 'bbq' || eventType === 'dinner' || eventType === 'lunch' || eventType === 'party' || eventType === 'family' || eventType === 'traditional')) {
+                const hasMeatInList = combinedProducts.some(p => {
+                    const category = (p.category || 'general').toLowerCase();
+                    const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
+                    return category === 'meat' || ['دجاج', 'جاج', 'فراخ', 'لحم', 'لحمة', 'لحوم', 'خروف', 'عجل', 'كفته', 'كفتة', 'chicken', 'meat', 'beef', 'lamb', 'veal', 'kofta', 'kebab', 'shish'].some(k => productName.includes(k.toLowerCase()));
+                });
+                
+                if (!hasMeatInList) {
+                    console.log(`🔍 No meat products found in list, searching directly in allAvailableProducts (${allAvailableProducts.length} products)...`);
+                    
+                    const meatKeywords = ['دجاج', 'جاج', 'فراخ', 'لحم', 'لحمة', 'لحوم', 'خروف', 'عجل', 'كفته', 'كفتة', 'شيش', 'شيشة', 'chicken', 'meat', 'beef', 'lamb', 'veal', 'kofta', 'kebab', 'kabab', 'shish', 'sausage', 'sucuk'];
+                    
+                    const foundMeatProducts = allAvailableProducts.filter(p => {
+                        const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''} ${p.description || ''}`.toLowerCase();
+                        const category = (p.category || 'general').toLowerCase();
+                        return meatKeywords.some(keyword => productName.includes(keyword.toLowerCase())) || category === 'meat';
+                    }).filter(p => {
+                        const price = parseFloat(p.price) || 0;
+                        return price >= 2 && price < 100;
+                    }).filter(p => {
+                        // Exclude products already added
+                        return !productIdsAdded.has(p.id || p._id);
+                    });
+                    
+                    if (foundMeatProducts.length > 0) {
+                        // Prioritize chicken, then other meat
+                        const chickenProducts = foundMeatProducts.filter(p => {
+                            const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
+                            return ['دجاج', 'جاج', 'فراخ', 'chicken', 'ديجاج'].some(k => productName.includes(k.toLowerCase()));
+                        });
+                        
+                        const otherMeatProducts = foundMeatProducts.filter(p => {
+                            const productName = `${p.name || ''} ${p.name_ar || ''} ${p.name_en || ''}`.toLowerCase();
+                            return !['دجاج', 'جاج', 'فراخ', 'chicken', 'ديجاج'].some(k => productName.includes(k.toLowerCase()));
+                        });
+                        
+                        // Add at least 2-3 meat products
+                        const meatToAdd = [...chickenProducts.slice(0, 2), ...otherMeatProducts.slice(0, 2)].slice(0, 3);
+                        
+                        meatToAdd.forEach(p => {
+                            if (!productIdsAdded.has(p.id || p._id)) {
+                                // Set category to meat
+                                p.category = 'meat';
+                                combinedProducts.unshift(p); // Add at beginning (high priority)
+                                productIdsAdded.add(p.id || p._id);
+                                console.log(`🥩 FALLBACK: Added meat product to list: ${p.name_ar || p.name || p.name_en} (${p.price} JOD)`);
+                            }
+                        });
+                    } else {
+                        console.log(`⚠️ FALLBACK: No meat products found in allAvailableProducts with keywords: ${meatKeywords.join(', ')}`);
+                    }
+                }
+            }
             
             // Sort by priority and price (relevant products are already first)
             // Use event-specific category priorities from config (already defined above)
