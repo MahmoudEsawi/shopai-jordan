@@ -12,7 +12,7 @@ const translations = {
         jordan: "Jordan",
         
         // Hero Section
-        powered_by: "Powered by Groq AI",
+        powered_by: "Powered by Hugging Face AI",
         hero_title_line1: "Intelligent Shopping",
         hero_title_line2: "Assistant for Jordan",
         hero_description: "Transform your event planning with AI-powered shopping lists. Simply describe your needs, set your budget, and receive a complete shopping list with real prices from Talabat Jordan. Smart, fast, and tailored to your preferences.",
@@ -139,8 +139,44 @@ const translations = {
         footer_email: "support@shopai.jo",
         footer_website: "www.shopai.jo",
         footer_follow: "Follow Us",
-        footer_powered_by: "Powered by Groq AI",
-        footer_copyright: "© 2024 ShopAI Jordan. All rights reserved."
+        footer_powered_by: "Powered by Hugging Face AI",
+        footer_copyright: "© 2024 ShopAI Jordan. All rights reserved.",
+        
+        // Pagination
+        prev: "Previous",
+        next: "Next",
+        page_info: "Page {page} of {total}",
+        
+        // Shopping List
+        shopping_list_title: "Suggested Shopping List",
+        shopping_list_subtitle: "You can edit quantities before adding products to cart",
+        event_type: "Event Type",
+        num_people: "people",
+        person: "person",
+        items_count: "items",
+        item: "item",
+        per_unit: "per unit",
+        total: "Total",
+        total_amount: "Total Amount",
+        add_to_cart_btn: "Add All to Cart",
+        clear_list: "Clear List",
+        remove: "Remove",
+        delete: "Delete",
+        edit_quantities: "Edit quantities before adding to cart",
+        suggested_products: "Suggested Products",
+        select_products: "Select products you want to add to the list",
+        add_to_list: "Add to List",
+        quantity_updated: "Quantity updated",
+        product_added_to_list: "Product added to list",
+        list_empty: "The list is empty",
+        products_added_to_cart: "{count} products added to cart successfully!",
+        products_failed_to_add: "{count} products failed to add",
+        list_cleared: "List cleared",
+        product_added_to_cart: "Product added to cart",
+        product_add_error: "Error adding product",
+        product_removed_from_cart: "Product removed from cart",
+        product_remove_error: "Error removing product",
+        for_event: "for"
     },
     ar: {
         // Navigation
@@ -154,7 +190,7 @@ const translations = {
         jordan: "الأردن",
         
         // Hero Section
-        powered_by: "مدعوم من Groq AI",
+        powered_by: "مدعوم من Hugging Face AI",
         hero_title_line1: "مساعد التسوق الذكي",
         hero_title_line2: "للمملكة الأردنية",
         hero_description: "حوّل تخطيط فعالياتك بقوائم تسوق مدعومة بالذكاء الاصطناعي. ببساطة اشرح احتياجاتك، حدد ميزانيتك، واحصل على قائمة تسوق كاملة بأسعار حقيقية من طلبات الأردن. ذكي، سريع، ومصمم خصيصاً لتفضيلاتك.",
@@ -281,8 +317,44 @@ const translations = {
         footer_email: "support@shopai.jo",
         footer_website: "www.shopai.jo",
         footer_follow: "تابعنا",
-        footer_powered_by: "مدعوم من Groq AI",
-        footer_copyright: "© 2024 ShopAI الأردن. جميع الحقوق محفوظة."
+        footer_powered_by: "مدعوم من Hugging Face AI",
+        footer_copyright: "© 2024 ShopAI الأردن. جميع الحقوق محفوظة.",
+        
+        // Pagination
+        prev: "السابق",
+        next: "التالي",
+        page_info: "صفحة {page} من {total}",
+        
+        // Shopping List
+        shopping_list_title: "قائمة التسوق المقترحة",
+        shopping_list_subtitle: "يمكنك تعديل الكميات قبل إضافة المنتجات للسلة",
+        event_type: "نوع الفعالية",
+        num_people: "أشخاص",
+        person: "شخص",
+        items_count: "منتج",
+        item: "منتج",
+        per_unit: "لكل وحدة",
+        total: "المجموع",
+        total_amount: "المجموع الكلي",
+        add_to_cart_btn: "إضافة الكل للسلة",
+        clear_list: "مسح القائمة",
+        remove: "حذف",
+        delete: "حذف",
+        edit_quantities: "يمكنك تعديل الكميات قبل إضافة المنتجات للسلة",
+        suggested_products: "المنتجات المقترحة",
+        select_products: "اختر المنتجات التي تريد إضافتها للقائمة",
+        add_to_list: "إضافة للقائمة",
+        quantity_updated: "تم تحديث الكمية",
+        product_added_to_list: "تم إضافة المنتج للقائمة",
+        list_empty: "القائمة فارغة",
+        products_added_to_cart: "تم إضافة {count} منتج للسلة بنجاح!",
+        products_failed_to_add: "فشل إضافة {count} منتج",
+        list_cleared: "تم مسح القائمة",
+        product_added_to_cart: "تم إضافة المنتج للسلة",
+        product_add_error: "خطأ في إضافة المنتج",
+        product_removed_from_cart: "تم حذف المنتج من السلة",
+        product_remove_error: "خطأ في حذف المنتج",
+        for_event: "لـ"
     }
 };
 

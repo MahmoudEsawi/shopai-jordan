@@ -67,7 +67,7 @@
             <div class="hero-content">
                 <div class="hero-badge">
                     <i class="fas fa-circle" style="font-size: 0.5rem; color: #10b981;"></i>
-                    <span data-translate="powered_by">Powered by Groq AI</span>
+                    <span data-translate="powered_by">Powered by Hugging Face</span>
                 </div>
                 
                 <h1 class="hero-title">
@@ -123,7 +123,7 @@
                             <i class="fas fa-brain"></i>
                         </div>
                         <h3 data-translate="feature_ai_title">AI-Powered Intelligence</h3>
-                        <p data-translate="feature_ai_desc">Natural language understanding powered by Groq AI. Just describe what you need in plain English.</p>
+                        <p data-translate="feature_ai_desc">Natural language understanding powered by Hugging Face AI. Just describe what you need in plain English.</p>
                     </div>
                     
                     <div class="feature-card">
@@ -204,7 +204,7 @@
                 <div class="about-content">
                     <div class="about-text">
                         <p data-translate="about_text1">ShopAI Jordan is an intelligent shopping assistant designed specifically for Jordan. It helps you create smart shopping lists for any event, from family dinners to large parties.</p>
-                        <p data-translate="about_text2">Powered by Groq AI, our system understands natural language and creates optimized shopping lists with real prices from Talabat Jordan. No more guessing quantities or forgetting items!</p>
+                        <p data-translate="about_text2">Powered by Hugging Face AI, our system understands natural language and creates optimized shopping lists with real prices from Talabat Jordan. No more guessing quantities or forgetting items!</p>
                         <div class="about-stats">
                             <div class="stat-item">
                                 <div class="stat-value">31+</div>
@@ -491,6 +491,17 @@
                     <!-- Products will be loaded here -->
                 </div>
                 
+                <!-- Pagination -->
+                <div id="productsPagination" class="pagination-container" style="display: none; margin-top: 2rem; text-align: center;">
+                    <button id="prevPageBtn" class="pagination-btn" onclick="changePage(-1)" disabled>
+                        <i class="fas fa-chevron-left"></i> <span data-translate="prev">Previous</span>
+                    </button>
+                    <span id="pageInfo" class="pagination-info" data-translate="page_info">Page 1 of 1</span>
+                    <button id="nextPageBtn" class="pagination-btn" onclick="changePage(1)" disabled>
+                        <span data-translate="next">Next</span> <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
                 <div id="productsLoading">
                     <div class="spinner"></div>
                     <div>Loading products...</div>
@@ -504,7 +515,7 @@
         <div class="footer-content">
             <div class="footer-section">
                 <h3 class="footer-title" data-translate="footer_about_title">About ShopAI</h3>
-                <p class="footer-text" data-translate="footer_about_text">Your intelligent shopping assistant for Jordan. Powered by Groq AI, helping you create smart shopping lists with real prices from Talabat Jordan.</p>
+                <p class="footer-text" data-translate="footer_about_text">Your intelligent shopping assistant for Jordan. Powered by Hugging Face AI, helping you create smart shopping lists with real prices from Talabat Jordan.</p>
             </div>
             
             <div class="footer-section">
@@ -535,7 +546,7 @@
                     <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                     <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
                 </div>
-                <p class="footer-text" style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;" data-translate="footer_powered_by">Powered by Groq AI</p>
+                <p class="footer-text" style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;" data-translate="footer_powered_by">Powered by Hugging Face AI</p>
             </div>
         </div>
         

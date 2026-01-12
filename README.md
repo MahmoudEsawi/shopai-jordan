@@ -1,649 +1,486 @@
+# 🛒 ShopAI Jordan - Smart Shopping Assistant
+
 <div align="center">
 
-# 🛒 ShopAI Jordan
+![ShopAI Jordan](https://img.shields.io/badge/ShopAI-Jordan-orange?style=for-the-badge)
+![Powered by Hugging Face](https://img.shields.io/badge/Powered%20by-Hugging%20Face%20AI-yellow?style=for-the-badge)
+![Node.js](https://img.shields.io/badge/Node.js-18+-green?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
-### AI-Powered Shopping Assistant for Jordan 🇯🇴
+**مساعد التسوق الذكي للمملكة الأردنية** | **Intelligent Shopping Assistant for the Hashemite Kingdom of Jordan**
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.0+-green?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)](https://github.com/MahmoudEsawi/shopai-jordan)
+Transform your event planning with AI-powered shopping lists tailored specifically for the Jordanian market.
 
-**Transform your event planning with AI-powered shopping lists. Simply describe your needs, set your budget, and receive a complete shopping list with real prices from Talabat Jordan.**
-
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Screenshots](#-screenshots)
+[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [API](#-api-reference) • [Contributing](#-contributing)
 
 </div>
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Features](#-features)
+- [Technology Stack](#-technology-stack)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+- [API Reference](#-api-reference)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## 🎯 Overview
+
+**ShopAI Jordan** is an intelligent shopping assistant web application designed specifically for the Jordanian market. It uses AI-powered natural language processing to help users create smart shopping lists for events like BBQs, dinner parties, family gatherings, and more.
+
+### Key Highlights
+
+- 🤖 **AI-Powered**: Uses Hugging Face AI for natural language understanding in both Arabic and English
+- 🏪 **Real Products**: Integrates with Talabat Jordan with real prices in JOD (Jordanian Dinars)
+- 💰 **Budget Optimization**: Intelligent budget allocation across product categories
+- 🌍 **Bilingual Support**: Fully supports Arabic and English with seamless language switching
+- 📱 **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
+- 🔥 **Smart Recommendations**: Context-aware product suggestions based on event type
 
 ---
 
 ## ✨ Features
 
-<div align="center">
+### 🧠 AI-Powered Shopping Lists
+- Natural language input - just describe what you need
+- Smart Shopping Planner form for detailed event planning
+- Automatic budget calculation based on event type and number of people
+- Intelligent product selection prioritizing essential items (e.g., meat, chicken, shish for BBQ events)
 
-| 🤖 AI-Powered | 💰 Budget Optimization | 🛒 Talabat Integration | 📸 Product Images |
-|:---:|:---:|:---:|:---:|
-| Natural language understanding | Smart budget tracking | Real JOD prices | High-quality photos |
-| Groq AI integration | Automatic optimization | Direct product links | Real product images |
+### 🛍️ Product Management
+- Browse 100+ products from local Jordanian stores
+- Product pagination (12 products per page)
+- Advanced filtering by category, price, dietary preferences
+- Search products by name (Arabic/English)
+- Detailed product information with nutrition facts
+- Toggle nutrition information visibility
 
-| 🌍 Bilingual | 🎨 Modern UI | 🛒 Smart Cart | 📊 Nutrition Info |
-|:---:|:---:|:---:|:---:|
-| English & Arabic | Responsive design | Sliding side cart | Calories, protein, etc. |
-| RTL/LTR support | Smooth animations | Chat-based management | Dietary filters |
+### 💵 Budget Intelligence
+- Set custom budgets or use automatic calculation
+- Category-based budget allocation (e.g., 35% meat for BBQ events)
+- Strict budget adherence - products selected to maximize budget utilization
+- Real-time price calculations in JOD
 
-| 🔐 User Accounts | 📈 Lose It Tracker | 🎯 UX Enhanced | 🌙 Dark Mode |
-|:---:|:---:|:---:|:---:|
-| Sign up/Sign in | Calorie & macro tracking | Smooth scrolling & animations | Toggle dark theme |
-| Personal data storage | AI food analysis | Form validation | Theme persistence |
-| Food logging | Weight & water tracking | Loading states | Beautiful dark UI |
+### 🌐 Internationalization (i18n)
+- Complete Arabic and English translations
+- Dynamic language switching
+- Right-to-left (RTL) layout support for Arabic
+- Culturally appropriate product names and descriptions
 
-</div>
+### 🎨 Modern UI/UX
+- Beautiful gradient hero section with background images
+- Dark mode support
+- Smooth animations and transitions
+- Responsive grid layouts
+- Interactive shopping cart sidebar
+- Wishlist functionality
+- Toast notifications for user feedback
 
-### 🎯 Key Capabilities
-
-#### 🤖 AI Assistant
-- **🧠 Intelligent AI Assistant** - Powered by Groq AI (14,400 free requests/day)
-- **💬 Natural Language Chat** - Talk to the AI naturally about your shopping needs
-- **📋 Smart Shopping Lists** - Automatic quantity calculation based on number of people
-- **🎯 Conversational Requests** - "Add something with protein for breakfast" - AI understands and adds items
-
-#### 🛒 Shopping Features
-- **💵 Budget Management** - Set your budget and get optimized lists
-- **🛒 Sliding Side Cart** - Beautiful animated cart panel with smooth transitions
-- **💬 Chat-Based Cart** - Add, edit, delete items directly from chat
-- **📦 Product Browsing** - Browse 90+ products with advanced filters
-- **🔍 Smart Search** - Search products by name, category, or dietary preferences
-
-#### 🌍 Localization
-- **🌍 Bilingual Support** - Full English and Arabic translation
-- **↔️ RTL/LTR Layout** - Automatic layout switching for Arabic
-- **🔤 Language Toggle** - Switch languages with one click
-- **🇯🇴 Jordan-Specific** - Products from Talabat Jordan with JOD pricing
-
-#### 📊 Product Information
-- **📸 Real Product Images** - High-quality product photos
-- **📊 Nutritional Data** - Calories, protein, carbs, fats, fiber per 100g
-- **🏷️ Dietary Tags** - Gluten-free, vegetarian, vegan, halal, organic, healthy
-- **🔍 Advanced Filters** - Filter by protein, calories, dietary preferences
-
-#### 🎨 User Experience
-- **📱 Responsive Design** - Works perfectly on all devices (mobile, tablet, desktop)
-- **🎭 Smooth Animations** - Beautiful transitions and effects
-- **⬆️⬇️ Scroll Buttons** - Quick navigation with scroll to top/bottom
-- **📄 Professional Footer** - Complete footer with links and social media
-- **✨ UX Enhancements** - Loading states, form validation, empty states, tooltips
-- **⌨️ Keyboard Shortcuts** - Power user features (Ctrl+K for search, Escape to close)
-- **🎯 Focus States** - Accessible navigation with visible focus indicators
-- **🌙 Dark Mode** - Toggle between light and dark themes with persistence
-
-#### 🔐 Authentication & User Features
-- **👤 User Accounts** - Sign up and sign in functionality
-- **💾 Personal Data** - Save your shopping lists, food logs, and preferences
-- **🔒 Secure Sessions** - Password hashing and session management
-- **📊 User Profiles** - Store goals, activity level, weight, height, age, gender
-
-#### 📈 Lose It - Nutrition Tracker
-- **🍎 Food Logging** - Log meals with AI-powered nutrition analysis
-- **📊 Daily Summary** - Track calories, macros (protein, carbs, fats)
-- **💧 Water Tracking** - Log daily water intake
-- **⚖️ Weight Tracking** - Record and visualize weight progress
-- **🎯 Goal Setting** - AI-calculated calorie and macro goals
-- **📅 Weekly View** - Track calorie deficit/surplus over 7 days
-- **📈 Analytics Dashboard** - Beautiful charts and progress visualization
-- **🤖 AI Food Analysis** - Describe food naturally, get nutrition facts
+### 🍖 Event-Specific Intelligence
+- **BBQ Events**: Prioritizes chicken, meat, shish/kebab, charcoal
+- **Dinner Parties**: Balanced selection of meat, vegetables, bread, dairy
+- **Breakfast**: Focus on bread, dairy, eggs, fruits
+- **Lunch Gatherings**: Mix of proteins, vegetables, and sides
 
 ---
 
-## 🚀 Quick Start
+## 🛠️ Technology Stack
+
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **MongoDB** - Database for products and cart data
+- **Hugging Face API** - AI text generation (Mistral-7B-Instruct)
+- **Axios** - HTTP client for API requests
+
+### Frontend
+- **HTML5** - Semantic markup
+- **CSS3** - Modern styling with CSS variables
+- **Vanilla JavaScript** - No framework dependencies
+- **Font Awesome** - Icon library
+- **Google Fonts** - Inter, Space Grotesk, Cairo fonts
+
+### Tools & Services
+- **dotenv** - Environment variable management
+- **nodemon** - Development auto-reload
+- **CORS** - Cross-origin resource sharing
+
+---
+
+## 📦 Installation
 
 ### Prerequisites
 
-- Python 3.8 or higher
-- pip (Python package manager)
+- **Node.js** 18+ ([Download](https://nodejs.org/))
+- **MongoDB** (Optional - falls back to JSON if not available)
+- **Git** ([Download](https://git-scm.com/))
 
-### Installation
+### Clone the Repository
 
 ```bash
-# Clone the repository
-git clone https://github.com/MahmoudEsawi/shopai-jordan.git
+git clone https://github.com/anas-alhadidi/shopai-jordan-.git
 cd shopai-jordan
-
-# Install dependencies
-pip install -r requirements.txt
 ```
 
-### Configuration
-
-Set your Groq API key (optional - app works without it):
+### Install Dependencies
 
 ```bash
-# Linux/macOS
-export GROQ_API_KEY="your-api-key-here"
-
-# Windows
-set GROQ_API_KEY=your-api-key-here
+npm install
 ```
 
-Or create a `.env` file:
+### Environment Setup
+
+Create a `.env` file in the root directory:
+
 ```env
-GROQ_API_KEY=your-api-key-here
+# Server Configuration
+PORT=3000
+
+# MongoDB Configuration (Optional)
+MONGODB_URI=mongodb://localhost:27017/shopai
+
+# Hugging Face AI Configuration
+HUGGINGFACE_API_KEY=your_huggingface_api_key_here
 ```
 
-> 💡 **Note:** Get your free API key from [Groq Console](https://console.groq.com/)
+> **Note**: Get your Hugging Face API key from [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
 
 ### Run the Application
 
+**Development Mode** (with auto-reload):
 ```bash
-# Option 1: Direct run
-python3 web_app_enhanced.py
-
-# Option 2: Use startup script
-chmod +x start.sh
-./start.sh
+npm run dev
 ```
 
-Open your browser and navigate to: **http://localhost:8080**
+**Production Mode**:
+```bash
+npm start
+```
+
+The application will be available at `http://localhost:3000`
 
 ---
 
-## 📖 Usage
+## ⚙️ Configuration
 
-### Using the Form
+### MongoDB Setup (Optional)
 
-1. Select event type (BBQ, Dinner Party, Breakfast, etc.)
-2. Enter number of people
-3. Set budget (optional)
-4. Choose dietary preferences
-5. Apply filters (healthy, gluten-free, protein, calories)
-6. Click "Generate Shopping List"
+If you want to use MongoDB for product storage:
 
-### Using Chat
+1. Install MongoDB locally or use MongoDB Atlas
+2. Update `MONGODB_URI` in `.env`
+3. Create a database named `shopai`
+4. Create a collection named `prouducts` (note the spelling)
+5. Import products into the collection
 
-Simply type your request naturally:
+The application will automatically fall back to JSON files if MongoDB is not available.
 
+### Product Data Structure
+
+Products should have the following structure:
+
+```json
+{
+  "_id": "product_id",
+  "name": "Product Name",
+  "name_ar": "اسم المنتج",
+  "name_en": "Product Name",
+  "price": 10.50,
+  "currency": "JOD",
+  "category": "meat",
+  "description": "Product description",
+  "store_name": "Store Name",
+  "product_url": "https://talabat.com/product-url",
+  "image_url": "https://example.com/image.jpg",
+  "calories_per_100g": 250,
+  "protein_per_100g": 20,
+  "carbs_per_100g": 5,
+  "fats_per_100g": 15,
+  "is_gluten_free": false,
+  "is_vegetarian": false,
+  "is_vegan": false,
+  "is_halal": true,
+  "is_organic": false,
+  "is_healthy": true
+}
 ```
-"I want a BBQ for 14 people"
-"Breakfast for one person with 3 JOD budget, focus on protein"
-"Add something with protein for breakfast"
-"Add them to cart" (after AI suggests items)
-"Dinner party for 8, budget 100 JOD"
-"Traditional Jordanian meal for 10 people"
-```
-
-### Cart Management
-
-- **Add Items**: Click "Add to Cart" on products or say "add [product name]" in chat
-- **View Cart**: Click the cart icon in the top-right
-- **Edit Quantity**: Use +/- buttons in cart
-- **Remove Items**: Click trash icon or say "remove [product name]"
-- **Chat Commands**: 
-  - "add it" / "add them" - Add items from last AI suggestion
-  - "add something with protein" - AI suggests and adds protein-rich items
-  - "remove [item]" - Remove from cart
-  - "clear cart" - Empty the cart
-
-### Language Switching
-
-- Click the language button (EN/AR) in the navbar
-- Entire website translates instantly
-- Layout automatically switches to RTL for Arabic
-
-### Product Browsing
-
-1. Navigate to "Browse Products" section
-2. Use search bar to find products
-3. Filter by category, dietary preferences, or nutrition
-4. Sort by price, calories, or protein
-5. Click "Add to Cart" on any product
-
-### Lose It - Nutrition Tracking
-
-1. **Sign Up/Sign In**: Create an account or sign in to save your data
-2. **Set Profile**: Enter your goals, activity level, weight, height, age, gender
-3. **Log Food**: 
-   - Use Smart Search to find foods
-   - Describe food naturally (e.g., "grilled chicken breast 200g")
-   - AI analyzes and provides nutrition facts
-   - Log to Breakfast, Lunch, Dinner, or Snacks
-4. **Track Progress**: View daily calories, macros, water intake, and weight trends
-5. **Weekly View**: See your weekly calorie deficit/surplus
-
-### User Account Features
-
-- **Sign Up**: Create account with email and password
-- **Sign In**: Access your saved data
-- **Profile**: Set goals and personal information
-- **Data Persistence**: All your food logs, weight, and water intake are saved
 
 ---
 
-## 🏗️ Project Structure
+## 🚀 Usage
+
+### Smart Shopping Planner
+
+1. Navigate to the **Smart Shopping Planner** section
+2. Select event type (BBQ, Dinner, Lunch, Breakfast, Party)
+3. Enter number of people
+4. Set budget (optional - will auto-calculate if not specified)
+5. Choose dietary preferences (Vegetarian, Vegan, Halal, etc.)
+6. Add any additional requests
+7. Click "Create Shopping List"
+
+### Chat with AI Assistant
+
+Simply type your request in natural language:
+
+**Examples:**
+- "أريد شواء لـ 14 شخص بميزانية 50 دينار"
+- "I want a BBQ for 10 people with a budget of 40 JOD"
+- "بدي فطور لـ 5 أشخاص"
+- "I need chicken and meat for BBQ"
+
+The AI will:
+- Understand your request
+- Search for relevant products
+- Create a smart shopping list
+- Calculate quantities based on number of people
+- Optimize for your budget
+
+### Browse Products
+
+- Use filters to find products by category, price, dietary preferences
+- Search by product name (supports Arabic and English)
+- View detailed product information
+- Add products directly to cart
+- Save products to wishlist
+
+### Shopping List Management
+
+- Edit quantities before adding to cart
+- Remove items from list
+- View total cost in real-time
+- Add entire list to cart with one click
+- Clear list and start over
+
+---
+
+## 📡 API Reference
+
+### Get Products
+
+```http
+GET /api/products
+```
+
+**Query Parameters:**
+- `category` - Filter by category
+- `search` - Search products by name
+- `minPrice` - Minimum price filter
+- `maxPrice` - Maximum price filter
+- `store` - Filter by store name
+
+**Response:**
+```json
+[
+  {
+    "id": "product_id",
+    "name": "Product Name",
+    "name_ar": "اسم المنتج",
+    "price": 10.50,
+    "currency": "JOD",
+    "category": "meat",
+    ...
+  }
+]
+```
+
+### Chat with AI
+
+```http
+POST /api/chat
+```
+
+**Request Body:**
+```json
+{
+  "message": "أريد شواء لـ 10 أشخاص",
+  "eventType": "bbq",
+  "numPeople": 10,
+  "budget": 70,
+  "dietary": "halal",
+  "filterHealthy": false,
+  "filterGlutenFree": false,
+  "fromSmartPlanner": true
+}
+```
+
+**Response:**
+```json
+{
+  "response": "AI response message",
+  "shopping_list": {
+    "items": [...],
+    "total_cost": 68.50,
+    "num_people": 10,
+    "event_type": "bbq"
+  },
+  "relevantProducts": [...]
+}
+```
+
+### Cart Operations
+
+```http
+GET /api/cart
+POST /api/cart/add
+POST /api/cart/remove
+POST /api/cart/update
+```
+
+### Statistics
+
+```http
+GET /api/stats
+```
+
+Returns product categories, stores, and general statistics.
+
+---
+
+## 📁 Project Structure
 
 ```
 shopai-jordan/
-├── web_app_enhanced.py          # Main Flask application
-├── product_database.py           # Database management
-├── groq_assistant.py            # AI assistant (Groq)
-├── smart_list_builder.py        # Shopping list builder
-├── cart_manager.py              # Cart management
-├── recipe_suggestions.py        # Recipe recommendations
-├── list_sharing.py              # List sharing functionality
-├── user_database.py              # User authentication & data
-├── food_analyzer.py              # AI food nutrition analysis
-├── calorie_calculator.py         # BMR, TDEE, goal calculations
-├── templates/
-│   ├── index.html              # Main HTML template
-│   ├── auth.html               # Sign up/Sign in page
-│   └── loseit.html             # Lose It nutrition tracker
-├── static/
+├── server.js                 # Main Express server
+├── package.json              # Dependencies and scripts
+├── .env                      # Environment variables (not in git)
+├── .gitignore               # Git ignore rules
+│
+├── static/                  # Static assets
 │   ├── css/
-│   │   ├── style.css           # Main stylesheet
-│   │   ├── cart-sidebar.css   # Cart panel styles
-│   │   ├── footer.css          # Footer styles
-│   │   ├── auth.css            # Authentication styles
-│   │   ├── loseit-premium.css  # Lose It tracker styles
-│   │   ├── darkmode.css        # Dark mode styles
-│   │   ├── toast.css           # Toast notifications
-│   │   ├── wishlist.css        # Wishlist styles
-│   │   ├── loading.css          # Loading skeletons
-│   │   ├── modal.css            # Modal styles
-│   │   ├── quick-view.css       # Product quick view
-│   │   └── ux-enhancements.css  # UX improvements
+│   │   ├── style.css        # Main stylesheet
+│   │   ├── cart-sidebar.css
+│   │   ├── darkmode.css
+│   │   └── ...
 │   └── js/
-│       ├── main.js            # Main JavaScript
-│       ├── translations.js     # Translation system
-│       ├── auth.js             # Authentication logic
-│       ├── loseit-premium.js   # Lose It tracker logic
-│       ├── darkmode.js         # Dark mode toggle
-│       ├── toast.js            # Toast notifications
-│       ├── wishlist.js         # Wishlist functionality
-│       ├── shortcuts.js        # Keyboard shortcuts
-│       ├── product-modal.js    # Product quick view
-│       ├── wishlist-panel.js   # Wishlist panel
-│       └── ux-enhancements.js  # UX improvements
-├── scripts/
-│   └── talabat_mart_jordan_products.py  # Product data
-├── docs/                       # Documentation
-├── start.sh                    # Startup script
-└── requirements.txt            # Python dependencies
+│       ├── main.js          # Main JavaScript logic
+│       ├── translations.js  # i18n translations
+│       ├── wishlist.js
+│       └── ...
+│
+├── templates/
+│   └── index.html           # Main HTML template
+│
+├── data/                    # Data files
+│   └── jordan_products.json # Product data fallback
+│
+└── background/              # Background images
+    └── Gemini_Generated_Image_sxgg5bsxgg5bsxgg.png
 ```
 
 ---
 
-## 🎨 Features in Detail
+## 🎨 Key Features Explained
 
-### 🛒 Sliding Side Cart
-- Beautiful animated cart panel that slides in from the right
-- Smooth transitions and animations
-- Real-time updates without page refresh
-- Mobile-friendly responsive design
-- RTL support for Arabic layout
+### Intelligent Product Selection
 
-### 🌍 Bilingual Support
-- Complete English and Arabic translations
-- Automatic RTL/LTR layout switching
-- Language preference saved in localStorage
-- All UI elements translated (buttons, labels, messages)
+The system uses advanced algorithms to select products based on:
 
-### 📊 Nutritional Information
-- Calories per 100g for each product
-- Protein, carbs, fats, and fiber content
-- Filter products by nutritional values
-- Display nutritional badges on product cards
+1. **Event Type Priority**: Different events require different product priorities
+   - BBQ: Meat (chicken, beef, lamb), Shish/Kebab, Charcoal
+   - Dinner: Meat, Vegetables, Bread, Dairy
+   - Breakfast: Bread, Dairy, Eggs, Fruits
 
-### 🏷️ Dietary Filters
-- Gluten-free filter
-- Vegetarian filter
-- Vegan filter
-- Halal filter
-- Organic filter
-- Healthy food filter
-- Protein and calorie range filters
+2. **Budget Allocation**: Smart category-based budget distribution
+   - BBQ events: 35% meat, 15% vegetables, 15% drinks, etc.
+   - Ensures balanced shopping lists within budget
 
-### 💬 Chat-Based Cart Management
-- Add items by saying "add [product name]"
-- Add multiple items with "add them" or "add it"
-- Remove items with "remove [product name]"
-- Update quantities with "change [item] to [quantity]"
-- Conversational requests like "add something with protein"
+3. **Essential Products First**: Always includes essential items
+   - For BBQ: Chicken, Meat, Shish are mandatory
+   - Searches by keywords if category classification is incorrect
 
-### 🔐 Authentication System
-- User registration and login
-- Secure password hashing
-- Session management
-- Personal data storage
-- User profiles with goals and preferences
+### Language Support
 
-### 📈 Lose It Nutrition Tracker
-- **3-Column Premium Dashboard** - Desktop-optimized layout (1920x1080)
-- **Smart Food Search** - AI-powered food search with predictions
-- **Food Logging** - Log meals to Breakfast, Lunch, Dinner, Snacks
-- **AI Nutrition Analysis** - Describe food naturally, get accurate nutrition facts
-- **Daily Summary** - Track calories, macros, water, weight
-- **Weekly View** - See calorie deficit/surplus over 7 days
-- **Goal Tracking** - AI-calculated calorie and macro goals
-- **Weight Progress** - Sparkline graph showing weight trends
-- **Hydration Tracker** - Quick-click water logging
-- **Fasting Timer** - Intermittent fasting support (coming soon)
+Full bilingual support with:
+- Dynamic language switching (AR ↔ EN)
+- RTL layout for Arabic
+- Translated product names, categories, UI elements
+- Cultural context awareness
+
+### Budget Intelligence
+
+- **Automatic Calculation**: Calculates realistic budgets based on event type and number of people
+- **Jordanian Market Prices**: Tailored to local market prices (7 JOD/person for BBQ)
+- **Strict Adherence**: Products selected to maximize budget utilization (98% usage)
+- **Category Allocation**: Distributes budget across categories intelligently
 
 ---
 
-## 🔧 API Endpoints
+## 🤝 Contributing
 
-### `GET /api/stats`
-Get statistics about products and categories.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-**Response:**
-```json
-{
-  "total_products": 92,
-  "total_stores": 1,
-  "stores": [...]
-}
-```
+### Contribution Guidelines
 
-### `GET /api/products`
-Get all products with optional filters.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-**Query Parameters:**
-- `search` - Search term
-- `category` - Filter by category
-- `healthy` - Filter healthy products
-- `gluten_free` - Filter gluten-free products
-- `vegetarian` - Filter vegetarian products
-- `vegan` - Filter vegan products
-- `organic` - Filter organic products
-- `halal` - Filter halal products
-- `min_protein` - Minimum protein per 100g
-- `max_calories` - Maximum calories per 100g
-- `sort` - Sort by (name, price_low, price_high, calories_low, protein_high)
-
-### `POST /api/chat`
-Send a chat message and get AI response with shopping list.
-
-**Request:**
-```json
-{
-  "message": "I want a BBQ for 14 people"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "AI response text",
-  "shopping_list": {
-    "items": [...],
-    "total_cost": 150.50,
-    "num_people": 14
-  },
-  "cart": {
-    "items": [...],
-    "total_items": 5,
-    "total_cost": 25.30
-  },
-  "is_shopping": true
-}
-```
-
-### `GET /api/cart`
-Get current shopping cart.
-
-### `POST /api/cart/add`
-Add product to cart.
-
-**Request:**
-```json
-{
-  "product_id": "product-id",
-  "quantity": 1
-}
-```
-
-### `POST /api/cart/remove`
-Remove product from cart.
-
-### `POST /api/cart/update`
-Update product quantity in cart.
-
-### `POST /api/cart/clear`
-Clear entire cart.
-
-### `POST /api/auth/register`
-Register a new user.
-
-**Request:**
-```json
-{
-  "username": "user@example.com",
-  "password": "securepassword"
-}
-```
-
-### `POST /api/auth/login`
-Sign in user.
-
-### `GET /api/loseit/daily-summary`
-Get daily nutrition summary for authenticated user.
-
-**Headers:**
-- `X-User-ID`: User ID from session
-
-**Query Parameters:**
-- `date` - Date in ISO format (optional, defaults to today)
-
-### `POST /api/loseit/analyze-food`
-Analyze food description and get nutrition facts.
-
-**Request:**
-```json
-{
-  "description": "grilled chicken breast 200g"
-}
-```
-
-### `POST /api/loseit/log-food`
-Log food entry.
-
-**Request:**
-```json
-{
-  "food_name": "Grilled Chicken Breast",
-  "quantity": 200,
-  "meal_type": "lunch",
-  "calories": 330,
-  "protein": 62,
-  "carbs": 0,
-  "fats": 7.2
-}
-```
-
-### `POST /api/loseit/log-weight`
-Log weight entry.
-
-### `POST /api/loseit/log-water`
-Log water intake.
-
-### `GET /api/loseit/weekly-summary`
-Get weekly nutrition summary and deficit.
-
----
-
-## 🛠️ Development
-
-### Adding Products
+### Development Setup
 
 ```bash
-# Add Jordan products to database
-python3 scripts/talabat_mart_jordan_products.py
+# Install dependencies
+npm install
+
+# Run in development mode
+npm run dev
+
+# Run with file watching
+npm run dev:watch
 ```
 
-### Customizing
-
-- **Styling**: Edit `static/css/style.css`, `cart-sidebar.css`, `footer.css`
-- **JavaScript**: Edit `static/js/main.js`, `translations.js`
-- **HTML**: Edit `templates/index.html`
-- **AI Logic**: Edit `groq_assistant.py`
-- **List Building**: Edit `smart_list_builder.py`
-- **Cart Management**: Edit `cart_manager.py`
-
-### Adding Translations
-
-Edit `static/js/translations.js` to add new translation keys:
-
-```javascript
-const translations = {
-    en: {
-        new_key: "English text"
-    },
-    ar: {
-        new_key: "النص العربي"
-    }
-};
-```
-
-Then add `data-translate="new_key"` to HTML elements.
-
 ---
 
-## 📦 Dependencies
+## 📝 License
 
-- **Flask** - Web framework
-- **Flask-CORS** - CORS support
-- **requests** - HTTP requests
-- **groq** - Groq AI SDK
-- **python-dotenv** - Environment variables
-- **Chart.js** - Charts and graphs (via CDN)
-- **Font Awesome** - Icons (via CDN)
-
-See `requirements.txt` for complete list.
-
----
-
-## 🌍 Target Region
-
-Currently optimized for **Jordan**:
-- ✅ Products from Talabat Jordan
-- ✅ Prices in JOD (Jordanian Dinar)
-- ✅ Local product availability
-- ✅ Jordanian food preferences
-- ✅ Arabic language support
-- ✅ RTL layout support
-
----
-
-## 🐛 Troubleshooting
-
-### Port Already in Use
-
-If port 8080 is busy, change it in `web_app_enhanced.py`:
-```python
-app.run(debug=True, host='0.0.0.0', port=8080)
-```
-
-### API Key Issues
-
-The app works without an API key but with limited AI features. For full functionality, set your Groq API key as an environment variable.
-
-### Database Issues
-
-If you encounter database errors, delete `products.db` and re-run product scripts:
-```bash
-rm products.db
-python3 scripts/talabat_mart_jordan_products.py
-```
-
-### Cart Not Updating
-
-- Clear browser cache
-- Check browser console for errors
-- Ensure session ID is being sent with requests
-
----
-
-## 📸 Screenshots
-
-<div align="center">
-
-### Modern Hero Section
-![Hero Section](https://via.placeholder.com/800x400?text=ShopAI+Hero+Section)
-
-### Shopping Cart Panel
-![Shopping Cart](https://via.placeholder.com/800x400?text=Sliding+Side+Cart)
-
-### Product Browsing
-![Product Browse](https://via.placeholder.com/800x400?text=Product+Browsing+with+Filters)
-
-### AI Chat Interface
-![Chat Interface](https://via.placeholder.com/800x400?text=AI+Chat+Interface)
-
-</div>
-
----
-
-## 🎯 Recent Updates
-
-### Version 3.0 - Major Features
-- ✅ **User Authentication** - Sign up, sign in, user profiles
-- ✅ **Lose It Nutrition Tracker** - Complete calorie and macro tracking system
-- ✅ **AI Food Analysis** - Natural language food description to nutrition facts
-- ✅ **3-Column Premium Dashboard** - Desktop-optimized layout for nutrition tracking
-- ✅ **Daily & Weekly Analytics** - Track calories, macros, deficit/surplus
-- ✅ **Weight & Water Tracking** - Progress visualization
-- ✅ **Dark Mode** - Toggle between light and dark themes
-- ✅ **UX Enhancements** - Loading states, form validation, smooth animations
-- ✅ **Keyboard Shortcuts** - Power user features
-- ✅ **Wishlist** - Save products for later
-- ✅ **Toast Notifications** - Replace alerts with beautiful notifications
-- ✅ **Product Quick View** - Modal with detailed product information
-- ✅ **Mobile Responsive** - Full mobile support for all features
-
-### Version 2.0 - Previous Features
-- ✅ Sliding side cart with smooth animations
-- ✅ Full Arabic language support with RTL/LTR
-- ✅ Chat-based cart management
-- ✅ Product browsing with advanced filters
-- ✅ Nutritional information display
-- ✅ Dietary filters (gluten-free, vegetarian, vegan, halal, organic)
-- ✅ Professional footer with social links
-- ✅ Scroll to top/bottom buttons
-- ✅ Improved UI/UX with food-themed colors
-- ✅ 90+ real products from Talabat Jordan
-
----
-
-## 👥 Contributors
-
-- **Mahmoud Esawi** - Project Creator
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- [Groq](https://groq.com/) for free AI API
-- [Talabat](https://www.talabat.com/) for product integration
-- [Font Awesome](https://fontawesome.com/) for icons
-- [Google Fonts](https://fonts.google.com/) for typography
+- **Hugging Face** - For providing AI models and API
+- **Talabat Jordan** - For product data and integration inspiration
+- **Font Awesome** - For beautiful icons
+- **Google Fonts** - For typography
 
 ---
 
-## 📞 Support
+## 📞 Contact & Support
 
-For issues or questions:
-- 📧 Open an [Issue](https://github.com/MahmoudEsawi/shopai-jordan/issues)
-- 📖 Check the [Documentation](docs/)
-- 💬 Start a [Discussion](https://github.com/MahmoudEsawi/shopai-jordan/discussions)
+- **GitHub**: [@anas-alhadidi](https://github.com/anas-alhadidi)
+- **Repository**: [shopai-jordan-](https://github.com/anas-alhadidi/shopai-jordan-)
 
 ---
+
+## 🔮 Future Enhancements
+
+- [ ] User authentication and accounts
+- [ ] Save shopping lists to user profile
+- [ ] Recipe suggestions based on shopping list
+- [ ] Direct integration with Talabat ordering API
+- [ ] Price comparison across stores
+- [ ] Seasonal product recommendations
+- [ ] Meal planning calendar
+- [ ] Nutritional analysis and health insights
 
 ---
 
 <div align="center">
 
-### ⭐ Star this repo if you find it helpful!
+**Made with ❤️ for the Jordanian market**
 
-**Made with ❤️ for Jordan 🇯🇴**
-
-[⬆ Back to Top](#-shopai-jordan)
+⭐ Star this repo if you find it helpful!
 
 </div>
+
