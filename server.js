@@ -17,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files
 app.use('/static', express.static(path.join(__dirname, 'static')));
 app.use('/background', express.static(path.join(__dirname, 'background')));
+app.use('/pics', express.static(path.join(__dirname, 'pics')));
 
 // MongoDB connection
 let db;
@@ -24,11 +25,11 @@ let client;
 
 async function connectDB() {
     try {
-        const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/shopai';
+        const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/jordanian_supermarket_2026';
         client = new MongoClient(uri);
         await client.connect();
-        db = client.db('shopai');
-        console.log('Connected to MongoDB - Database: shopai');
+        db = client.db('jordanian_supermarket_2026');
+        console.log('Connected to MongoDB - Database: jordanian_supermarket_2026');
     } catch (error) {
         console.error('MongoDB connection error:', error);
         // Continue without MongoDB for basic functionality
@@ -41,55 +42,60 @@ const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models';
 // Using a text generation model that's more reliable
 const CHAT_MODEL = 'mistralai/Mistral-7B-Instruct-v0.2';
 
+// Helper: map a raw MongoDB product doc to the app's expected format
+function mapProduct(p) {
+    const nutrition = p.nutrition_per_100g || {};
+    return {
+        id: p._id || p.id || `prod_${Math.random().toString(36).substr(2, 9)}`,
+        _id: p._id,
+        name: p.name || p.name_ar || p.name_en || p.description || 'منتج بدون اسم',
+        name_en: p.name_en || p.name || p.description || 'Product without name',
+        name_ar: p.name_ar || p.name || p.description || 'منتج بدون اسم',
+        price: parseFloat(p.price_jod || p.price) || 0,
+        price_jod: parseFloat(p.price_jod || p.price) || 0,
+        currency: p.currency || 'JOD',
+        category: p.category || 'general',
+        description: p.description || '',
+        brand: p.brand || p.store_name || '',
+        size: p.size || '',
+        store_name: p.store_name || p.brand || 'ShopAI Jordan',
+        product_url: p.product_url || '#',
+        image_url: p.image_url || `https://via.placeholder.com/300x300/FF6B00/fff?text=${encodeURIComponent(p.name_ar || p.name || 'منتج')}`,
+        in_stock: p.in_stock !== undefined ? p.in_stock : true,
+        calories_per_100g: nutrition.calories || p.calories_per_100g || null,
+        protein_per_100g: nutrition.protein_g || p.protein_per_100g || null,
+        carbs_per_100g: nutrition.carbs_g || p.carbs_per_100g || null,
+        fats_per_100g: nutrition.fat_g || p.fats_per_100g || null,
+        fiber_per_100g: p.fiber_per_100g || null,
+        nutrition_per_100g: nutrition,
+        is_gluten_free: p.is_gluten_free || false,
+        is_vegetarian: p.is_vegetarian || false,
+        is_vegan: p.is_vegan || false,
+        is_halal: p.is_halal !== undefined ? p.is_halal : true,
+        is_organic: p.is_organic || false,
+        is_healthy: p.is_healthy || false,
+        weight_grams: p.weight_grams || null
+    };
+}
+
 // Load products from MongoDB or JSON file
 let products = [];
 async function loadProducts() {
     try {
         // Try to load from MongoDB first
         if (db) {
-            const productsCollection = db.collection('prouducts'); // Note: collection name is 'prouducts' in MongoDB
+            const productsCollection = db.collection('products');
             const count = await productsCollection.countDocuments();
-            console.log(`📊 MongoDB collection 'prouducts' has ${count} documents`);
+            console.log(`📊 MongoDB collection 'products' has ${count} documents`);
             
             const mongoProducts = await productsCollection.find({}).toArray();
             if (mongoProducts && mongoProducts.length > 0) {
-                console.log(`📦 Raw MongoDB products: ${JSON.stringify(mongoProducts[0]).substring(0, 200)}...`);
-                products = mongoProducts;
-                console.log(`✅ Loaded ${products.length} raw products from MongoDB collection 'prouducts'`);
-                
-                // Map MongoDB fields to expected format if needed
-                products = products.map(p => ({
-                    id: p._id || p.id || `prod_${Math.random().toString(36).substr(2, 9)}`,
-                    _id: p._id,
-                    // Use name_ar if name doesn't exist, fallback to name_en or description
-                    name: p.name || p.name_ar || p.name_en || p.description || 'منتج بدون اسم',
-                    name_en: p.name_en || p.name || p.description || 'Product without name',
-                    name_ar: p.name_ar || p.name || p.description || 'منتج بدون اسم',
-                    price: parseFloat(p.price) || 0,
-                    currency: p.currency || 'JOD',
-                    category: p.category || 'general',
-                    description: p.description || '',
-                    store_name: p.store_name || 'Unknown Store',
-                    product_url: p.product_url || '#',
-                    image_url: p.image_url || 'https://via.placeholder.com/300?text=No+Image',
-                    in_stock: p.in_stock !== undefined ? p.in_stock : true,
-                    calories_per_100g: p.calories_per_100g || null,
-                    protein_per_100g: p.protein_per_100g || null,
-                    carbs_per_100g: p.carbs_per_100g || null,
-                    fats_per_100g: p.fats_per_100g || null,
-                    fiber_per_100g: p.fiber_per_100g || null,
-                    is_gluten_free: p.is_gluten_free || false,
-                    is_vegetarian: p.is_vegetarian || false,
-                    is_vegan: p.is_vegan || false,
-                    is_halal: p.is_halal || false,
-                    is_organic: p.is_organic || false,
-                    is_healthy: p.is_healthy || false,
-                    weight_grams: p.weight_grams || null,
-                    brand: p.brand || null
-                }));
+                console.log(`📦 Raw MongoDB product sample: ${JSON.stringify(mongoProducts[0]).substring(0, 200)}...`);
+                products = mongoProducts.map(mapProduct);
+                console.log(`✅ Loaded ${products.length} products from MongoDB collection 'products'`);
                 return;
             } else {
-                console.log('⚠️  MongoDB collection "prouducts" is empty, falling back to JSON file');
+                console.log('⚠️  MongoDB collection "products" is empty, falling back to JSON file');
             }
         }
         
@@ -108,8 +114,8 @@ app.get('/', async (req, res) => {
     try {
         let html = await fs.readFile(path.join(__dirname, 'templates', 'index.html'), 'utf8');
         
-        // Replace Flask url_for syntax with static paths
-        html = html.replace(/\{\{\s*url_for\(['"]static['"],\s*filename=['"]([^'"]+)['"]\)\s*\}\}/g, '/static/$1');
+        // Replace Flask url_for syntax with static paths and add cache buster
+        html = html.replace(/\{\{\s*url_for\(['"]static['"],\s*filename=['"]([^'"]+)['"]\)\s*\}\}/g, '/static/$1?t=' + Date.now());
         
         res.send(html);
     } catch (error) {
@@ -157,7 +163,7 @@ app.get('/api/products', async (req, res) => {
         // Try to get from MongoDB first if available
         if (db) {
             try {
-                const productsCollection = db.collection('prouducts'); // Note: collection name is 'prouducts'
+                const productsCollection = db.collection('products');
                 let query = {};
                 
                 if (category) {
@@ -165,6 +171,7 @@ app.get('/api/products', async (req, res) => {
                 }
                 if (store) {
                     query.store_name = store;
+                    if (!query.store_name) query.brand = store;
                 }
                 if (search) {
                     const searchLower = search.toLowerCase();
@@ -176,43 +183,13 @@ app.get('/api/products', async (req, res) => {
                     ];
                 }
                 if (minPrice || maxPrice) {
-                    query.price = {};
-                    if (minPrice) query.price.$gte = parseFloat(minPrice);
-                    if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+                    query.price_jod = {};
+                    if (minPrice) query.price_jod.$gte = parseFloat(minPrice);
+                    if (maxPrice) query.price_jod.$lte = parseFloat(maxPrice);
                 }
                 
                 const mongoProducts = await productsCollection.find(query).toArray();
-                
-                // Map MongoDB fields to expected format
-                filteredProducts = mongoProducts.map(p => ({
-                    id: p._id || p.id || `prod_${Math.random().toString(36).substr(2, 9)}`,
-                    _id: p._id,
-                    // Use name_ar if name doesn't exist, fallback to name_en or description
-                    name: p.name || p.name_ar || p.name_en || p.description || 'منتج بدون اسم',
-                    name_en: p.name_en || p.name || p.description || 'Product without name',
-                    name_ar: p.name_ar || p.name || p.description || 'منتج بدون اسم',
-                    price: parseFloat(p.price) || 0,
-                    currency: p.currency || 'JOD',
-                    category: p.category || 'general',
-                    description: p.description || '',
-                    store_name: p.store_name || 'Unknown Store',
-                    product_url: p.product_url || '#',
-                    image_url: p.image_url || 'https://via.placeholder.com/300?text=No+Image',
-                    in_stock: p.in_stock !== undefined ? p.in_stock : true,
-                    calories_per_100g: p.calories_per_100g || null,
-                    protein_per_100g: p.protein_per_100g || null,
-                    carbs_per_100g: p.carbs_per_100g || null,
-                    fats_per_100g: p.fats_per_100g || null,
-                    fiber_per_100g: p.fiber_per_100g || null,
-                    is_gluten_free: p.is_gluten_free || false,
-                    is_vegetarian: p.is_vegetarian || false,
-                    is_vegan: p.is_vegan || false,
-                    is_halal: p.is_halal || false,
-                    is_organic: p.is_organic || false,
-                    is_healthy: p.is_healthy || false,
-                    weight_grams: p.weight_grams || null,
-                    brand: p.brand || null
-                }));
+                filteredProducts = mongoProducts.map(mapProduct);
             } catch (mongoError) {
                 console.error('Error fetching from MongoDB, falling back to in-memory:', mongoError);
                 filteredProducts = [...products];
@@ -254,6 +231,45 @@ app.get('/api/products', async (req, res) => {
     } catch (error) {
         console.error('Error getting products:', error);
         res.status(500).json({ error: 'Error getting products' });
+    }
+});
+
+// Add a new product
+app.post('/api/products', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ error: 'MongoDB database connection not available.' });
+        }
+
+        const newProduct = req.body;
+        
+        // Basic validation
+        if (!newProduct.name && !newProduct.name_en && !newProduct.name_ar) {
+            return res.status(400).json({ error: 'Product must have a name' });
+        }
+        
+        if (!newProduct.price) {
+            return res.status(400).json({ error: 'Product must have a price' });
+        }
+
+        const productsCollection = db.collection('products');
+        
+        // Insert product into collection
+        const result = await productsCollection.insertOne(newProduct);
+        
+        // Add to in-memory array to keep it synced
+        newProduct._id = result.insertedId;
+        products.push(newProduct);
+        
+        res.status(201).json({ 
+            message: 'Product added successfully', 
+            productId: result.insertedId,
+            product: newProduct
+        });
+        
+    } catch (error) {
+        console.error('Error adding product:', error);
+        res.status(500).json({ error: 'Error adding product to database' });
     }
 });
 
@@ -342,7 +358,7 @@ async function searchProductsIntelligently(query, productsList = null) {
         // Always try to get from MongoDB if available
         if (db) {
             try {
-                const productsCollection = db.collection('prouducts');
+                const productsCollection = db.collection('products');
                 let mongoQuery = {};
                 
                 // Get relevant categories from query
@@ -1311,33 +1327,10 @@ Be friendly, concise, and focus on being helpful.`;
             let allAvailableProducts = products;
             if (db && products.length < 50) {
                 try {
-                    const productsCollection = db.collection('prouducts');
-                    const mongoProducts = await productsCollection.find({}).limit(500).toArray(); // Increased limit to 500
+                    const productsCollection = db.collection('products');
+                    const mongoProducts = await productsCollection.find({}).limit(500).toArray();
                     if (mongoProducts && mongoProducts.length > 0) {
-                        allAvailableProducts = mongoProducts.map(p => ({
-                            id: p._id || p.id || `prod_${Math.random().toString(36).substr(2, 9)}`,
-                            _id: p._id,
-                            name: p.name || p.name_ar || p.name_en,
-                            name_ar: p.name_ar || p.name,
-                            name_en: p.name_en || p.name,
-                            price: parseFloat(p.price) || 0,
-                            currency: p.currency || 'JOD',
-                            category: p.category || 'general',
-                            description: p.description || '',
-                            store_name: p.store_name || '',
-                            product_url: p.product_url || '#',
-                            image_url: p.image_url || '',
-                            calories_per_100g: p.calories_per_100g || null,
-                            protein_per_100g: p.protein_per_100g || null,
-                            carbs_per_100g: p.carbs_per_100g || null,
-                            fats_per_100g: p.fats_per_100g || null,
-                            is_gluten_free: p.is_gluten_free || false,
-                            is_vegetarian: p.is_vegetarian || false,
-                            is_vegan: p.is_vegan || false,
-                            is_halal: p.is_halal || false,
-                            is_organic: p.is_organic || false,
-                            is_healthy: p.is_healthy || false
-                        }));
+                        allAvailableProducts = mongoProducts.map(mapProduct);
                         console.log(`📦 Loaded ${allAvailableProducts.length} products from MongoDB for selection`);
                     }
                 } catch (error) {
@@ -2524,14 +2517,33 @@ app.get('/api/cart', async (req, res) => {
     try {
         const sessionId = req.headers['x-session-id'] || req.query.sessionId || 'default';
         
+        let items = [];
         if (db) {
             const cartCollection = db.collection('carts');
             const cart = await cartCollection.findOne({ sessionId });
-            return res.json(cart?.items || []);
+            items = cart?.items || [];
         }
         
-        // Fallback: return empty cart if no DB
-        res.json([]);
+        // Build structured response expected by _updateCartDisplay
+        const enrichedItems = items.map(item => ({
+            productId: String(item.productId || item.product_id || ''),
+            product_id: String(item.productId || item.product_id || ''),
+            name: item.name || item.product_name || 'Product',
+            product_name: item.name || item.product_name || 'Product',
+            category: item.category || 'General',
+            image_url: item.image_url || '',
+            product_url: item.product_url || '',
+            quantity: item.quantity || 1,
+            unit_price: item.price || item.unit_price || 0,
+            total_price: (item.price || item.unit_price || 0) * (item.quantity || 1),
+            calories_per_100g: item.calories_per_100g || null,
+            protein_per_100g: item.protein_per_100g || null,
+        }));
+        
+        const total_items = enrichedItems.reduce((s, i) => s + i.quantity, 0);
+        const total_cost = enrichedItems.reduce((s, i) => s + i.total_price, 0);
+        
+        res.json({ success: true, cart: { items: enrichedItems, total_items, total_cost } });
     } catch (error) {
         console.error('Error getting cart:', error);
         res.status(500).json({ error: 'Error getting cart' });
@@ -2543,28 +2555,32 @@ app.post('/api/cart/add', async (req, res) => {
         const { productId, quantity = 1 } = req.body;
         const sessionId = req.headers['x-session-id'] || req.query.sessionId || 'default';
         
-        const product = products.find(p => p.id === productId);
+        const product = products.find(p => String(p.id || p._id) === String(productId));
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
+        
+        const pid = String(product.id || product._id);
         
         if (db) {
             const cartCollection = db.collection('carts');
             const cart = await cartCollection.findOne({ sessionId });
             
             const cartItem = {
-                productId: product.id,
-                name: product.name,
-                price: product.price,
-                currency: product.currency,
-                quantity: quantity,
-                image_url: product.image_url
+                productId: pid,
+                name: product.name_ar || product.name,
+                price: product.price_jod || product.price,
+                currency: product.currency || 'JOD',
+                quantity: parseInt(quantity),
+                image_url: product.image_url || '',
+                category: product.category || 'General',
             };
             
             if (cart) {
-                const existingItemIndex = cart.items.findIndex(item => item.productId === productId);
+                // Use strict string comparison to avoid duplicates
+                const existingItemIndex = cart.items.findIndex(item => String(item.productId) === pid);
                 if (existingItemIndex >= 0) {
-                    cart.items[existingItemIndex].quantity += quantity;
+                    cart.items[existingItemIndex].quantity += parseInt(quantity);
                 } else {
                     cart.items.push(cartItem);
                 }
@@ -2585,13 +2601,15 @@ app.post('/api/cart/remove', async (req, res) => {
     try {
         const { productId } = req.body;
         const sessionId = req.headers['x-session-id'] || req.query.sessionId || 'default';
+        const pid = String(productId);
         
         if (db) {
             const cartCollection = db.collection('carts');
-            await cartCollection.updateOne(
-                { sessionId },
-                { $pull: { items: { productId } }, $set: { updatedAt: new Date() } }
-            );
+            const cart = await cartCollection.findOne({ sessionId });
+            if (cart) {
+                cart.items = cart.items.filter(item => String(item.productId) !== pid);
+                await cartCollection.updateOne({ sessionId }, { $set: { items: cart.items, updatedAt: new Date() } });
+            }
         }
         
         res.json({ success: true, message: 'Product removed from cart' });
@@ -2605,13 +2623,22 @@ app.post('/api/cart/update', async (req, res) => {
     try {
         const { productId, quantity } = req.body;
         const sessionId = req.headers['x-session-id'] || req.query.sessionId || 'default';
+        const pid = String(productId);
+        const qty = parseInt(quantity);
         
         if (db) {
             const cartCollection = db.collection('carts');
-            await cartCollection.updateOne(
-                { sessionId, 'items.productId': productId },
-                { $set: { 'items.$.quantity': quantity, updatedAt: new Date() } }
-            );
+            const cart = await cartCollection.findOne({ sessionId });
+            if (cart) {
+                if (qty <= 0) {
+                    // Remove item if qty drops to 0
+                    cart.items = cart.items.filter(item => String(item.productId) !== pid);
+                } else {
+                    const idx = cart.items.findIndex(item => String(item.productId) === pid);
+                    if (idx >= 0) cart.items[idx].quantity = qty;
+                }
+                await cartCollection.updateOne({ sessionId }, { $set: { items: cart.items, updatedAt: new Date() } });
+            }
         }
         
         res.json({ success: true, message: 'Cart updated' });

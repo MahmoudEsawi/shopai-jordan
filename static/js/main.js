@@ -5,6 +5,21 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+// Product Browse Functions and State
+let allProducts = [];
+let filteredProducts = [];
+let currentPage = 1;
+const productsPerPage = 12; // Show 12 products per page
+
+// Generate or retrieve session ID required for API carts
+function getSessionId() {
+    let sessionId = localStorage.getItem('shopai_session_id');
+    if (!sessionId) {
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('shopai_session_id', sessionId);
+    }
+    return sessionId;
+}
 
 // Cart Toggle Functions - Improved to prevent glitching
 function toggleCart() {
@@ -99,735 +114,8 @@ async function loadStats() {
     }
 }
 
-async function createSmartList() {
-    const eventType = document.getElementById('eventType').value;
-    const numPeople = parseInt(document.getElementById('numPeople').value) || 1;
-    
-    // Get budget value properly - handle empty string, null, and 0 correctly
-    const budgetInput = document.getElementById('budget').value;
-    let budget = null;
-    if (budgetInput !== null && budgetInput !== undefined && budgetInput.trim() !== '') {
-        const parsedBudget = parseFloat(budgetInput);
-        if (!isNaN(parsedBudget) && parsedBudget > 0) {
-            budget = parsedBudget;
-        }
-    }
-    
-    const dietary = document.getElementById('dietary').value;
-    const additional = document.getElementById('additionalRequests').value;
-    const filterHealthy = document.getElementById('filterHealthy').checked;
-    const filterGlutenFree = document.getElementById('filterGlutenFree').checked;
-    
-    const minProteinInput = document.getElementById('minProtein').value;
-    let minProtein = null;
-    if (minProteinInput && minProteinInput.trim() !== '') {
-        const parsed = parseFloat(minProteinInput);
-        if (!isNaN(parsed) && parsed > 0) {
-            minProtein = parsed;
-        }
-    }
-    
-    const maxCaloriesInput = document.getElementById('maxCalories').value;
-    let maxCalories = null;
-    if (maxCaloriesInput && maxCaloriesInput.trim() !== '') {
-        const parsed = parseFloat(maxCaloriesInput);
-        if (!isNaN(parsed) && parsed > 0) {
-            maxCalories = parsed;
-        }
-    }
-    
-    console.log('📋 Smart Shopping Planner form data:', {
-        eventType, numPeople, budget, dietary, filterHealthy, filterGlutenFree,
-        minProtein, maxCalories, additional
-    });
-    
-    // Build message for display
-    let message = `I want ${eventType === 'bbq' ? 'a BBQ' : eventType === 'traditional' ? 'a traditional Jordanian meal' : 'a ' + eventType} for ${numPeople} people`;
-    
-    if (budget) {
-        message += `, budget ${budget} JOD`;
-    }
-    
-    if (dietary !== 'all') {
-        message += `, ${dietary}`;
-    }
-    
-    if (filterHealthy) {
-        message += `, healthy food only`;
-    }
-    
-    if (filterGlutenFree) {
-        message += `, gluten-free only`;
-    }
-    
-    if (minProtein) {
-        message += `, minimum ${minProtein}g protein per 100g`;
-    }
-    
-    if (maxCalories) {
-        message += `, maximum ${maxCalories} calories per 100g`;
-    }
-    
-    if (additional) {
-        message += `. ${additional}`;
-    }
-    
-    // Set message in chat input
-    document.getElementById('chatInput').value = message;
-    
-    // Send message with explicit parameters from Smart Shopping Planner
-    const params = {
-        eventType: eventType,
-        numPeople: numPeople,
-        budget: budget, // Can be null if not specified, or a number if specified
-        dietary: dietary,
-        filterHealthy: filterHealthy,
-        filterGlutenFree: filterGlutenFree,
-        minProtein: minProtein,
-        maxCalories: maxCalories,
-        additionalRequests: additional,
-        fromSmartPlanner: true
-    };
-    
-    console.log('📤 Sending to server with params:', params);
-    console.log(`📊 Budget details: value=${budget}, type=${typeof budget}, isNull=${budget === null}, isNumber=${typeof budget === 'number'}`);
-    await sendMessageWithParams(message, params);
-}
-
-// Generate or retrieve session ID
-function getSessionId() {
-    let sessionId = localStorage.getItem('shopai_session_id');
-    if (!sessionId) {
-        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('shopai_session_id', sessionId);
-    }
-    return sessionId;
-}
-
-async function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    
-    if (!message) return;
-    
-    await sendMessageWithParams(message);
-}
-
-async function sendMessageWithParams(message, params = null) {
-    if (!message || message.trim() === '') return;
-    
-    const input = document.getElementById('chatInput');
-    addMessageToChat('user', message);
-    
-    // Only clear input if not from Smart Planner (Smart Planner already sets it)
-    if (!params || !params.fromSmartPlanner) {
-        input.value = '';
-    }
-    
-    const loadingMsg = addMessageToChat('bot', '<div class="spinner"></div> AI is thinking...');
-    
-    try {
-        // Prepare request body with message and optional parameters
-        const requestBody = {
-            message: message,
-            conversation_history: []
-        };
-        
-        // Add parameters from Smart Shopping Planner if provided
-        if (params) {
-            requestBody.eventType = params.eventType;
-            requestBody.numPeople = params.numPeople;
-            requestBody.budget = params.budget; // Send budget as-is (number or null)
-            requestBody.dietary = params.dietary;
-            requestBody.filterHealthy = params.filterHealthy;
-            requestBody.filterGlutenFree = params.filterGlutenFree;
-            requestBody.minProtein = params.minProtein;
-            requestBody.maxCalories = params.maxCalories;
-            requestBody.additionalRequests = params.additionalRequests;
-            requestBody.fromSmartPlanner = params.fromSmartPlanner;
-            
-            console.log('📋 Sending Smart Shopping Planner data to server:', {
-                ...params,
-                budgetDetails: {
-                    value: params.budget,
-                    type: typeof params.budget,
-                    isNull: params.budget === null,
-                    isNumber: typeof params.budget === 'number',
-                    isValid: params.budget !== null && typeof params.budget === 'number' && params.budget > 0
-                }
-            });
-        }
-        
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Session-ID': getSessionId()
-            },
-            body: JSON.stringify(requestBody)
-        });
-        
-        const data = await response.json();
-        loadingMsg.remove();
-        
-        // Clear input after sending
-        input.value = '';
-        
-        // Display AI response
-        addMessageToChat('bot', data.message || data.response);
-        
-        // Handle cart updates
-        if (data.cart) {
-            updateCartDisplay(data.cart);
-        }
-        
-        // Show products in editable shopping list if available
-        console.log('📋 Shopping list data:', data.shopping_list);
-        console.log('📋 Relevant products:', data.relevantProducts);
-        
-        if (data.shopping_list && data.shopping_list.items && data.shopping_list.items.length > 0) {
-            console.log(`✅ Found shopping list with ${data.shopping_list.items.length} items`);
-            // Store shopping list globally
-            window.currentShoppingList = data.shopping_list;
-            
-            // Display shopping list with edit capability
-            displayEditableShoppingList(data.shopping_list, message);
-        } else if (data.relevantProducts && data.relevantProducts.length > 0) {
-            console.log(`✅ Found ${data.relevantProducts.length} relevant products (no shopping list)`);
-            // If no shopping list but we have relevant products, show them in a list
-            displayProductSuggestions(data.relevantProducts, message);
-        } else {
-            console.log('⚠️ No shopping list or relevant products found');
-            // Hide shopping list if it exists
-            const listContainer = document.getElementById('shoppingList');
-            if (listContainer) {
-                listContainer.innerHTML = '';
-                listContainer.style.display = 'none';
-            }
-        }
-    } catch (error) {
-        loadingMsg.remove();
-        input.value = '';
-        addMessageToChat('bot', 'Error: ' + error.message);
-    }
-}
-
-function addMessageToChat(type, message) {
-    const chatContainer = document.getElementById('chatContainer');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}`;
-    const time = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
-    messageDiv.innerHTML = message + `<div class="message-time">${time}</div>`;
-    chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-    return messageDiv;
-}
-
-// Display editable shopping list from chat
-function displayEditableShoppingList(shoppingList, originalRequest) {
-    const container = document.getElementById('shoppingList');
-    if (!container) {
-        console.error('Shopping list container not found');
-        return;
-    }
-    
-    container.style.display = 'block';
-    container.innerHTML = '';
-    
-    // Header
-    const header = document.createElement('div');
-    header.className = 'shopping-list-header';
-    const numPeople = shoppingList.num_people || 1;
-    const eventType = shoppingList.event_type || 'general';
-    const eventNames = {
-        'bbq': 'شواء / BBQ',
-        'dinner': 'عشاء / Dinner',
-        'lunch': 'غداء / Lunch',
-        'breakfast': 'فطور / Breakfast',
-        'party': 'حفلة / Party',
-        'family': 'عائلة / Family',
-        'traditional': 'تقليدي / Traditional',
-        'general': 'عام / General'
-    };
-    header.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <h3 style="margin: 0;">🛒 قائمة التسوق المقترحة (Shopping List)</h3>
-            <div style="font-size: 0.9rem; color: var(--gray);">
-                ${eventNames[eventType] || 'عام'} • ${numPeople} ${numPeople === 1 ? 'شخص' : 'أشخاص'}
-            </div>
-        </div>
-        <p style="color: var(--gray); margin-top: 0.5rem; font-size: 0.9rem;">يمكنك تعديل الكميات قبل إضافة المنتجات للسلة • ${shoppingList.items.length} منتج</p>
-    `;
-    container.appendChild(header);
-    
-    // List items
-    const listContainer = document.createElement('div');
-    listContainer.className = 'shopping-list-items';
-    listContainer.style.cssText = 'margin-top: 1.5rem;';
-    
-    shoppingList.items.forEach((item, index) => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'shopping-list-item-editable';
-        itemDiv.style.cssText = `
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: white;
-            border-radius: 12px;
-            margin-bottom: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-        `;
-        itemDiv.onmouseenter = function() {
-            this.style.transform = 'translateY(-2px)';
-            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        };
-        itemDiv.onmouseleave = function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-        };
-        
-        const totalPrice = (item.unit_price * item.quantity).toFixed(2);
-        const imageUrl = item.image_url || 'https://via.placeholder.com/80?text=No+Image';
-        const productName = item.name_ar || item.name || item.name_en || 'منتج';
-        const categoryName = item.category || 'عام';
-        
-        itemDiv.innerHTML = `
-            <div style="width: 80px; height: 80px; flex-shrink: 0;">
-                <img src="${escapeHtml(imageUrl)}" 
-                     alt="${escapeHtml(productName)}"
-                     onerror="this.src='https://via.placeholder.com/80?text=No+Image'"
-                     style="
-                         width: 100%;
-                         height: 100%;
-                         object-fit: cover;
-                         border-radius: 8px;
-                         border: 1px solid #e5e7eb;
-                     ">
-            </div>
-            <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: 600; color: var(--dark); margin-bottom: 0.25rem; font-size: 1rem;">
-                    ${escapeHtml(productName)}
-                </div>
-                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">
-                    ${escapeHtml(categoryName)} • ${item.unit_price.toFixed(2)} ${item.currency || 'JOD'} لكل وحدة
-                </div>
-                ${item.description ? `<div style="font-size: 0.75rem; color: var(--gray); opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(item.description.substring(0, 60))}${item.description.length > 60 ? '...' : ''}</div>` : ''}
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
-                <button onclick="updateListItemQuantity(${index}, -1)" style="
-                    width: 36px;
-                    height: 36px;
-                    border: 1px solid var(--primary);
-                    background: white;
-                    color: var(--primary);
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-weight: 700;
-                    font-size: 1.2rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s;
-                " onmouseenter="this.style.background='var(--primary)'; this.style.color='white';" 
-                   onmouseleave="this.style.background='white'; this.style.color='var(--primary);">-</button>
-                <input type="number" 
-                       id="list_quantity_${index}" 
-                       value="${item.quantity}" 
-                       min="1" 
-                       onchange="updateListItemQuantity(${index}, 0)"
-                       style="
-                           width: 70px;
-                           padding: 0.5rem;
-                           text-align: center;
-                           border: 2px solid #e5e7eb;
-                           border-radius: 6px;
-                           font-weight: 600;
-                           font-size: 1rem;
-                           transition: border-color 0.2s;
-                       " onfocus="this.style.borderColor='var(--primary)';" 
-                          onblur="this.style.borderColor='#e5e7eb';">
-                <button onclick="updateListItemQuantity(${index}, 1)" style="
-                    width: 36px;
-                    height: 36px;
-                    border: 1px solid var(--primary);
-                    background: white;
-                    color: var(--primary);
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-weight: 700;
-                    font-size: 1.2rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s;
-                " onmouseenter="this.style.background='var(--primary)'; this.style.color='white';" 
-                   onmouseleave="this.style.background='white'; this.style.color='var(--primary);">+</button>
-            </div>
-            <div style="text-align: right; min-width: 120px; flex-shrink: 0;">
-                <div style="font-weight: 700; color: var(--primary); font-size: 1.2rem; margin-bottom: 0.25rem;">
-                    ${totalPrice} ${item.currency || 'JOD'}
-                </div>
-                <div style="font-size: 0.75rem; color: var(--gray);">
-                    ${item.quantity} × ${item.unit_price.toFixed(2)}
-                </div>
-            </div>
-            <button onclick="removeFromShoppingList(${index})" style="
-                padding: 0.5rem 0.75rem;
-                background: #ef4444;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 1rem;
-                transition: background 0.2s;
-                flex-shrink: 0;
-            " onmouseenter="this.style.background='#dc2626';" 
-               onmouseleave="this.style.background='#ef4444';" 
-               title="حذف من القائمة">🗑️</button>
-        `;
-        
-        listContainer.appendChild(itemDiv);
-    });
-    
-    container.appendChild(listContainer);
-    
-    // Footer with totals and actions
-    const footer = document.createElement('div');
-    footer.className = 'shopping-list-footer';
-    footer.style.cssText = `
-        margin-top: 1.5rem;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        border-radius: 12px;
-        color: white;
-    `;
-    
-    const initialTotal = shoppingList.items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
-    
-    footer.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <div>
-                <div style="font-size: 0.9rem; opacity: 0.9;">المجموع الكلي</div>
-                <div style="font-size: 1.8rem; font-weight: 700;" id="listTotalPrice">${initialTotal.toFixed(2)} ${shoppingList.items[0]?.currency || 'JOD'}</div>
-            </div>
-            <div style="text-align: right;">
-                <div style="font-size: 0.9rem; opacity: 0.9;">عدد المنتجات</div>
-                <div style="font-size: 1.2rem; font-weight: 600;" id="listItemCount">${shoppingList.items.length}</div>
-            </div>
-        </div>
-        <div style="display: flex; gap: 0.75rem;">
-            <button onclick="addListToCart()" style="
-                flex: 1;
-                padding: 0.75rem 1.5rem;
-                background: white;
-                color: var(--primary);
-                border: none;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                font-size: 1rem;
-            ">
-                ✅ إضافة للسلة (Add to Cart)
-            </button>
-            <button onclick="clearShoppingList()" style="
-                padding: 0.75rem 1.5rem;
-                background: rgba(255,255,255,0.2);
-                color: white;
-                border: 1px solid rgba(255,255,255,0.3);
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-            ">
-                🗑️ مسح القائمة
-            </button>
-        </div>
-    `;
-    
-    container.appendChild(footer);
-    
-    // Store shopping list globally
-    window.currentShoppingList = shoppingList;
-    
-    // Scroll to list
-    setTimeout(() => {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
-}
-
-// Display product suggestions when products are found but no shopping list
-function displayProductSuggestions(products, originalRequest) {
-    if (!products || products.length === 0) return;
-    
-    const container = document.getElementById('shoppingList');
-    if (!container) {
-        console.error('Shopping list container not found');
-        return;
-    }
-    
-    container.style.display = 'block';
-    container.innerHTML = '';
-    
-    const header = document.createElement('div');
-    header.className = 'product-suggestions-header';
-    header.innerHTML = `
-        <h3>✨ المنتجات المقترحة (Suggested Products)</h3>
-        <p style="color: var(--gray); margin-top: 0.5rem;">اختر المنتجات التي تريد إضافتها للقائمة</p>
-    `;
-    container.appendChild(header);
-    
-    const productsGrid = document.createElement('div');
-    productsGrid.style.cssText = `
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-top: 1.5rem;
-    `;
-    
-    products.forEach((product, index) => {
-        const productCard = document.createElement('div');
-        productCard.style.cssText = `
-            background: white;
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s;
-        `;
-        productCard.onmouseover = () => productCard.style.transform = 'translateY(-4px)';
-        productCard.onmouseout = () => productCard.style.transform = 'translateY(0)';
-        
-        productCard.innerHTML = `
-            ${product.image_url ? `<img src="${product.image_url}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 0.75rem;">` : ''}
-            <div style="font-weight: 600; color: var(--dark); margin-bottom: 0.25rem; font-size: 0.9rem;">
-                ${product.name_ar || product.name || 'منتج'}
-            </div>
-            <div style="font-size: 0.8rem; color: var(--gray); margin-bottom: 0.5rem;">
-                ${product.category}
-            </div>
-            <div style="font-weight: 700; color: var(--primary); margin-bottom: 0.75rem;">
-                ${product.price.toFixed(2)} ${product.currency || 'JOD'}
-            </div>
-            <button onclick="addProductToList('${product.id}')" style="
-                width: 100%;
-                padding: 0.5rem;
-                background: var(--primary);
-                color: white;
-                border: none;
-                border-radius: 6px;
-                font-weight: 600;
-                cursor: pointer;
-                font-size: 0.9rem;
-            ">
-                ➕ إضافة للقائمة
-            </button>
-        `;
-        
-        productsGrid.appendChild(productCard);
-    });
-    
-    container.appendChild(productsGrid);
-    
-    setTimeout(() => {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
-}
-
-function displayShoppingList(shoppingList, originalRequest, recipes = [], shareUrl = null) {
-    const container = document.getElementById('shoppingList');
-    
-    const byCategory = {};
-    shoppingList.items.forEach(item => {
-        if (!byCategory[item.category]) byCategory[item.category] = [];
-        byCategory[item.category].push(item);
-    });
-    
-    // Extract budget from request
-    const budgetMatch = originalRequest.match(/budget[:\s]+(\d+)/i);
-    const requestedBudget = budgetMatch ? parseFloat(budgetMatch[1]) : null;
-    
-    let html = '<div class="shopping-list">';
-    html += '<div class="list-header">';
-    html += '<div>';
-    html += '<div class="list-title"><i class="fas fa-shopping-cart"></i> Shopping List</div>';
-    html += `<div style="color: var(--gray); margin-top: 0.5rem; font-size: 1rem;">For ${shoppingList.num_people} people • ${shoppingList.items.length} items</div>`;
-    html += '</div>';
-    html += '<div style="display: flex; gap: 1rem; flex-wrap: wrap;">';
-    html += '<button class="btn btn-success btn-sm" onclick="openAllOnTalabat()"><i class="fas fa-shopping-bag"></i> Order on Talabat</button>';
-    html += '<button class="btn btn-primary btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print</button>';
-    if (shareUrl) {
-        html += `<button class="btn btn-primary btn-sm" onclick="shareList('${shareUrl}')"><i class="fas fa-share-alt"></i> Share</button>`;
-    }
-    html += '<button class="btn btn-primary btn-sm" onclick="exportList()"><i class="fas fa-download"></i> Export</button>';
-    html += '</div>';
-    html += '</div>';
-    
-    for (const [category, items] of Object.entries(byCategory)) {
-        html += `<div class="category-section">`;
-        html += `<div class="category-header">`;
-        html += `<span style="font-weight: 700; font-size: 1.1rem;">${category.toUpperCase()}</span>`;
-        html += `<span style="margin-left: auto; background: white; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; color: var(--primary); font-weight: 600;">${items.length} items</span>`;
-        html += `</div>`;
-        
-        items.forEach(item => {
-            html += `<div class="shopping-item">`;
-            
-            // Product Image
-            if (item.image_url) {
-                html += `<img src="${item.image_url}" class="item-image" alt="${item.product_name}" onerror="this.src='https://via.placeholder.com/100?text=No+Image'">`;
-            }
-            
-            html += `<div class="item-main">`;
-            html += `<div class="item-name">${item.product_name}</div>`;
-            html += `<div class="item-details">`;
-            html += `<span><i class="fas fa-box"></i> Qty: ${item.quantity}</span>`;
-            html += `<span><i class="fas fa-coins"></i> ${item.unit_price.toFixed(2)} JOD each</span>`;
-            html += `</div>`;
-            
-            // Nutritional Information
-            if (item.calories_per_100g || item.protein_per_100g) {
-                html += `<div class="nutrition-info">`;
-                html += `<div class="nutrition-info-row">`;
-                if (item.calories_per_100g) {
-                    html += `<span class="nutrition-info-item calories"><i class="fas fa-fire"></i> ${item.calories_per_100g} cal/100g</span>`;
-                }
-                if (item.protein_per_100g) {
-                    html += `<span class="nutrition-info-item protein"><i class="fas fa-dumbbell"></i> ${item.protein_per_100g}g protein/100g</span>`;
-                }
-                if (item.carbs_per_100g) {
-                    html += `<span class="nutrition-info-item carbs"><i class="fas fa-bread-slice"></i> ${item.carbs_per_100g}g carbs/100g</span>`;
-                }
-                if (item.fats_per_100g) {
-                    html += `<span class="nutrition-info-item fats"><i class="fas fa-tint"></i> ${item.fats_per_100g}g fats/100g</span>`;
-                }
-                html += `</div>`;
-                
-                // Dietary Facts
-                const facts = [];
-                if (item.is_gluten_free) facts.push('<span class="dietary-badge">🌾 Gluten-Free</span>');
-                if (item.is_vegetarian) facts.push('<span class="dietary-badge">🥬 Vegetarian</span>');
-                if (item.is_vegan) facts.push('<span class="dietary-badge">🌱 Vegan</span>');
-                if (item.is_healthy) facts.push('<span class="dietary-badge healthy">💚 Healthy</span>');
-                if (item.is_organic) facts.push('<span class="dietary-badge organic">🌿 Organic</span>');
-                if (facts.length > 0) {
-                    html += `<div class="dietary-facts">${facts.join('')}</div>`;
-                }
-                html += `</div>`;
-            }
-            
-            if (item.product_url) {
-                html += `<a href="${item.product_url}" target="_blank" class="item-link" style="margin-top: 0.5rem; display: inline-block;">`;
-                html += `<i class="fas fa-external-link-alt"></i> View on Talabat Jordan</a>`;
-            }
-            
-            html += `</div>`;
-            html += `<div class="item-actions">`;
-            html += `<div class="item-price">${item.total_price.toFixed(2)} <span style="font-size: 1rem; color: var(--gray);">JOD</span></div>`;
-            
-            // Add to cart button - need to find product ID from name
-            html += `<button class="btn btn-success btn-sm" onclick="addProductToCartByName('${item.product_name}')">`;
-            html += `<i class="fas fa-cart-plus"></i> Add to Cart</button>`;
-            
-            if (item.product_url) {
-                html += `<a href="${item.product_url}" target="_blank" class="item-link" style="margin-left: 0.5rem; display: inline-block;">`;
-                html += `<i class="fas fa-external-link-alt"></i> View on Talabat</a>`;
-            }
-            
-            html += `</div></div>`;
-        });
-        
-        html += `</div>`;
-    }
-    
-    // Total Section with Budget Indicator
-    html += `<div class="total-section">`;
-    html += `<div>`;
-    html += `<div style="font-size: 1.1rem; opacity: 0.95; font-weight: 600;">Total Cost</div>`;
-    html += `<div style="font-size: 0.9rem; opacity: 0.85; margin-top: 0.25rem;">${shoppingList.items.length} items • Ready to order on Talabat</div>`;
-    
-    if (requestedBudget) {
-        const withinBudget = shoppingList.total_cost <= requestedBudget;
-        const budgetDiff = requestedBudget - shoppingList.total_cost;
-        html += `<div class="budget-indicator">`;
-        if (withinBudget) {
-            html += `<i class="fas fa-check-circle"></i> Within budget • ${budgetDiff.toFixed(2)} JOD remaining`;
-        } else {
-            html += `<i class="fas fa-exclamation-circle"></i> Over budget by ${Math.abs(budgetDiff).toFixed(2)} JOD`;
-        }
-        html += `</div>`;
-    }
-    
-    html += `</div>`;
-    html += `<div class="total-amount">${shoppingList.total_cost.toFixed(2)} <span style="font-size: 1.8rem; font-weight: 600;">JOD</span></div>`;
-    html += `</div>`;
-    html += '</div>';
-    
-    // Add Recipe Suggestions Section
-    if (recipes && recipes.length > 0) {
-        html += '<div class="recipes-section" style="margin-top: 3rem; padding: 2rem; background: white; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.12);">';
-        html += '<div style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--dark);"><i class="fas fa-utensils"></i> Recipe Suggestions</div>';
-        html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">';
-        
-        recipes.forEach(recipe => {
-            html += '<div class="recipe-card" style="padding: 1.5rem; background: var(--light); border-radius: 15px; border: 2px solid #e2e8f0;">';
-            html += `<div style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--primary);">${recipe.name}</div>`;
-            html += `<div style="color: var(--gray); margin-bottom: 1rem; font-size: 0.95rem;">${recipe.description}</div>`;
-            html += '<div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">';
-            html += `<span style="background: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem;"><i class="fas fa-clock"></i> ${recipe.prep_time}</span>`;
-            html += `<span style="background: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem;"><i class="fas fa-fire"></i> ${recipe.cook_time}</span>`;
-            html += `<span style="background: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem;"><i class="fas fa-users"></i> ${recipe.servings} servings</span>`;
-            html += `<span style="background: white; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem;"><i class="fas fa-signal"></i> ${recipe.difficulty}</span>`;
-            html += '</div>';
-            html += '<div style="margin-top: 1rem;">';
-            html += '<div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--dark);">Ingredients:</div>';
-            html += '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">';
-            recipe.ingredients.slice(0, 5).forEach(ing => {
-                html += `<span style="background: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.85rem; color: var(--gray);">${ing}</span>`;
-            });
-            if (recipe.ingredients.length > 5) {
-                html += `<span style="background: white; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.85rem; color: var(--gray);">+${recipe.ingredients.length - 5} more</span>`;
-            }
-            html += '</div>';
-            html += '</div>';
-            if (recipe.match_percentage) {
-                html += `<div style="margin-top: 1rem; padding: 0.5rem; background: rgba(37, 99, 235, 0.1); border-radius: 8px; font-size: 0.85rem; color: var(--primary);"><i class="fas fa-check-circle"></i> ${recipe.match_percentage}% match with your shopping list</div>`;
-            }
-            html += '</div>';
-        });
-        
-        html += '</div>';
-        html += '</div>';
-    }
-    
-    container.innerHTML = html;
-    container.style.display = 'block';
-    
-    // Store shopping list for sharing/export
-    window.currentShoppingList = shoppingList;
-    window.currentShareUrl = shareUrl;
-    
-    // Auto-scroll to shopping list smoothly
-    setTimeout(() => {
-        container.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-        });
-    }, 300);
-}
-
-function openAllOnTalabat() {
-    const links = Array.from(document.querySelectorAll('.item-link'));
-    links.slice(0, 5).forEach((link, idx) => {
-        setTimeout(() => window.open(link.href, '_blank'), idx * 600);
-    });
-    Toast.info(`Opening ${Math.min(links.length, 5)} products on Talabat Jordan!`);
-}
-
-document.getElementById('chatInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') sendMessage();
-});
-
+// AI Chat Functions removed
+function sendMessage() {}
 // Mobile Menu Toggle
 function toggleMobileMenu() {
     const navMenu = document.getElementById('navMenu');
@@ -969,12 +257,7 @@ function copyToClipboard(text) {
     }
 }
 
-// Product Browse Functions
-let allProducts = [];
-let filteredProducts = [];
-let currentPage = 1;
-const productsPerPage = 12; // Show 12 products per page
-
+// Product Browse Functions (State variables moved to top)
 async function loadProducts() {
     const loadingEl = document.getElementById('productsLoading');
     const gridEl = document.getElementById('productsGrid');
@@ -1100,10 +383,12 @@ function setupProductFilters() {
     const veganCheck = document.getElementById('browseVegan');
     const organicCheck = document.getElementById('browseOrganic');
     const halalCheck = document.getElementById('browseHalal');
+    const adminCheck = document.getElementById('browseAdmin');
     const minProteinInput = document.getElementById('browseMinProtein');
     const maxCaloriesInput = document.getElementById('browseMaxCalories');
+    const priceFilter = document.getElementById('priceFilter');
     
-    const elements = [searchInput, categoryFilter, sortFilter, healthyCheck, glutenFreeCheck, vegetarianCheck, veganCheck, organicCheck, halalCheck, minProteinInput, maxCaloriesInput];
+    const elements = [searchInput, categoryFilter, sortFilter, healthyCheck, glutenFreeCheck, vegetarianCheck, veganCheck, organicCheck, halalCheck, minProteinInput, maxCaloriesInput, priceFilter];
     
     elements.forEach(el => {
         if (el) {
@@ -1121,7 +406,14 @@ function filterProducts() {
     const searchTerm = document.getElementById('productSearch')?.value.toLowerCase() || '';
     const categorySelect = document.getElementById('categoryFilter');
     const category = categorySelect?.value || '';
-    const sortBy = document.getElementById('sortFilter')?.value || 'name';
+    let sortBy = document.getElementById('sortFilter')?.value || 'name';
+    const priceFilterVal = document.getElementById('priceFilter')?.value;
+    if (priceFilterVal) {
+        sortBy = priceFilterVal;
+        // Optionally sync the other sort dropdown
+        const sortFilter = document.getElementById('sortFilter');
+        if (sortFilter) sortFilter.value = priceFilterVal;
+    }
     const healthyOnly = document.getElementById('browseHealthy')?.checked || false;
     const glutenFreeOnly = document.getElementById('browseGlutenFree')?.checked || false;
     const vegetarianOnly = document.getElementById('browseVegetarian')?.checked || false;
@@ -1297,78 +589,32 @@ function displayProducts() {
         const productData = escapeHtml(JSON.stringify(product));
         
         return `
-            <div class="product-card" data-product-id="${productId}" data-product='${productData}'>
-                <button class="wishlist-btn" onclick="event.stopPropagation(); const card = this.closest('.product-card'); const product = JSON.parse(card.dataset.product); wishlistManager.toggleWishlist(product);" title="${isArabic ? 'إضافة للمفضلة' : 'Add to wishlist'}">
-                    <i class="far fa-heart"></i>
-                </button>
-                <button class="quick-view-btn" onclick="event.stopPropagation(); const card = this.closest('.product-card'); const product = JSON.parse(card.dataset.product); toggleNutritionInfo(card);" title="${isArabic ? 'عرض معلومات التغذية' : 'View nutrition info'}">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <div class="product-card-image" onclick="window.open('${productUrl}', '_blank')">
+            <div class="product-card bg-white rounded-2xl transition-all duration-300 relative group flex flex-col p-4 font-sans max-w-[240px] mx-auto cursor-pointer" data-product-id="${productId}" data-product='${productData}'>
+                
+                <!-- Product Image -->
+                <div class="flex-1 flex justify-center items-center py-4 relative h-36">
                     <img src="${imageUrl}" 
                          alt="${productName}" 
                          loading="lazy"
-                         onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
-                    ${tags.length > 0 ? `<div class="product-card-badges">${tags.map(t => `<span class="product-card-badge ${t.class}">${t.text}</span>`).join('')}</div>` : ''}
+                         onerror="this.src='https://via.placeholder.com/300?text=No+Image'"
+                         class="w-28 h-28 object-contain">
                 </div>
-                <div class="product-card-content">
-                    <div class="product-card-name">${productName}</div>
+
+                <!-- Product Details -->
+                <div class="mt-1 flex flex-col items-center text-center gap-0.5 pb-2">
+                    <div class="text-base font-bold text-gray-800 line-clamp-1 w-full leading-snug">${productName}</div>
+                    <div class="text-xs text-brand-dark/70 font-medium">(Local shop)</div>
+                    <div class="text-[11px] text-gray-400 font-medium">500 gm.</div>
                     
-                    ${product.description ? `<div class="product-card-description">${escapeHtml(isArabic ? (product.description_ar || product.description) : (product.description_en || product.description))}</div>` : ''}
-                    
-                    ${hasNutrition ? `
-                        <div class="product-card-nutrition-full" style="display: none;" id="nutrition-${productId}">
-                            <div class="nutrition-header">
-                                <i class="fas fa-chart-pie"></i> ${isArabic ? 'القيمة الغذائية لكل 100 جرام' : 'Nutrition per 100g'}
-                            </div>
-                            <div class="nutrition-grid">
-                                ${product.calories_per_100g ? `
-                                    <div class="nutrition-item">
-                                        <div class="nutrition-label"><i class="fas fa-fire"></i> ${isArabic ? 'السعرات' : 'Calories'}</div>
-                                        <div class="nutrition-value">${product.calories_per_100g}</div>
-                                    </div>
-                                ` : ''}
-                                ${product.protein_per_100g ? `
-                                    <div class="nutrition-item protein">
-                                        <div class="nutrition-label"><i class="fas fa-dumbbell"></i> ${isArabic ? 'البروتين' : 'Protein'}</div>
-                                        <div class="nutrition-value">${product.protein_per_100g}g</div>
-                                    </div>
-                                ` : ''}
-                                ${product.carbs_per_100g ? `
-                                    <div class="nutrition-item">
-                                        <div class="nutrition-label"><i class="fas fa-bread-slice"></i> ${isArabic ? 'الكربوهيدرات' : 'Carbs'}</div>
-                                        <div class="nutrition-value">${product.carbs_per_100g}g</div>
-                                    </div>
-                                ` : ''}
-                                ${product.fats_per_100g ? `
-                                    <div class="nutrition-item">
-                                        <div class="nutrition-label"><i class="fas fa-tint"></i> ${isArabic ? 'الدهون' : 'Fats'}</div>
-                                        <div class="nutrition-value">${product.fats_per_100g}g</div>
-                                    </div>
-                                ` : ''}
-                                ${product.fiber_per_100g ? `
-                                    <div class="nutrition-item">
-                                        <div class="nutrition-label"><i class="fas fa-leaf"></i> ${isArabic ? 'الألياف' : 'Fiber'}</div>
-                                        <div class="nutrition-value">${product.fiber_per_100g}g</div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="product-card-tags">
-                        ${tags.filter(t => !t.class.includes('category')).map(t => `<span class="product-tag ${t.class}">${t.text}</span>`).join('')}
+                    <div class="font-black text-2xl text-gray-900 tracking-tight mt-1 flex items-start">
+                        ${price}<span class="text-sm text-gray-500 font-bold ml-0.5 uppercase">JOD</span>
                     </div>
-                    
-                    <div class="product-card-footer">
-                        <div>
-                            <span class="product-card-price">${price}</span>
-                            <span class="product-card-price-currency"> JOD</span>
-                        </div>
-                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${product.id}', 1)">
-                            <i class="fas fa-shopping-cart"></i> ${isArabic ? 'أضف للسلة' : 'Add to Cart'}
-                        </button>
-                    </div>
+                </div>
+                
+                <div class="cart-btn-wrapper relative flex justify-center w-full mt-auto">
+                    <button class="add-to-cart-action w-full h-11 rounded-t-sm rounded-b-2xl bg-[#F4F7F4] hover:bg-[#E2ECE2] text-brand-dark flex items-center justify-center transition-colors duration-200" data-pid="${productId}">
+                        <i class="fas fa-plus text-lg pointer-events-none"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -1376,9 +622,46 @@ function displayProducts() {
     
     grid.innerHTML = html;
     
+    // Add event delegation for the new elements
+    const newCards = grid.querySelectorAll('.product-card');
+    newCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Check if the click was on the add-to-cart button or its inner text/icon
+            const cartBtn = e.target.closest('.add-to-cart-action, .cart-btn-wrapper button');
+            if (cartBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Determine the action based on the button class and dataset
+                const pid = card.dataset.productId;
+                if (!pid) return;
+                
+                if (cartBtn.classList.contains('qty-minus')) {
+                    const currentQty = parseInt(cartBtn.parentElement.querySelector('span').textContent);
+                    window.cartHelpers.update(pid, currentQty - 1);
+                } else if (cartBtn.classList.contains('qty-plus')) {
+                    const currentQty = parseInt(cartBtn.parentElement.querySelector('span').textContent);
+                    window.cartHelpers.update(pid, currentQty + 1);
+                } else {
+                    window.cartHelpers.add(pid);
+                }
+                return;
+            }
+            
+            // Otherwise, it’s a click on the card: open quick view
+            if (typeof window.openQuickView === 'function') {
+                window.openQuickView(card.dataset.productId);
+            }
+        });
+    });
+    
     // Update wishlist UI after rendering products
     if (typeof wishlistManager !== 'undefined') {
         wishlistManager.updateWishlistUI();
+    }
+    
+    // Sync cart buttons with local storage
+    if (typeof window.syncProductCards === 'function') {
+        window.syncProductCards();
     }
     
     console.log(`Displayed ${productsToShow.length} products (page ${currentPage} of ${totalPages}, total: ${filteredProducts.length})`);
@@ -1451,175 +734,161 @@ function updateCartDisplay(cart) {
 }
 
 function _updateCartDisplay(cart) {
-    // Prevent concurrent updates - queue if already updating
     if (isUpdatingCart) {
-        // Queue this update for after current one completes
         setTimeout(() => _updateCartDisplay(cart), 200);
         return;
     }
-    
     isUpdatingCart = true;
-    
-    // Use requestAnimationFrame for smooth DOM updates
+
     requestAnimationFrame(() => {
         try {
-        const cartItemsEl = document.getElementById('cartItems');
-        const cartItemCountEl = document.getElementById('cartItemCount');
-        const cartTotalEl = document.getElementById('cartTotal');
-        const navCartCount = document.getElementById('navCartCount');
-        const cartFooter = document.getElementById('cartFooter');
-        const cartFooterItemCount = document.getElementById('cartFooterItemCount');
-        const cartFooterTotal = document.getElementById('cartFooterTotal');
-        
-        // Store cart data for language switching
-        localStorage.setItem('lastCartData', JSON.stringify(cart));
-        
-        if (!cartItemsEl) {
-            isUpdatingCart = false;
-            return;
-        }
-        
-        // Update summary (fast, no DOM manipulation)
-        const itemCount = cart.total_items || 0;
-        if (cartItemCountEl) {
-            cartItemCountEl.textContent = itemCount;
-        }
-        if (cartTotalEl) {
-            cartTotalEl.textContent = (cart.total_cost || 0).toFixed(2);
-        }
-        if (navCartCount) {
-            navCartCount.textContent = itemCount;
-            navCartCount.style.display = itemCount > 0 ? 'inline-block' : 'none';
-        }
-        
-        // Update footer totals
-        if (cartFooterItemCount) {
-            cartFooterItemCount.innerHTML = `<strong>${itemCount}</strong>`;
-        }
-        if (cartFooterTotal) {
-            cartFooterTotal.innerHTML = `<strong>${(cart.total_cost || 0).toFixed(2)} JOD</strong>`;
-        }
-        
-        // Show/hide footer with smooth transition
-        if (cartFooter) {
-            const shouldShow = cart.items && cart.items.length > 0;
-            if (shouldShow) {
-                if (cartFooter.style.display === 'none') {
-                    cartFooter.style.display = 'block';
-                    // Use requestAnimationFrame for smooth transition
-                    requestAnimationFrame(() => {
-                        cartFooter.style.opacity = '1';
+            const cartItemsEl  = document.getElementById('cartItems');
+            const cartItemCountEl = document.getElementById('cartItemCount');
+            const cartTotalEl  = document.getElementById('cartTotal');
+            const navCartCount = document.getElementById('navCartCount');
+            const cartFooter   = document.getElementById('cartFooter');
+            const cartFooterTotal = document.getElementById('cartFooterTotal');
+
+            if (!cartItemsEl) { isUpdatingCart = false; return; }
+
+            // Store cart for syncProductCards
+            localStorage.setItem('lastCartData', JSON.stringify(cart));
+
+            // --- Client-side dedup: merge duplicate productIds before rendering ---
+            const merged = [];
+            (cart.items || []).forEach(item => {
+                const pid = String(item.productId || item.product_id || '');
+                const existing = merged.find(m => m.pid === pid);
+                if (existing) {
+                    existing.quantity += (item.quantity || 1);
+                    existing.total_price = existing.unit_price * existing.quantity;
+                } else {
+                    merged.push({
+                        pid,
+                        name: item.name || item.product_name || 'Product',
+                        category: item.category || 'General',
+                        image_url: item.image_url || '',
+                        quantity: item.quantity || 1,
+                        unit_price: item.unit_price || item.price || 0,
+                        total_price: item.total_price || (item.unit_price || item.price || 0) * (item.quantity || 1),
                     });
                 }
-            } else {
-                cartFooter.style.opacity = '0';
-                setTimeout(() => {
-                    if (cartFooter && cartFooter.style.opacity === '0') {
-                        cartFooter.style.display = 'none';
-                    }
-                }, 200);
+            });
+
+            const itemCount = merged.reduce((s, i) => s + i.quantity, 0);
+            const totalCost = merged.reduce((s, i) => s + i.total_price, 0);
+
+            // Update header counts
+            if (cartItemCountEl) cartItemCountEl.textContent = itemCount;
+            if (cartTotalEl) cartTotalEl.textContent = totalCost.toFixed(2);
+            if (navCartCount) {
+                navCartCount.textContent = itemCount;
+                navCartCount.style.display = itemCount > 0 ? 'flex' : 'none';
             }
-        }
-            
-            // Display cart items - build HTML string for better performance
-            let html = '';
-            
-            // Escape HTML to prevent XSS
-            const escapeHtml = (text) => {
-                if (!text) return '';
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            };
-            
-            if (!cart.items || cart.items.length === 0) {
-                const emptyText = typeof t === 'function' ? t('cart_empty') : 'Your cart is empty';
-                const emptyHint = typeof t === 'function' ? t('cart_empty_hint') : 'Add items from chat or browse products';
-                html = `
-                    <div class="cart-empty">
-                        <i class="fas fa-shopping-cart"></i>
-                        <div data-translate="cart_empty">${emptyText}</div>
-                        <div class="cart-empty-hint" data-translate="cart_empty_hint">${emptyHint}</div>
-                    </div>
-                `;
-            } else {
-                cart.items.forEach((item, index) => {
-                    const facts = [];
-                    if (item.is_gluten_free) facts.push('<span class="dietary-badge">🌾 GF</span>');
-                    if (item.is_vegetarian) facts.push('<span class="dietary-badge">🥬 V</span>');
-                    if (item.is_vegan) facts.push('<span class="dietary-badge">🌱 VG</span>');
-                    if (item.is_healthy) facts.push('<span class="dietary-badge healthy">💚</span>');
-                    
-                    const productId = escapeHtml(item.productId || item.product_id || '');
-                    const productName = escapeHtml(item.name || item.product_name || '');
-                    const category = escapeHtml(item.category || 'General');
-                    const imageUrl = escapeHtml(item.image_url || 'https://via.placeholder.com/100?text=No+Image');
-                    const productUrl = item.product_url ? escapeHtml(item.product_url) : '';
-                    
-                    html += `
-                        <div class="cart-item" data-product-id="${productId}">
-                            <div class="cart-item-image">
-                                <img src="${imageUrl}" 
-                                     alt="${productName}"
-                                     loading="lazy"
-                                     onerror="this.src='https://via.placeholder.com/100?text=No+Image'">
-                            </div>
-                            <div class="cart-item-details">
-                                <div class="cart-item-name">${productName}</div>
-                                <div class="cart-item-category">${category}</div>
-                                ${facts.length > 0 ? `<div class="cart-item-tags">${facts.join('')}</div>` : ''}
-                                ${item.calories_per_100g || item.protein_per_100g ? `
-                                    <div class="cart-item-nutrition" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray);">
-                                        ${item.calories_per_100g ? `<span><i class="fas fa-fire"></i> ${item.calories_per_100g} cal/100g</span>` : ''}
-                                        ${item.protein_per_100g ? `<span style="margin-left: 1rem;"><i class="fas fa-dumbbell"></i> ${item.protein_per_100g}g prot/100g</span>` : ''}
-                                    </div>
-                                ` : ''}
-                            </div>
-                            <div class="cart-item-quantity">
-                                <button class="quantity-btn" onclick="updateCartQuantity('${productId}', ${item.quantity - 1})">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <input type="number" class="quantity-input" value="${item.quantity}" min="1" 
-                                       onchange="updateCartQuantity('${productId}', this.value)">
-                                <button class="quantity-btn" onclick="updateCartQuantity('${productId}', ${item.quantity + 1})">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                            <div class="cart-item-price">
-                                <div class="cart-item-total">${item.total_price.toFixed(2)} JOD</div>
-                                <div class="cart-item-unit">${item.unit_price.toFixed(2)} JOD each</div>
-                            </div>
-                            <div class="cart-item-actions">
-                                <button class="btn-remove" onclick="removeFromCart('${productId}')" title="Remove from cart">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                ${productUrl ? `
-                                    <button class="btn-view" onclick="window.open('${productUrl}', '_blank')" title="View on Talabat">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `;
-                });
+            if (cartFooterTotal) cartFooterTotal.textContent = `${totalCost.toFixed(2)} JOD`;
+
+            // Show/hide footer
+            if (cartFooter) {
+                if (merged.length > 0) {
+                    cartFooter.style.removeProperty('display');
+                } else {
+                    cartFooter.style.display = 'none';
+                }
             }
-            
-            // Replace content smoothly - use single DOM update
-            cartItemsEl.innerHTML = html;
-            
-            // Re-translate if language system is loaded
-            if (typeof setLanguage === 'function') {
-                setTimeout(() => setLanguage(currentLanguage), 100);
+
+            // Build cart items DOM (no innerHTML with onclick - use data attributes)
+            cartItemsEl.innerHTML = '';
+
+            if (merged.length === 0) {
+                cartItemsEl.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-48 text-gray-400 gap-3 mt-8 opacity-70">
+                        <i class="fas fa-shopping-basket text-5xl"></i>
+                        <div class="text-xl font-black text-gray-500">Your basket is empty</div>
+                        <div class="text-sm font-medium">Add items from the store to see them here</div>
+                    </div>`;
+                return;
             }
-            
+
+            merged.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'cart-item flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm border border-gray-100';
+                card.dataset.pid = item.pid;
+
+                // Image
+                const imgBox = document.createElement('div');
+                imgBox.className = 'w-16 h-16 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center text-gray-300';
+                if (item.image_url) {
+                    const img = document.createElement('img');
+                    img.src = item.image_url;
+                    img.alt = item.name;
+                    img.className = 'w-full h-full object-cover';
+                    img.loading = 'lazy';
+                    img.onerror = () => { imgBox.innerHTML = '<i class="fas fa-box text-2xl"></i>'; };
+                    imgBox.appendChild(img);
+                } else {
+                    imgBox.innerHTML = '<i class="fas fa-box text-2xl"></i>';
+                }
+
+                // Details
+                const details = document.createElement('div');
+                details.className = 'flex-1 min-w-0';
+                details.innerHTML = `
+                    <div class="font-bold text-gray-900 text-sm leading-tight truncate">${item.name}</div>
+                    <div class="text-xs text-gray-400 mt-0.5 mb-1">${item.category}</div>
+                    <div class="font-black text-brand-dark text-base">${item.total_price.toFixed(2)} JOD</div>
+                    <div class="text-xs text-gray-400">${item.unit_price.toFixed(2)} JOD each</div>`;
+
+                // Controls
+                const controls = document.createElement('div');
+                controls.className = 'flex flex-col items-center gap-2';
+
+                const qtyRow = document.createElement('div');
+                qtyRow.className = 'flex items-center gap-1 bg-gray-100 rounded-xl p-1';
+
+                const minusBtn = document.createElement('button');
+                minusBtn.className = 'cart-qty-btn w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-brand-default transition-colors';
+                minusBtn.dataset.action = 'minus';
+                minusBtn.dataset.pid = item.pid;
+                minusBtn.dataset.qty = item.quantity;
+                minusBtn.innerHTML = '<i class="fas fa-minus text-[10px] text-gray-600 pointer-events-none"></i>';
+
+                const qtySpan = document.createElement('span');
+                qtySpan.className = 'font-black text-sm text-gray-900 w-6 text-center';
+                qtySpan.textContent = item.quantity;
+
+                const plusBtn = document.createElement('button');
+                plusBtn.className = 'cart-qty-btn w-7 h-7 rounded-lg bg-white shadow-sm flex items-center justify-center hover:bg-brand-default transition-colors';
+                plusBtn.dataset.action = 'plus';
+                plusBtn.dataset.pid = item.pid;
+                plusBtn.dataset.qty = item.quantity;
+                plusBtn.innerHTML = '<i class="fas fa-plus text-[10px] text-gray-600 pointer-events-none"></i>';
+
+                qtyRow.appendChild(minusBtn);
+                qtyRow.appendChild(qtySpan);
+                qtyRow.appendChild(plusBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'cart-delete-btn w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 text-red-400 flex items-center justify-center transition-colors';
+                deleteBtn.dataset.pid = item.pid;
+                deleteBtn.title = 'Remove';
+                deleteBtn.innerHTML = '<i class="fas fa-trash text-[10px] pointer-events-none"></i>';
+
+                controls.appendChild(qtyRow);
+                controls.appendChild(deleteBtn);
+
+                card.appendChild(imgBox);
+                card.appendChild(details);
+                card.appendChild(controls);
+                cartItemsEl.appendChild(card);
+            });
+
+            // Sync product cards on browse page
+            if (typeof window.syncProductCards === 'function') window.syncProductCards();
+
         } catch (error) {
             console.error('Error updating cart display:', error);
-            isUpdatingCart = false;
         } finally {
-            // Reset flag after DOM settles
-            setTimeout(() => {
-                isUpdatingCart = false;
-            }, 100);
+            setTimeout(() => { isUpdatingCart = false; }, 100);
         }
     });
 }
@@ -1640,7 +909,14 @@ async function addToCart(productId, quantity = 1) {
         const t = translations[currentLang] || translations['en'];
         if (data.success) {
             await loadCart(); // Reload cart to get updated data
-            showNotification(data.message || t.product_added_to_cart, 'success');
+            
+            // Auto open side cart
+            const sideCart = document.getElementById('sideCart');
+            if (sideCart && !sideCart.classList.contains('active')) {
+                toggleCart();
+            }
+            
+            // showNotification(data.message || t.product_added_to_cart, 'success');
         } else {
             showNotification(data.error || data.message || t.product_add_error, 'error');
         }
@@ -1680,8 +956,10 @@ async function removeFromCart(productId) {
 
 async function updateCartQuantity(productId, quantity) {
     quantity = parseInt(quantity);
-    if (isNaN(quantity) || quantity < 1) {
-        quantity = 1;
+    
+    // If quantity is 0 or less, remove the item entirely
+    if (isNaN(quantity) || quantity <= 0) {
+        return removeFromCart(productId);
     }
     
     try {
@@ -1696,7 +974,7 @@ async function updateCartQuantity(productId, quantity) {
         
         const data = await response.json();
         if (data.success) {
-            updateCartDisplay(data.cart);
+            await loadCart(); // Always reload from server for consistency
         } else {
             showNotification(data.message || 'Error updating quantity', 'error');
         }
@@ -1706,7 +984,7 @@ async function updateCartQuantity(productId, quantity) {
 }
 
 async function clearCart() {
-    const confirmMsg = typeof t === 'function' ? t('clear_entire_cart') : 'Clear entire cart? This cannot be undone.';
+    const confirmMsg = 'Clear entire basket? This cannot be undone.';
     if (!confirm(confirmMsg)) return;
     
     try {
@@ -1720,8 +998,7 @@ async function clearCart() {
         
         const data = await response.json();
         if (data.success) {
-            updateCartDisplay(data.cart);
-            showNotification(data.message || 'Cart cleared', 'success');
+            await loadCart(); // Reload to reflect cleared state
         }
     } catch (error) {
         showNotification('Error: ' + error.message, 'error');
@@ -2175,7 +1452,7 @@ function removeFromShoppingList(index) {
 async function addProductToList(productId) {
     try {
         // Find product in all products
-        const product = allProducts.find(p => (p.id || p._id) === productId);
+        const product = allProducts.find(p => String(p.id || p._id) === String(productId));
         if (!product) {
             showNotification('Product not found', 'error');
             return;
@@ -2392,4 +1669,183 @@ function updateScrollButtons() {
 // Initialize scroll buttons
 window.addEventListener('scroll', updateScrollButtons);
 window.addEventListener('load', updateScrollButtons);
+
+// ─── Cart Items Event Delegation ───────────────────────────────────────────
+// Handles qty +/- and delete buttons rendered by _updateCartDisplay
+document.addEventListener('click', function(e) {
+    // Qty buttons
+    const qtyBtn = e.target.closest('.cart-qty-btn');
+    if (qtyBtn) {
+        e.stopPropagation();
+        const pid = qtyBtn.dataset.pid;
+        const action = qtyBtn.dataset.action;
+        const currentQty = parseInt(qtyBtn.dataset.qty) || 1;
+        const newQty = action === 'plus' ? currentQty + 1 : currentQty - 1;
+        updateCartQuantity(pid, newQty);
+        return;
+    }
+
+    // Delete button
+    const delBtn = e.target.closest('.cart-delete-btn');
+    if (delBtn) {
+        e.stopPropagation();
+        const pid = delBtn.dataset.pid;
+        removeFromCart(pid);
+        return;
+    }
+});
+
+// Custom AddToCart Helpers for ProductCards Animation
+window.cartHelpers = {
+    add: async (id) => {
+        try {
+            await addToCart(id, 1);
+            if (typeof window.syncProductCards === 'function') window.syncProductCards();
+        } catch (e) {
+            console.error('Add to cart failed:', e);
+        }
+    },
+    update: async (id, qty) => {
+        // updateCartQuantity handles qty<=0 by removing the item
+        await updateCartQuantity(id, qty);
+        if (typeof window.syncProductCards === 'function') window.syncProductCards();
+    }
+};
+
+window.syncProductCards = function() {
+    const cartDataStr = localStorage.getItem('lastCartData');
+    if (!cartDataStr) return;
+    try {
+        const cartData = JSON.parse(cartDataStr);
+        document.querySelectorAll('.product-card').forEach(card => {
+            const pid = card.dataset.productId;
+            if (!pid) return;
+            const item = cartData.items?.find(i => (i.productId || i.product_id) === pid);
+            const qty = item ? item.quantity : 0;
+            
+            const wrapper = card.querySelector('.cart-btn-wrapper');
+            if (wrapper) {
+                if (qty > 0) {
+                    wrapper.innerHTML = `
+                        <div class="h-11 bg-[#DCF3CA] text-brand-dark w-full rounded-t-sm rounded-b-2xl flex items-center justify-between px-3 transition-colors duration-200">
+                            <button class="qty-minus w-7 h-7 rounded-full bg-transparent hover:bg-black/5 border border-brand-dark flex items-center justify-center transition"><i class="fas fa-minus text-[10px] pointer-events-none"></i></button>
+                            <span class="font-bold text-base select-none">${qty}</span>
+                            <button class="qty-plus w-7 h-7 rounded-full bg-transparent hover:bg-black/5 border border-brand-dark flex items-center justify-center transition"><i class="fas fa-plus text-[10px] pointer-events-none"></i></button>
+                        </div>
+                    `;
+                } else {
+                    wrapper.innerHTML = `
+                        <button class="add-to-cart-action w-full h-11 rounded-t-sm rounded-b-2xl bg-[#F4F7F4] hover:bg-[#E2ECE2] text-brand-dark flex items-center justify-center transition-colors duration-200" data-pid="${pid}">
+                            <i class="fas fa-plus text-lg pointer-events-none"></i>
+                        </button>
+                    `;
+                }
+            }
+        });
+
+        // Quick View Modal Update
+        const qvContent = document.getElementById('quickViewContent');
+        if (qvContent && qvContent.parentElement && !qvContent.parentElement.classList.contains('hidden')) {
+            const pid = qvContent.getAttribute('data-current-product');
+            const item = cartData.items?.find(i => (i.productId || i.product_id) === pid);
+            const qty = item ? item.quantity : 0;
+            const qvWrapper = document.getElementById('qvCartWrapper');
+            if (qvWrapper && pid) {
+                if (qty > 0) {
+                    qvWrapper.innerHTML = `
+                        <div class="h-12 bg-[#DCF3CA] text-brand-dark w-full rounded-full flex items-center justify-between px-4 transition-colors duration-200">
+                            <button class="qty-minus w-8 h-8 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center transition shadow-sm" onclick="window.cartHelpers.update('${pid}', ${qty - 1})"><i class="fas fa-minus text-sm"></i></button>
+                            <span class="font-bold text-lg select-none">${qty}</span>
+                            <button class="qty-plus w-8 h-8 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center transition shadow-sm" onclick="window.cartHelpers.update('${pid}', ${qty + 1})"><i class="fas fa-plus text-sm"></i></button>
+                        </div>
+                    `;
+                } else {
+                    qvWrapper.innerHTML = `
+                        <button class="w-full h-12 rounded-full border-2 border-gray-200 hover:border-brand-dark hover:text-brand-dark text-gray-600 font-bold transition flex items-center justify-center gap-2" onclick="window.cartHelpers.add('${pid}')">
+                            <i class="fas fa-shopping-basket"></i> Add to bucket
+                        </button>
+                    `;
+                }
+            }
+        }
+    } catch(e) {
+        console.error("Cart sync failed:", e);
+    }
+};
+
+window.openQuickView = function(productId) {
+    if (!allProducts || !allProducts.length) return;
+    const product = allProducts.find(p => String(p.id) === String(productId) || String(p._id) === String(productId));
+    if (!product) return;
+    
+    const imageEl = document.getElementById('qvImage');
+    if (imageEl) imageEl.src = product.image_url || 'https://via.placeholder.com/300?text=No+Image';
+    
+    // Set mock thumbs based on main image
+    document.getElementById('qvThumb1').src = product.image_url || 'https://via.placeholder.com/300?text=No+Image';
+    document.getElementById('qvThumb2').src = product.image_url || 'https://via.placeholder.com/300?text=No+Image';
+    document.getElementById('qvThumb3').src = product.image_url || 'https://via.placeholder.com/300?text=No+Image';
+
+    const titleEl = document.getElementById('qvTitle');
+    if (titleEl) titleEl.textContent = product.name_ar || product.name || 'Unnamed Product';
+    
+    const priceStr = parseFloat(product.price).toFixed(2);
+    const [priceInt, priceDec] = priceStr.split('.');
+    
+    const intEl = document.getElementById('qvPriceInt');
+    if (intEl) intEl.textContent = priceInt;
+    
+    const decEl = document.getElementById('qvPriceDec');
+    if (decEl) decEl.textContent = priceDec;
+
+    // Use Arabic category (or English) as subtitle
+    const categoryEl = document.querySelector('.text-sm.text-gray-400.font-medium.mb-1');
+    if (categoryEl) categoryEl.textContent = product.category || 'Local Shop';
+
+    const contentDiv = document.getElementById('quickViewContent');
+    if (contentDiv) {
+        contentDiv.setAttribute('data-current-product', productId);
+    }
+
+    // Call sync to render correct cart buttons inside the modal
+    if (typeof window.syncProductCards === 'function') {
+        window.syncProductCards();
+    }
+
+    // Show modal
+    const modal = document.getElementById('quickViewGlobalModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => {
+            if (contentDiv) {
+                contentDiv.classList.remove('scale-95', 'opacity-0');
+                contentDiv.classList.add('scale-100', 'opacity-100');
+            }
+        }, 10);
+    }
+};
+
+window.closeQuickView = function() {
+    const content = document.getElementById('quickViewContent');
+    if (content) {
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+    }
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    
+    setTimeout(() => {
+        const modal = document.getElementById('quickViewGlobalModal');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    }, 300);
+};
 

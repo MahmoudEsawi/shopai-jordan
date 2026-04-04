@@ -48,8 +48,8 @@ const translations = {
         step3_desc: "Review your list, get recipe suggestions, share with others, or export for later use.",
         
         // About Section
-        about_title: "About ShopAI Jordan",
-        about_text1: "ShopAI Jordan is an intelligent shopping assistant designed specifically for Jordan. It helps you create smart shopping lists for any event, from family dinners to large parties.",
+        about_title: "About Mooneh.ai",
+        about_text1: "Mooneh.ai is an intelligent shopping assistant designed specifically for Jordan. It helps you create smart shopping lists for any event, from family dinners to large parties.",
         about_text2: "Powered by Groq AI, our system understands natural language and creates optimized shopping lists with real prices from Talabat Jordan. No more guessing quantities or forgetting items!",
         stat_products: "Products",
         stat_free: "Free",
@@ -88,7 +88,7 @@ const translations = {
         additional_placeholder: "e.g., Extra vegetables, low budget, more drinks...",
         generate_list: "Generate Shopping List",
         or_text: "OR",
-        welcome_message: "Welcome to ShopAI",
+        welcome_message: "Welcome to Mooneh.ai",
         welcome_desc: "I'm your intelligent shopping assistant. Use the form above for detailed planning, or chat with me naturally about your shopping needs. I'll create perfect shopping lists with real prices from Talabat Jordan.",
         
         // Browse Products
@@ -132,15 +132,15 @@ const translations = {
         just_now: "Just now",
         
         // Footer
-        footer_about_title: "About ShopAI",
+        footer_about_title: "About Mooneh.ai",
         footer_about_text: "Your intelligent shopping assistant for Jordan. Powered by Groq AI, helping you create smart shopping lists with real prices from Talabat Jordan.",
         footer_quick_links: "Quick Links",
         footer_contact: "Contact",
-        footer_email: "support@shopai.jo",
-        footer_website: "www.shopai.jo",
+        footer_email: "support@mooneh.ai",
+        footer_website: "www.mooneh.ai",
         footer_follow: "Follow Us",
         footer_powered_by: "Powered by Hugging Face AI",
-        footer_copyright: "© 2024 ShopAI Jordan. All rights reserved.",
+        footer_copyright: "© 2024 Mooneh.ai. All rights reserved.",
         
         // Pagination
         prev: "Previous",
@@ -226,8 +226,8 @@ const translations = {
         step3_desc: "راجع قائمتك، احصل على اقتراحات الوصفات، شاركها مع الآخرين، أو قم بالتصدير للاستخدام لاحقاً.",
         
         // About Section
-        about_title: "حول ShopAI الأردن",
-        about_text1: "ShopAI الأردن هو مساعد تسوق ذكي مصمم خصيصاً للأردن. يساعدك على إنشاء قوائم تسوق ذكية لأي فعالية، من عشاء العائلة إلى الحفلات الكبيرة.",
+        about_title: "حول Mooneh.ai",
+        about_text1: "Mooneh.ai هو مساعد تسوق ذكي مصمم خصيصاً للأردن. يساعدك على إنشاء قوائم تسوق ذكية لأي فعالية، من عشاء العائلة إلى الحفلات الكبيرة.",
         about_text2: "مدعوم من Groq AI، يفهم نظامنا اللغة الطبيعية وينشئ قوائم تسوق محسّنة بأسعار حقيقية من طلبات الأردن. لا مزيد من التخمين في الكميات أو نسيان العناصر!",
         stat_products: "منتج",
         stat_free: "مجاني",
@@ -266,7 +266,7 @@ const translations = {
         additional_placeholder: "مثال: خضار إضافية، ميزانية منخفضة، مشروبات أكثر...",
         generate_list: "إنشاء قائمة التسوق",
         or_text: "أو",
-        welcome_message: "مرحباً بك في ShopAI",
+        welcome_message: "مرحباً بك في Mooneh.ai",
         welcome_desc: "أنا مساعد التسوق الذكي الخاص بك. استخدم النموذج أعلاه للتخطيط التفصيلي، أو تحدث معي بشكل طبيعي حول احتياجات التسوق الخاصة بك. سأنشئ قوائم تسوق مثالية بأسعار حقيقية من طلبات الأردن.",
         
         // Browse Products
@@ -310,15 +310,15 @@ const translations = {
         just_now: "الآن",
         
         // Footer
-        footer_about_title: "حول ShopAI",
+        footer_about_title: "حول Mooneh.ai",
         footer_about_text: "مساعد التسوق الذكي الخاص بك للأردن. مدعوم من Groq AI، يساعدك على إنشاء قوائم تسوق ذكية بأسعار حقيقية من طلبات الأردن.",
         footer_quick_links: "روابط سريعة",
         footer_contact: "اتصل بنا",
-        footer_email: "support@shopai.jo",
-        footer_website: "www.shopai.jo",
+        footer_email: "support@mooneh.ai",
+        footer_website: "www.mooneh.ai",
         footer_follow: "تابعنا",
         footer_powered_by: "مدعوم من Hugging Face AI",
-        footer_copyright: "© 2024 ShopAI الأردن. جميع الحقوق محفوظة.",
+        footer_copyright: "© 2024 Mooneh.ai. جميع الحقوق محفوظة.",
         
         // Pagination
         prev: "السابق",
