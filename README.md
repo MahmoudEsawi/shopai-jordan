@@ -1,8 +1,8 @@
-# 🛒 ShopAI Jordan - Smart Shopping Assistant
+# 🛒 Mooneh.ai - Smart Shopping Assistant
 
 <div align="center">
 
-![ShopAI Jordan](https://img.shields.io/badge/ShopAI-Jordan-orange?style=for-the-badge)
+![Mooneh.ai](https://img.shields.io/badge/Mooneh.ai-Jordan-orange?style=for-the-badge)
 ![Powered by Hugging Face](https://img.shields.io/badge/Powered%20by-Hugging%20Face%20AI-yellow?style=for-the-badge)
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
@@ -34,7 +34,7 @@ Transform your event planning with AI-powered shopping lists tailored specifical
 
 ## 🎯 Overview
 
-**ShopAI Jordan** is an intelligent shopping assistant web application designed specifically for the Jordanian market. It uses AI-powered natural language processing to help users create smart shopping lists for events like BBQs, dinner parties, family gatherings, and more.
+**Mooneh.ai** is an intelligent shopping assistant web application designed specifically for the Jordanian market. It uses AI-powered natural language processing to help users create smart shopping lists for events like BBQs, dinner parties, family gatherings, and more.
 
 ### Key Highlights
 
@@ -44,6 +44,13 @@ Transform your event planning with AI-powered shopping lists tailored specifical
 - 🌍 **Bilingual Support**: Fully supports Arabic and English with seamless language switching
 - 📱 **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
 - 🔥 **Smart Recommendations**: Context-aware product suggestions based on event type
+
+---
+
+## 📸 Screenshots
+
+### Products Interface & AI Assistant
+![Browse Interface](pics/browse_screenshot.png)
 
 ---
 
@@ -126,7 +133,7 @@ Transform your event planning with AI-powered shopping lists tailored specifical
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/anas-alhadidi/shopai-jordan-.git
+git clone https://github.com/MahmoudEsawi/shopai-jordan.git
 cd shopai-jordan
 ```
 
@@ -458,8 +465,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact & Support
 
-- **GitHub**: [@anas-alhadidi](https://github.com/anas-alhadidi)
-- **Repository**: [shopai-jordan-](https://github.com/anas-alhadidi/shopai-jordan-)
+- **GitHub**: [@MahmoudEsawi](https://github.com/MahmoudEsawi)
+- **Repository**: [shopai-jordan](https://github.com/MahmoudEsawi/shopai-jordan)
 
 ---
 
