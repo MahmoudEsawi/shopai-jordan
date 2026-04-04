@@ -1,493 +1,156 @@
-# 🛒 Mooneh.ai - Smart Shopping Assistant
-
 <div align="center">
+  <img src="https://img.shields.io/badge/Mooneh.ai-Jordan-25a55f?style=for-the-badge&logo=shopify" alt="Mooneh.ai" />
+  <img src="https://img.shields.io/badge/Powered%20by-MongoDB%20|%20Node.js-1a4d3c?style=for-the-badge&logo=mongodb" alt="Tech Stack" />
+  <img src="https://img.shields.io/badge/AI-Hugging%20Face-ffcc00?style=for-the-badge&logo=huggingface" alt="Hugging Face AI" />
 
-![Mooneh.ai](https://img.shields.io/badge/Mooneh.ai-Jordan-orange?style=for-the-badge)
-![Powered by Hugging Face](https://img.shields.io/badge/Powered%20by-Hugging%20Face%20AI-yellow?style=for-the-badge)
-![Node.js](https://img.shields.io/badge/Node.js-18+-green?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+  <br><br>
 
-**مساعد التسوق الذكي للمملكة الأردنية** | **Intelligent Shopping Assistant for the Hashemite Kingdom of Jordan**
+  <h1 align="center">🛒 Mooneh.ai (مونة.ai)</h1>
 
-Transform your event planning with AI-powered shopping lists tailored specifically for the Jordanian market.
-
-[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [API](#-api-reference) • [Contributing](#-contributing)
-
+  <p align="center">
+    <strong>Your Smart Grocery & AI Shopping Assistant for the Jordanian Market</strong>
+    <br>
+    <em>مساعد التسوق الذكي للمملكة الأردنية</em>
+  </p>
+  
+  <p align="center">
+    <a href="#-key-features">Features</a> •
+    <a href="#-quick-start">Quick Start</a> •
+    <a href="#-admin-dashboard">Admin Panel</a> •
+    <a href="#-technology-stack">Tech Stack</a>
+  </p>
 </div>
 
----
+<hr>
 
-## 📋 Table of Contents
+## ✨ Overview
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Technology Stack](#-technology-stack)
-- [Installation](#-installation)
-- [Configuration](#-configuration)
-- [Usage](#-usage)
-- [API Reference](#-api-reference)
-- [Project Structure](#-project-structure)
-- [Contributing](#-contributing)
-- [License](#-license)
+**Mooneh.ai** is a modern, comprehensive, and intelligent grocery platform. Forget the hassle of manual grocery planning. Simply tell Mooneh's AI robot what kind of event you're hosting, and it will instantly generate an optimized, budget-aware shopping list specifically tailored for your local Jordanian stores. 
+
+It is divided into two primary systems:
+1. **The Storefront:** A premium e-commerce interface with an integrated Hugging Face AI assistant to plan gatherings (e.g., BBQs, Dinners) and calculate actual market prices.
+2. **The Admin Dashboard:** A secured, unified control panel to autonomously manage store inventory, analyze metrics, and oversee registered users.
+
+<br>
 
 ---
 
-## 🎯 Overview
+## 🚀 Key Features
 
-**Mooneh.ai** is an intelligent shopping assistant web application designed specifically for the Jordanian market. It uses AI-powered natural language processing to help users create smart shopping lists for events like BBQs, dinner parties, family gatherings, and more.
+### 🧠 AI-Powered Grocery Assistance
+* **Event Planning Chatbot:** Natural language AI parses your needs (e.g. *"I need a BBQ plan for 10 people at 50 JOD"*).
+* **Budget Optimization:** AI creates balanced category allocations depending on your budget restrictions.
+* **Bilingual Support:** Seamless interactions in both **Local Arabic** and **English**.
 
-### Key Highlights
+### 🛍️ Premium eCommerce Storefront
+* **Beautiful, Modern Aesthetics:** Featuring a deep forest green (`#1a4d3c`) and lime (`#98d02e`) design system using modern pill-shaped UI components. 
+* **User Authentication:** Complete frontend and backend implementation for **Sign up**, **Sign In**, and persistent session control.
+* **Complex Filtering:** Filter your local Jordanian produce by Categories, Sorting, and robust client/server-side validation.
+* **Sidebar Cart & Wishlist:** Fully interactive drawer controls allowing instant cart calculations.
 
-- 🤖 **AI-Powered**: Uses Hugging Face AI for natural language understanding in both Arabic and English
-- 🏪 **Real Products**: Integrates with Talabat Jordan with real prices in JOD (Jordanian Dinars)
-- 💰 **Budget Optimization**: Intelligent budget allocation across product categories
-- 🌍 **Bilingual Support**: Fully supports Arabic and English with seamless language switching
-- 📱 **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
-- 🔥 **Smart Recommendations**: Context-aware product suggestions based on event type
+### 🛡️ Complete Admin Dashboard (`/admin`)
+* **Secure Access:** Built-in JWT-free robust token sessionization. (Default admin bootstraps automatically on first run).
+* **Direct Database Management:** Full CRUD (Create, Read, Update, Delete) capability attached directly to your local MongoDB to manage **Products** and **Users**.
+* **Live Analytics Board:** Visual dashboard presenting total active users, live product catalogs, and daily system logs.
 
----
+### 💻 Developer Experience Optimized
+* **1-Click Start:** A custom macOS executable script (`start-mooneh.command`) auto-starts MongoDB, launches the internal node server, and automatically pops open the Store and Admin browsers concurrently.
 
-## 📸 Screenshots
-
-### Products Interface & AI Assistant
-![Browse Interface](pics/browse_screenshot.png)
-
----
-
-## ✨ Features
-
-### 🧠 AI-Powered Shopping Lists
-- Natural language input - just describe what you need
-- Smart Shopping Planner form for detailed event planning
-- Automatic budget calculation based on event type and number of people
-- Intelligent product selection prioritizing essential items (e.g., meat, chicken, shish for BBQ events)
-
-### 🛍️ Product Management
-- Browse 100+ products from local Jordanian stores
-- Product pagination (12 products per page)
-- Advanced filtering by category, price, dietary preferences
-- Search products by name (Arabic/English)
-- Detailed product information with nutrition facts
-- Toggle nutrition information visibility
-
-### 💵 Budget Intelligence
-- Set custom budgets or use automatic calculation
-- Category-based budget allocation (e.g., 35% meat for BBQ events)
-- Strict budget adherence - products selected to maximize budget utilization
-- Real-time price calculations in JOD
-
-### 🌐 Internationalization (i18n)
-- Complete Arabic and English translations
-- Dynamic language switching
-- Right-to-left (RTL) layout support for Arabic
-- Culturally appropriate product names and descriptions
-
-### 🎨 Modern UI/UX
-- Beautiful gradient hero section with background images
-- Dark mode support
-- Smooth animations and transitions
-- Responsive grid layouts
-- Interactive shopping cart sidebar
-- Wishlist functionality
-- Toast notifications for user feedback
-
-### 🍖 Event-Specific Intelligence
-- **BBQ Events**: Prioritizes chicken, meat, shish/kebab, charcoal
-- **Dinner Parties**: Balanced selection of meat, vegetables, bread, dairy
-- **Breakfast**: Focus on bread, dairy, eggs, fruits
-- **Lunch Gatherings**: Mix of proteins, vegetables, and sides
+<br>
 
 ---
 
 ## 🛠️ Technology Stack
 
-### Backend
-- **Node.js** - JavaScript runtime
-- **Express.js** - Web framework
-- **MongoDB** - Database for products and cart data
-- **Hugging Face API** - AI text generation (Mistral-7B-Instruct)
-- **Axios** - HTTP client for API requests
+**Frontend Framework:**
+* **Vanilla JavaScript** & **HTML5/CSS3** (Tailored for blazing fast, framework-less, reactive components)
+* **TailwindCSS** (Used conceptually for utility structures)
+* **Google Fonts** (Inter, Space Grotesk, Cairo) & **Font Awesome**
 
-### Frontend
-- **HTML5** - Semantic markup
-- **CSS3** - Modern styling with CSS variables
-- **Vanilla JavaScript** - No framework dependencies
-- **Font Awesome** - Icon library
-- **Google Fonts** - Inter, Space Grotesk, Cairo fonts
+**Backend Architecture:**
+* **Node.js & Express** 
+* **MongoDB** Native Driver integration securely storing hashes for authentication. 
+* **Hugging Face API** for LLM integrations (Mistral/Llama based inference)
+* **Crypto** library for password salting and token generation 
 
-### Tools & Services
-- **dotenv** - Environment variable management
-- **nodemon** - Development auto-reload
-- **CORS** - Cross-origin resource sharing
+<br>
 
 ---
 
-## 📦 Installation
+## 🏎️ Quick Start
 
-### Prerequisites
+### Option 1: The Automation Way (macOS)
+If you are on macOS and have `mongodb-community` installed or local MongoDB binaries configured:
+1. Double click the **`start-mooneh.command`** file inside finder.
+2. *Done!* This automatically wakes up your MongoDB daemon, boots the Node server, and opens your browser directly into the site!
 
-- **Node.js** 18+ ([Download](https://nodejs.org/))
-- **MongoDB** (Optional - falls back to JSON if not available)
-- **Git** ([Download](https://git-scm.com/))
+### Option 2: The Developer Way
+*Requirements: Node.js 18+ and a running Local MongoDB instance.*
 
-### Clone the Repository
-
+**1. Clone the repository:**
 ```bash
 git clone https://github.com/MahmoudEsawi/shopai-jordan.git
 cd shopai-jordan
 ```
 
-### Install Dependencies
-
+**2. Install Modules:**
 ```bash
 npm install
 ```
 
-### Environment Setup
-
-Create a `.env` file in the root directory:
-
+**3. Configure Environment Variables (`.env`):**
+Create a `.env` file in the root if not automatically generated:
 ```env
-# Server Configuration
 PORT=3000
-
-# MongoDB Configuration (Optional)
-MONGODB_URI=mongodb://localhost:27017/shopai
-
-# Hugging Face AI Configuration
-HUGGINGFACE_API_KEY=your_huggingface_api_key_here
+MONGODB_URI=mongodb://127.0.0.1:27017/mooneh_db
+HUGGINGFACE_API_KEY=your_key_here
 ```
 
-> **Note**: Get your Hugging Face API key from [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
-
-### Run the Application
-
-**Development Mode** (with auto-reload):
+**4. Start the Application:**
 ```bash
 npm run dev
 ```
 
-**Production Mode**:
-```bash
-npm start
-```
+> 🌐 Main Storefront opens at `http://localhost:3000`
+> 🛡️ Admin Dashboard opens at `http://localhost:3000/admin`
 
-The application will be available at `http://localhost:3000`
+<br>
 
 ---
 
-## ⚙️ Configuration
+## 🎛️ Admin Dashboard
 
-### MongoDB Setup (Optional)
+Mooneh.ai auto-seeds the admin account if it detects a fresh database.
+* **Endpoint:** `/admin`
+* **Username:** `admin`
+* **Password:** `admin123`
 
-If you want to use MongoDB for product storage:
+*(Make sure you change this password once you log in or via MongoDB compass for production servers!)*
 
-1. Install MongoDB locally or use MongoDB Atlas
-2. Update `MONGODB_URI` in `.env`
-3. Create a database named `shopai`
-4. Create a collection named `prouducts` (note the spelling)
-5. Import products into the collection
-
-The application will automatically fall back to JSON files if MongoDB is not available.
-
-### Product Data Structure
-
-Products should have the following structure:
-
-```json
-{
-  "_id": "product_id",
-  "name": "Product Name",
-  "name_ar": "اسم المنتج",
-  "name_en": "Product Name",
-  "price": 10.50,
-  "currency": "JOD",
-  "category": "meat",
-  "description": "Product description",
-  "store_name": "Store Name",
-  "product_url": "https://talabat.com/product-url",
-  "image_url": "https://example.com/image.jpg",
-  "calories_per_100g": 250,
-  "protein_per_100g": 20,
-  "carbs_per_100g": 5,
-  "fats_per_100g": 15,
-  "is_gluten_free": false,
-  "is_vegetarian": false,
-  "is_vegan": false,
-  "is_halal": true,
-  "is_organic": false,
-  "is_healthy": true
-}
-```
+<br>
 
 ---
 
-## 🚀 Usage
+## 📂 Project Structure
+```text
+📦 shopai-jordan
+ ┣ 📂 static             # Core CSS definitions, JS application logic, and specific UI plugins
+ ┃ ┣ 📂 css              # global styling, admin.css, auth.css, cart-sidebar.css
+ ┃ ┗ 📂 js               # API controllers, translation dictionaries, toast utilities
+ ┣ 📂 templates          # The physical View Layer
+ ┃ ┣ 📜 admin.html       # The Admin Dashboard GUI
+ ┃ ┣ 📜 auth.html        # Unified sign in/registration GUI
+ ┃ ┗ 📜 index.html       # The Client Storefront View
+ ┣ 📜 server.js          # The Express API, HTTP Gateway, Controller mappings
+ ┣ 📜 start-mooneh.command # 1-Click Bootstrap Script
+ ┣ 📜 seed.js            # Automated Database Population utility
+ ┗ 📜 package.json       # Node package map
+```
 
-### Smart Shopping Planner
-
-1. Navigate to the **Smart Shopping Planner** section
-2. Select event type (BBQ, Dinner, Lunch, Breakfast, Party)
-3. Enter number of people
-4. Set budget (optional - will auto-calculate if not specified)
-5. Choose dietary preferences (Vegetarian, Vegan, Halal, etc.)
-6. Add any additional requests
-7. Click "Create Shopping List"
-
-### Chat with AI Assistant
-
-Simply type your request in natural language:
-
-**Examples:**
-- "أريد شواء لـ 14 شخص بميزانية 50 دينار"
-- "I want a BBQ for 10 people with a budget of 40 JOD"
-- "بدي فطور لـ 5 أشخاص"
-- "I need chicken and meat for BBQ"
-
-The AI will:
-- Understand your request
-- Search for relevant products
-- Create a smart shopping list
-- Calculate quantities based on number of people
-- Optimize for your budget
-
-### Browse Products
-
-- Use filters to find products by category, price, dietary preferences
-- Search by product name (supports Arabic and English)
-- View detailed product information
-- Add products directly to cart
-- Save products to wishlist
-
-### Shopping List Management
-
-- Edit quantities before adding to cart
-- Remove items from list
-- View total cost in real-time
-- Add entire list to cart with one click
-- Clear list and start over
+<br>
 
 ---
 
-## 📡 API Reference
-
-### Get Products
-
-```http
-GET /api/products
-```
-
-**Query Parameters:**
-- `category` - Filter by category
-- `search` - Search products by name
-- `minPrice` - Minimum price filter
-- `maxPrice` - Maximum price filter
-- `store` - Filter by store name
-
-**Response:**
-```json
-[
-  {
-    "id": "product_id",
-    "name": "Product Name",
-    "name_ar": "اسم المنتج",
-    "price": 10.50,
-    "currency": "JOD",
-    "category": "meat",
-    ...
-  }
-]
-```
-
-### Chat with AI
-
-```http
-POST /api/chat
-```
-
-**Request Body:**
-```json
-{
-  "message": "أريد شواء لـ 10 أشخاص",
-  "eventType": "bbq",
-  "numPeople": 10,
-  "budget": 70,
-  "dietary": "halal",
-  "filterHealthy": false,
-  "filterGlutenFree": false,
-  "fromSmartPlanner": true
-}
-```
-
-**Response:**
-```json
-{
-  "response": "AI response message",
-  "shopping_list": {
-    "items": [...],
-    "total_cost": 68.50,
-    "num_people": 10,
-    "event_type": "bbq"
-  },
-  "relevantProducts": [...]
-}
-```
-
-### Cart Operations
-
-```http
-GET /api/cart
-POST /api/cart/add
-POST /api/cart/remove
-POST /api/cart/update
-```
-
-### Statistics
-
-```http
-GET /api/stats
-```
-
-Returns product categories, stores, and general statistics.
-
----
-
-## 📁 Project Structure
-
-```
-shopai-jordan/
-├── server.js                 # Main Express server
-├── package.json              # Dependencies and scripts
-├── .env                      # Environment variables (not in git)
-├── .gitignore               # Git ignore rules
-│
-├── static/                  # Static assets
-│   ├── css/
-│   │   ├── style.css        # Main stylesheet
-│   │   ├── cart-sidebar.css
-│   │   ├── darkmode.css
-│   │   └── ...
-│   └── js/
-│       ├── main.js          # Main JavaScript logic
-│       ├── translations.js  # i18n translations
-│       ├── wishlist.js
-│       └── ...
-│
-├── templates/
-│   └── index.html           # Main HTML template
-│
-├── data/                    # Data files
-│   └── jordan_products.json # Product data fallback
-│
-└── background/              # Background images
-    └── Gemini_Generated_Image_sxgg5bsxgg5bsxgg.png
-```
-
----
-
-## 🎨 Key Features Explained
-
-### Intelligent Product Selection
-
-The system uses advanced algorithms to select products based on:
-
-1. **Event Type Priority**: Different events require different product priorities
-   - BBQ: Meat (chicken, beef, lamb), Shish/Kebab, Charcoal
-   - Dinner: Meat, Vegetables, Bread, Dairy
-   - Breakfast: Bread, Dairy, Eggs, Fruits
-
-2. **Budget Allocation**: Smart category-based budget distribution
-   - BBQ events: 35% meat, 15% vegetables, 15% drinks, etc.
-   - Ensures balanced shopping lists within budget
-
-3. **Essential Products First**: Always includes essential items
-   - For BBQ: Chicken, Meat, Shish are mandatory
-   - Searches by keywords if category classification is incorrect
-
-### Language Support
-
-Full bilingual support with:
-- Dynamic language switching (AR ↔ EN)
-- RTL layout for Arabic
-- Translated product names, categories, UI elements
-- Cultural context awareness
-
-### Budget Intelligence
-
-- **Automatic Calculation**: Calculates realistic budgets based on event type and number of people
-- **Jordanian Market Prices**: Tailored to local market prices (7 JOD/person for BBQ)
-- **Strict Adherence**: Products selected to maximize budget utilization (98% usage)
-- **Category Allocation**: Distributes budget across categories intelligently
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-### Contribution Guidelines
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Development Setup
-
-```bash
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev
-
-# Run with file watching
-npm run dev:watch
-```
-
----
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- **Hugging Face** - For providing AI models and API
-- **Talabat Jordan** - For product data and integration inspiration
-- **Font Awesome** - For beautiful icons
-- **Google Fonts** - For typography
-
----
-
-## 📞 Contact & Support
-
-- **GitHub**: [@MahmoudEsawi](https://github.com/MahmoudEsawi)
-- **Repository**: [shopai-jordan](https://github.com/MahmoudEsawi/shopai-jordan)
-
----
-
-## 🔮 Future Enhancements
-
-- [ ] User authentication and accounts
-- [ ] Save shopping lists to user profile
-- [ ] Recipe suggestions based on shopping list
-- [ ] Direct integration with Talabat ordering API
-- [ ] Price comparison across stores
-- [ ] Seasonal product recommendations
-- [ ] Meal planning calendar
-- [ ] Nutritional analysis and health insights
-
----
-
-<div align="center">
-
-**Made with ❤️ for the Jordanian market**
-
-⭐ Star this repo if you find it helpful!
-
-</div>
-
+<p align="center">
+  <b>Built with ❤️ by <a href="https://github.com/MahmoudEsawi">Mahmoud</a> for the Jordanian Market.</b>
+</p>
