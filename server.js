@@ -239,6 +239,59 @@ app.get('/api/products', async (req, res) => {
         res.status(500).json({ error: 'Error getting products' });
     }
 });
+// Checkout API: Create an Order
+app.post('/api/checkout', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ error: 'Database connection not available.' });
+        }
+        
+        const { customerInfo, items, total, session_id } = req.body;
+        
+        if (!items || items.length === 0) {
+            return res.status(400).json({ error: 'Cannot checkout an empty cart.' });
+        }
+        
+        if (!customerInfo || !customerInfo.name || !customerInfo.phone || !customerInfo.address) {
+            return res.status(400).json({ error: 'Incomplete customer information.' });
+        }
+
+        const ordersCollection = db.collection('orders');
+        
+        const orderDoc = {
+            order_id: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
+            session_id: session_id || 'guest',
+            customer: customerInfo,
+            items: items,
+            total_amount: parseFloat(total),
+            status: 'Pending',
+            payment_method: customerInfo.payment_method || 'Cash on Delivery',
+            created_at: new Date()
+        };
+        
+        const result = await ordersCollection.insertOne(orderDoc);
+        
+        // Also clear their shopping cart from DB if tied to a session
+        if (session_id && db) {
+            const cartCollection = db.collection('carts');
+            await cartCollection.updateOne(
+                { sessionId: session_id },
+                { $set: { items: [], updatedAt: new Date() } }
+            );
+        }
+        
+        res.status(201).json({
+            success: true,
+            orderId: orderDoc.order_id,
+            message: 'Order placed successfully!'
+        });
+        
+    } catch (error) {
+        console.error('Error during checkout:', error);
+        res.status(500).json({ success: false, error: 'Internal server error during checkout' });
+    }
+});
+
 
 // Add a new product
 app.post('/api/products', async (req, res) => {
@@ -3258,6 +3311,49 @@ app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
     } catch (error) {
         console.error('Error deleting user:', error);
         res.status(500).json({ error: 'Error deleting user' });
+    }
+});
+
+// Admin Get Orders
+app.get('/api/admin/orders', adminAuth, async (req, res) => {
+    try {
+        if (!db) return res.status(503).json({ error: 'Database disconnected' });
+        const ordersCol = db.collection('orders');
+        const orders = await ordersCol.find().sort({ created_at: -1 }).toArray();
+        res.json({ orders });
+    } catch (error) {
+        console.error('Error getting orders:', error);
+        res.status(500).json({ error: 'Error fetching orders' });
+    }
+});
+
+// Admin Update Order Status
+app.put('/api/admin/orders/:id', adminAuth, async (req, res) => {
+    try {
+        if (!db) return res.status(503).json({ error: 'Database disconnected' });
+        
+        let objectId;
+        try {
+            const { ObjectId } = require('mongodb');
+            objectId = new ObjectId(req.params.id);
+        } catch (e) {
+            return res.status(400).json({ error: 'Invalid order ID' });
+        }
+
+        const ordersCol = db.collection('orders');
+        const result = await ordersCol.updateOne(
+            { _id: objectId },
+            { $set: { status: req.body.status } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        res.json({ success: true, message: 'Order updated' });
+    } catch (error) {
+        console.error('Error updating order:', error);
+        res.status(500).json({ error: 'Error updating order' });
     }
 });
 

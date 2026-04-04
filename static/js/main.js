@@ -671,29 +671,28 @@ function displayProducts() {
         const productData = escapeHtml(JSON.stringify(product));
         
         return `
-            <div class="product-card bg-white rounded-2xl transition-all duration-300 relative group flex flex-col p-4 font-sans max-w-[240px] mx-auto cursor-pointer" data-product-id="${productId}" data-product='${productData}'>
+            <div class="product-card bg-white rounded-[1.5rem] transition-all duration-300 relative group flex flex-col font-sans w-full h-[360px] max-w-[240px] mx-auto cursor-pointer border border-transparent hover:shadow-[0_15px_30px_-5px_rgba(0,0,0,0.05)] shadow-[0_5px_15px_rgba(0,0,0,0.02)]" data-product-id="${productId}" data-product='${productData}'>
                 
                 <!-- Product Image -->
-                <div class="flex-1 flex justify-center items-center py-4 relative h-36">
+                <div class="flex justify-center items-center pt-5 pb-2 relative h-[160px] shrink-0 w-full">
                     <img src="${imageUrl}" 
                          alt="${productName}" 
                          loading="lazy"
                          onerror="this.src='https://via.placeholder.com/300?text=No+Image'"
-                         class="w-28 h-28 object-contain">
+                         class="w-full h-full object-contain max-w-[140px] max-h-[140px] drop-shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:scale-105">
                 </div>
 
                 <!-- Product Details -->
-                <div class="mt-1 flex flex-col items-center text-center gap-0.5 pb-2">
-                    <div class="text-base font-bold text-gray-800 line-clamp-1 w-full leading-snug">${productName}</div>
-                    <div class="text-xs text-brand-dark/70 font-medium">(Local shop)</div>
-                    <div class="text-[11px] text-gray-400 font-medium">500 gm.</div>
+                <div class="mt-2 flex flex-col items-center text-center gap-1 pb-4 px-2 flex-1">
+                    <h3 class="font-bold text-[#0e423e] text-[15px] leading-snug line-clamp-2 w-full">${productName}</h3>
+                    <div class="text-[11px] text-gray-400 font-medium tracking-wide">${product.size || '500 gm.'}</div>
                     
-                    <div class="font-black text-2xl text-gray-900 tracking-tight mt-1 flex items-start">
-                        ${price}<span class="text-sm text-gray-500 font-bold ml-0.5 uppercase">JOD</span>
+                    <div class="mt-auto pt-2 font-black text-2xl text-[#0e423e] tracking-tight flex items-start justify-center">
+                        ${price.split('.')[0]}<span class="text-[13px] pt-1">.${price.split('.')[1] || '00'}$</span>
                     </div>
                 </div>
                 
-                <div class="cart-btn-wrapper relative flex justify-center w-full mt-auto">
+                <div class="cart-btn-wrapper relative flex justify-center w-[90%] mx-auto mt-0 mb-3">
                     <button class="add-to-cart-action w-full h-11 rounded-t-sm rounded-b-2xl bg-[#F4F7F4] hover:bg-[#E2ECE2] text-brand-dark flex items-center justify-center transition-colors duration-200" data-pid="${productId}">
                         <i class="fas fa-plus text-lg pointer-events-none"></i>
                     </button>
@@ -1089,33 +1088,115 @@ async function clearCart() {
 
 function checkoutCart() {
     const cartItemsEl = document.getElementById('cartItems');
-    if (!cartItemsEl || cartItemsEl.querySelector('.cart-items-list')) {
-        Toast.warning('Cart is empty!');
+    if (!cartItemsEl || cartItemsEl.querySelector('.cart-empty')) {
+        if(typeof Toast !== 'undefined') Toast.warning('Cart is empty!');
         return;
     }
     
-    // Get all product URLs and open them
-    const items = cartItemsEl.querySelectorAll('.cart-item');
-    const urls = [];
-    items.forEach(item => {
-        const viewBtn = item.querySelector('.btn-view');
-        if (viewBtn && viewBtn.onclick) {
-            // Extract URL from onclick
-            const onclick = viewBtn.getAttribute('onclick');
-            const urlMatch = onclick.match(/window\.open\('([^']+)'/);
-            if (urlMatch) {
-                urls.push(urlMatch[1]);
-            }
-        }
-    });
+    // Auto-fill available user info if logged in
+    const username = localStorage.getItem('username');
+    if (username) {
+        const nameInput = document.getElementById('checkoutName');
+        if(nameInput && !nameInput.value) nameInput.value = username;
+    }
     
-    if (urls.length > 0) {
-        Toast.info(`Opening ${urls.length} products on Talabat Jordan...`);
-        urls.slice(0, 5).forEach((url, idx) => {
-            setTimeout(() => window.open(url, '_blank'), idx * 500);
+    // Close side cart so it doesn't cover checkout modal
+    const sideCart = document.getElementById('sideCart');
+    const overlay = document.getElementById('cartOverlay');
+    if (sideCart && sideCart.classList.contains('active')) {
+        sideCart.classList.remove('active');
+        if(overlay) overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Open checkout modal
+    const modal = document.getElementById('checkoutModal');
+    const content = document.getElementById('checkoutContent');
+    
+    if(modal && content) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Small delay to allow display:flex to apply before animation
+        setTimeout(() => {
+            content.classList.remove('translate-y-full', 'opacity-0');
+            content.classList.add('translate-y-0', 'opacity-100');
+        }, 10);
+        
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeCheckout() {
+    const modal = document.getElementById('checkoutModal');
+    const content = document.getElementById('checkoutContent');
+    
+    if(content) {
+        content.classList.remove('translate-y-0', 'opacity-100');
+        content.classList.add('translate-y-full', 'opacity-0');
+    }
+    
+    setTimeout(() => {
+        if(modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        // Only re-enable scrolling if no other modals are open
+        const sideCart = document.getElementById('sideCart');
+        const aiChatPanel = document.getElementById('aiChatPanel');
+        if ((!sideCart || !sideCart.classList.contains('active')) && 
+            (!aiChatPanel || !aiChatPanel.classList.contains('translate-x-0'))) {
+            document.body.style.overflow = '';
+        }
+    }, 300);
+}
+
+async function submitCheckout(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('checkoutName').value;
+    const phone = document.getElementById('checkoutPhone').value;
+    const address = document.getElementById('checkoutAddress').value;
+    const payment = document.getElementById('checkoutPayment').value;
+    
+    const cartData = JSON.parse(localStorage.getItem('lastCartData') || '{"items":[]}');
+    const totalRaw = document.getElementById('cartFooterTotal').textContent;
+    const total = parseFloat(totalRaw) || 0;
+    
+    const orderData = {
+        customerInfo: { name, phone, address, payment_method: payment },
+        items: cartData.items || [],
+        total: total,
+        session_id: getSessionId()
+    };
+    
+    try {
+        const response = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Session-ID': getSessionId()
+            },
+            body: JSON.stringify(orderData)
         });
-    } else {
-        Toast.warning('Please add items with product links to checkout');
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            closeCheckout();
+            if(typeof Toast !== 'undefined') Toast.success('Order placed successfully! ID: ' + data.orderId);
+            // Clear cart
+            await fetch('/api/cart/clear', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSessionId() }
+            });
+            await loadCart();
+        } else {
+            if(typeof Toast !== 'undefined') Toast.error(data.error || 'Failed to place order.');
+        }
+    } catch (err) {
+        console.error('Checkout error:', err);
+        if(typeof Toast !== 'undefined') Toast.error('An error occurred during checkout.');
     }
 }
 
@@ -1843,8 +1924,8 @@ window.syncProductCards = function() {
                     `;
                 } else {
                     qvWrapper.innerHTML = `
-                        <button class="w-full h-12 rounded-full border-2 border-gray-200 hover:border-brand-dark hover:text-brand-dark text-gray-600 font-bold transition flex items-center justify-center gap-2" onclick="window.cartHelpers.add('${pid}')">
-                            <i class="fas fa-shopping-basket"></i> Add to bucket
+                        <button class="w-full h-12 rounded-full border-2 border-brand-light bg-brand-light hover:bg-[#8bc025] text-brand-dark font-bold transition flex items-center justify-center gap-2 shadow-sm" onclick="window.cartHelpers.add('${pid}')">
+                            <i class="fas fa-shopping-cart"></i> Add to cart
                         </button>
                     `;
                 }
@@ -1884,17 +1965,28 @@ window.openQuickView = function(productId) {
     const categoryEl = document.querySelector('.text-sm.text-gray-400.font-medium.mb-1');
     if (categoryEl) categoryEl.textContent = product.category || 'Local Shop';
 
+    // Populate Nutritional Facts
+    const elCalories = document.getElementById('qvCalories');
+    const elProtein = document.getElementById('qvProtein');
+    const elCarbs = document.getElementById('qvCarbs');
+    const elFats = document.getElementById('qvFats');
+    const elDesc = document.getElementById('qvDescription');
+
+    if (elCalories) elCalories.textContent = product.calories_per_100g ? product.calories_per_100g + ' kcal' : '-';
+    if (elProtein) elProtein.textContent = product.protein_per_100g ? product.protein_per_100g + 'g' : '-';
+    if (elCarbs) elCarbs.textContent = product.carbs_per_100g ? product.carbs_per_100g + 'g' : '-';
+    if (elFats) elFats.textContent = product.fats_per_100g ? product.fats_per_100g + 'g' : '-';
+    
+    if (elDesc) {
+        elDesc.textContent = product.description || 'A healthy, delicious local product selected by Mooneh.ai specifically for your grocery needs. Features high quality standards.';
+    }
+
     const contentDiv = document.getElementById('quickViewContent');
     if (contentDiv) {
         contentDiv.setAttribute('data-current-product', productId);
     }
 
-    // Call sync to render correct cart buttons inside the modal
-    if (typeof window.syncProductCards === 'function') {
-        window.syncProductCards();
-    }
-
-    // Show modal
+    // Show modal first so children aren't hidden
     const modal = document.getElementById('quickViewGlobalModal');
     if (modal) {
         modal.classList.remove('hidden');
@@ -1909,6 +2001,11 @@ window.openQuickView = function(productId) {
                 contentDiv.classList.add('scale-100', 'opacity-100');
             }
         }, 10);
+    }
+
+    // Call sync to render correct cart buttons inside the modal NOW that it's visible
+    if (typeof window.syncProductCards === 'function') {
+        window.syncProductCards();
     }
 };
 

@@ -2012,3 +2012,35 @@ html {
     border-radius: 8px;
 }
 
+/* Mobile Responsive Navigation Menu */
+@media (max-width: 1024px) {
+    #navMenu.active {
+        display: flex !important;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #1a4d3c;
+        flex-direction: column;
+        padding: 1rem 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+    }
+    
+    #navMenu.active a {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        display: block;
+        text-align: left;
+    }
+    
+    body[dir="rtl"] #navMenu.active a {
+        text-align: right;
+    }
+    
+    #navMenu.active a:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #98d02e;
+    }
+}

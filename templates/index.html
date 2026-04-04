@@ -45,17 +45,17 @@
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
-    <nav class="bg-brand-dark px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
+    <nav class="bg-brand-dark px-4 md:px-6 py-3 md:py-4 flex flex-wrap items-center justify-between shadow-sm sticky top-0 z-50">
         <!-- Logo -->
         <a href="#" class="flex items-center gap-2 text-white hover:opacity-90 transition">
-            <div class="text-brand-light text-2xl">
+            <div class="text-brand-light text-xl md:text-2xl">
                 <i class="fas fa-shopping-bag"></i>
             </div>
-            <span class="font-bold text-xl tracking-tight">Mooneh.ai</span>
+            <span class="font-bold text-lg md:text-xl tracking-tight">Mooneh.ai</span>
         </a>
         
-        <!-- Search Bar (moved from below) -->
-        <div class="hidden md:flex flex-1 max-w-xl mx-8 relative text-gray-800 z-[60]">
+        <!-- Search Bar (wraps below on mobile) -->
+        <div class="w-full mt-3 md:mt-0 order-last md:order-none md:flex flex-1 md:max-w-xl md:mx-8 relative text-gray-800 z-[60]">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <i class="fas fa-search text-gray-400"></i>
             </div>
@@ -64,33 +64,32 @@
         </div>
 
         <!-- Right Side Nav Actions -->
-        <div class="flex items-center gap-4 text-white">
+        <div class="flex items-center gap-2 md:gap-4 text-white">
              <!-- Nav Links -->
              <div class="hidden lg:flex items-center gap-6 text-sm font-medium mr-4" id="navMenu">
                 <a href="#home" class="hover:text-brand-light transition" data-translate="home">Home</a>
                 <a href="#browse" class="hover:text-brand-light transition" data-translate="browse_products">Products</a>
-                <a href="/loseit" id="loseItLink" class="hover:text-brand-light transition">Lose It</a>
             </div>
 
             <!-- Icons -->
             <button class="relative hover:text-brand-light transition p-2" id="cartToggleBtn" onclick="toggleCart()" title="Cart">
-                <i class="fas fa-shopping-cart text-xl"></i>
-                <span id="navCartCount" class="absolute top-0 right-0 bg-brand-light text-brand-dark text-[10px] font-bold w-[18px] h-[18px] flex items-center justify-center rounded-full border-2 border-brand-dark">0</span>
+                <i class="fas fa-shopping-cart text-lg md:text-xl"></i>
+                <span id="navCartCount" class="absolute top-0 right-0 bg-brand-light text-brand-dark text-[9px] md:text-[10px] font-bold w-[16px] h-[16px] md:w-[18px] md:h-[18px] flex items-center justify-center rounded-full border-2 border-brand-dark">0</span>
             </button>
 
             
             <!-- Auth Button -->
-            <a href="/auth" class="bg-brand-light text-brand-dark px-5 py-2 rounded-full font-bold hover:bg-white transition flex items-center gap-2 shadow-sm text-sm" id="signInLink">
+            <a href="/auth" class="bg-brand-light text-brand-dark px-3 py-1.5 md:px-5 md:py-2 rounded-full font-bold hover:bg-white transition flex items-center gap-1.5 shadow-sm text-xs md:text-sm" id="signInLink">
                 <i class="fas fa-user"></i>
-                <span>Sign In</span>
+                <span class="hidden sm:inline">Sign In</span>
             </a>
-            <span id="userNavGreeting" class="text-sm font-medium" style="display: none;"></span>
-            <button class="bg-red-500 text-white px-5 py-2 rounded-full font-bold hover:bg-red-600 transition flex items-center gap-2 shadow-sm text-sm" id="signOutLink" style="display: none;" onclick="signOut()">
+            <span id="userNavGreeting" class="text-xs md:text-sm font-medium hidden sm:inline" style="display: none;"></span>
+            <button class="bg-red-500 text-white px-3 py-1.5 md:px-5 md:py-2 rounded-full font-bold hover:bg-red-600 transition flex items-center gap-1.5 shadow-sm text-xs md:text-sm" id="signOutLink" style="display: none;" onclick="signOut()">
                 <i class="fas fa-sign-out-alt"></i>
-                <span>Sign Out</span>
+                <span class="hidden sm:inline">Sign Out</span>
             </button>
             
-            <button class="lg:hidden text-2xl p-2 hover:text-brand-light transition" id="mobileMenuToggle" onclick="toggleMobileMenu()">
+            <button class="lg:hidden text-xl md:text-2xl p-1 md:p-2 hover:text-brand-light transition" id="mobileMenuToggle" onclick="toggleMobileMenu()">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
@@ -415,6 +414,54 @@
     <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="fixed inset-0 z-[1000] hidden items-center justify-center pointer-events-none">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onclick="closeCheckout()"></div>
+        <div class="relative w-full max-w-lg bg-white rounded-[2rem] shadow-2xl p-8 flex flex-col pointer-events-auto transform translate-y-full opacity-0 transition-all duration-500 z-10 m-4" id="checkoutContent">
+            
+            <button onclick="closeCheckout()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition shadow-sm z-20">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <h2 class="text-3xl font-black text-brand-dark mb-6 flex items-center gap-3">
+                <i class="fas fa-motorcycle text-brand-light"></i>
+                <span data-translate="checkout_details">Checkout Details</span>
+            </h2>
+
+            <form id="checkoutForm" onsubmit="submitCheckout(event)" class="flex flex-col gap-5">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1" data-translate="full_name">Full Name</label>
+                    <input type="text" id="checkoutName" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition font-medium text-gray-800" placeholder="e.g. Ahmad Al-Zoubi">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1" data-translate="phone_number">Phone Number</label>
+                    <input type="tel" id="checkoutPhone" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition font-medium text-gray-800" placeholder="079xxxxxxx">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1" data-translate="delivery_address">Delivery Address</label>
+                    <textarea id="checkoutAddress" required rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition font-medium text-gray-800 resize-none" placeholder="Enter your full address"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1" data-translate="payment_method">Payment Method</label>
+                    <select id="checkoutPayment" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition font-medium text-gray-800 appearance-none cursor-pointer">
+                        <option value="Cash on Delivery">Cash on Delivery (COD)</option>
+                        <option value="Credit Card">Credit Card / Wallet</option>
+                    </select>
+                </div>
+                
+                <div class="mt-4 border-t border-gray-100 pt-5">
+                    <button type="submit" class="w-full h-14 bg-brand-dark hover:bg-black text-white rounded-2xl font-black text-xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] active:scale-95 shadow-lg">
+                        <span data-translate="place_order">Place Order</span>
+                        <i class="fas fa-check-circle"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Quick View Modal Architecture -->
     <div id="quickViewGlobalModal" class="fixed inset-0 z-[1000] hidden items-center justify-center pointer-events-none">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onclick="closeQuickView()"></div>
@@ -426,11 +473,6 @@
 
             <!-- Image Column -->
             <div class="w-full md:w-1/2 flex flex-col items-center justify-center relative bg-gray-50/50 rounded-2xl p-6">
-                <!-- Promotional Badge -->
-                <div class="absolute top-4 left-4 w-20 h-20 bg-[#004B87] rounded-full text-white flex flex-col items-center justify-center shadow-lg transform -rotate-12 z-10 transition hover:rotate-0">
-                    <span class="text-xl font-black leading-none">70%</span>
-                    <span class="text-[9px] uppercase tracking-wider font-bold">DISCOUNT</span>
-                </div>
                 
                 <img id="qvImage" src="" alt="Product" class="w-full h-80 object-contain drop-shadow-xl mb-6">
                 
@@ -444,10 +486,6 @@
 
             <!-- Details Column -->
             <div class="w-full md:w-1/2 flex flex-col py-2">
-                <!-- Countdown Mock -->
-                <div class="text-red-500 font-bold text-sm mb-4 flex items-center gap-2">
-                    <i class="far fa-clock"></i> <span>270 : 13 : 10 : 32</span>
-                </div>
                 
                 <div class="text-sm text-gray-400 font-medium mb-1">Local grocery</div>
                 <h2 id="qvTitle" class="text-3xl font-bold text-gray-900 leading-tight mb-2"></h2>
@@ -467,46 +505,41 @@
                 </div>
                 
                 <!-- Action Buttons -->
-                <div class="flex items-center gap-4 mb-6">
-                    <!-- Dynamic Add to Bucket button wrapper -->
-                    <div id="qvCartWrapper" class="flex-1">
+                <div class="flex items-center mb-6 w-full">
+                    <!-- Dynamic Add to Cart button wrapper -->
+                    <div id="qvCartWrapper" class="w-full">
                         <!-- Rendered by sync function -->
                     </div>
-                    <button class="flex-1 bg-[#dcf3ca] text-brand-dark font-bold rounded-full py-3.5 hover:bg-brand-light transition flex justify-center items-center gap-2 shadow-sm">
-                        Buy with <span class="font-black">tâmara</span>
-                    </button>
                 </div>
                 
-                <!-- Mini Actions -->
-                <div class="flex items-center gap-6 border-b border-gray-100 pb-6 mb-6">
-                    <button class="text-sm font-bold text-gray-600 hover:text-brand-dark transition uppercase flex items-center gap-2">
-                        <i class="far fa-heart text-lg"></i> ADD TO WISHLIST
-                    </button>
-                    <button class="text-sm font-bold text-brand-dark underline transition flex items-center gap-2">
-                        <i class="fas fa-store"></i> Compare with other vendor
-                    </button>
-                </div>
-
-                <!-- Footer details -->
-                <div class="flex items-center gap-4 text-sm font-medium mb-4">
-                    <div class="flex -space-x-2">
-                        <div class="w-6 h-6 rounded-full bg-purple-100 border border-white"></div>
-                        <div class="w-6 h-6 rounded-full bg-orange-100 border border-white"></div>
-                        <div class="w-6 h-6 rounded-full bg-blue-100 border border-white"></div>
+                <!-- Nutritional Facts -->
+                <div class="mt-4 border-t border-gray-100 pt-6">
+                    <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-leaf text-brand-light"></i> Nutritional Facts (Per 100g)
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 text-center mb-4">
+                        <div class="bg-gray-50 rounded-xl p-2 sm:p-3 border border-gray-100 flex flex-col justify-center">
+                            <div class="text-[10px] sm:text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Calories</div>
+                            <div id="qvCalories" class="font-black text-gray-800 text-sm sm:text-base md:text-lg whitespace-nowrap">-</div>
+                        </div>
+                        <div class="bg-green-50 rounded-xl p-2 sm:p-3 border border-green-100 flex flex-col justify-center">
+                            <div class="text-[10px] sm:text-xs text-green-600 font-bold mb-1 uppercase tracking-wider">Protein</div>
+                            <div id="qvProtein" class="font-black text-green-700 text-sm sm:text-base md:text-lg whitespace-nowrap">-</div>
+                        </div>
+                        <div class="bg-blue-50 rounded-xl p-2 sm:p-3 border border-blue-100 flex flex-col justify-center">
+                            <div class="text-[10px] sm:text-xs text-blue-600 font-bold mb-1 uppercase tracking-wider">Carbs</div>
+                            <div id="qvCarbs" class="font-black text-blue-700 text-sm sm:text-base md:text-lg whitespace-nowrap">-</div>
+                        </div>
+                        <div class="bg-yellow-50 rounded-xl p-2 sm:p-3 border border-yellow-100 flex flex-col justify-center">
+                            <div class="text-[10px] sm:text-xs text-yellow-600 font-bold mb-1 uppercase tracking-wider">Fats</div>
+                            <div id="qvFats" class="font-black text-yellow-700 text-sm sm:text-base md:text-lg whitespace-nowrap">-</div>
+                        </div>
                     </div>
-                    <div class="text-red-500 flex items-center gap-1">
-                        <i class="fas fa-fire"></i> 100 sold in last 35 hour
+
+                    <div class="text-xs text-gray-400 leading-relaxed font-medium mt-4 line-clamp-3" id="qvDescription">
                     </div>
                 </div>
-
-                <div class="text-gray-500 text-sm space-y-1 mb-4">
-                    <div><span class="font-bold text-gray-700">SKU:</span> MB3442</div>
-                    <div><span class="font-bold text-gray-700">Categories:</span> Fruits, Groceries, Snacks</div>
-                </div>
-
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Coconut Oil is a great-tasting, nutritious alternative to use when cooking or baking. Coconut oil is a naturally rich source of medium chain triglycerides.
-                </p>
             </div>
         </div>
     </div>
@@ -521,7 +554,6 @@
                 const signInLink = document.getElementById('signInLink');
                 const signOutLink = document.getElementById('signOutLink');
                 const userNavGreeting = document.getElementById('userNavGreeting');
-                const loseItLink = document.getElementById('loseItLink');
                 
                 if (signInLink) signInLink.style.display = 'none';
                 if (signOutLink) signOutLink.style.display = 'inline-flex';
@@ -529,7 +561,6 @@
                     userNavGreeting.style.display = 'inline';
                     userNavGreeting.textContent = `Hello, ${username}!`;
                 }
-                // Lose It link is always visible now
             }
         });
         

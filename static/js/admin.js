@@ -5,6 +5,7 @@
 const API = '/api/admin';
 let allProducts = [];
 let allUsers = [];
+let allOrders = [];
 let currentPage = 'dashboard';
 let productPage = 1;
 const PRODUCTS_PER_PAGE = 15;
@@ -141,7 +142,7 @@ function toggleSidebar() {
 
 // ===== DATA LOADING =====
 async function refreshAllData() {
-    await Promise.all([loadProducts(), loadUsers(), loadDashboardStats()]);
+    await Promise.all([loadProducts(), loadUsers(), loadOrders(), loadDashboardStats()]);
 }
 
 async function loadProducts() {
@@ -179,6 +180,7 @@ async function loadDashboardStats() {
         document.getElementById('statProducts').textContent = allProducts.length;
         document.getElementById('statCategories').textContent = categories.length;
         document.getElementById('statUsers').textContent = allUsers.length;
+        document.getElementById('statOrders').textContent = allOrders.length;
         document.getElementById('dbProductCount').textContent = allProducts.length + ' documents';
         document.getElementById('dbUserCount').textContent = allUsers.length + ' documents';
         document.getElementById('dbConnection').textContent = 'mongodb://127.0.0.1:27017';
@@ -652,6 +654,107 @@ function deleteUser(id, name) {
             }
         }
     );
+}
+
+// ===== ORDERS =====
+async function loadOrders() {
+    try {
+        const res = await fetch(`${API}/orders`, { headers: authHeaders() });
+        if (res.status === 401) { handleLogout(); return; }
+        const data = await res.json();
+        allOrders = data.orders || [];
+        renderOrders();
+    } catch (err) {
+        console.error('Error loading orders:', err);
+    }
+}
+
+function renderOrders() {
+    const list = [...allOrders];
+    
+    let html = '';
+    
+    if (list.length === 0) {
+        html = `
+        <div class="empty-state">
+            <div class="empty-state-icon">📦</div>
+            <div class="empty-state-text">No orders yet. Orders will appear here once customers start shopping.</div>
+        </div>`;
+    } else {
+        html = `
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total (JOD)</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    ${list.map(o => {
+                        const id = o._id || o.id;
+                        const date = o.created_at ? new Date(o.created_at).toLocaleString() : '-';
+                        let statusClass = o.status === 'Delivered' ? 'active' : (o.status === 'Cancelled' ? 'inactive' : 'pending');
+                        return `
+                            <tr>
+                                <td><span style="font-weight:700;color:var(--admin-primary)">${o.order_id || id.substring(0,8)}</span></td>
+                                <td>
+                                    <div class="product-name">${escHtml(o.customer?.name || '-')}</div>
+                                    <div class="product-brand" style="font-size:0.75rem">${escHtml(o.customer?.phone || '-')}</div>
+                                </td>
+                                <td>${(o.items || []).length} items</td>
+                                <td class="price-cell">${(parseFloat(o.total_amount) || 0).toFixed(2)}</td>
+                                <td style="font-size:0.85rem;color:var(--admin-text-muted)">${date}</td>
+                                <td>
+                                    <span class="status-badge ${statusClass}">
+                                        <span class="status-dot"></span> ${o.status || 'Pending'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <select class="form-input-admin" style="width: auto; padding: 0.25rem; font-size: 0.8rem; background-color: var(--white);" onchange="updateOrderStatus('${id}', this.value)">
+                                        <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                        <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                        <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                        <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>`;
+    }
+    
+    const container = document.querySelector('#page-orders .admin-card-body');
+    if(container) container.innerHTML = html;
+}
+
+async function updateOrderStatus(id, newStatus) {
+    try {
+        const res = await fetch(`${API}/orders/${id}`, {
+            method: 'PUT',
+            headers: authHeaders(),
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (res.status === 401) { handleLogout(); return; }
+        if (res.ok) {
+            showToast('Order status updated ✅', 'success');
+            await loadOrders();
+            loadDashboardStats();
+        } else {
+            showToast('Error updating order', 'error');
+        }
+    } catch (err) {
+        showToast('Network error', 'error');
+    }
 }
 
 // ===== ACTIVITY LOG =====
