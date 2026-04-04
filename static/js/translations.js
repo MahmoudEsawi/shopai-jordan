@@ -15,7 +15,7 @@ const translations = {
         powered_by: "Powered by Hugging Face AI",
         hero_title_line1: "Intelligent Shopping",
         hero_title_line2: "Assistant for Jordan",
-        hero_description: "Transform your event planning with AI-powered shopping lists. Simply describe your needs, set your budget, and receive a complete shopping list with real prices from Talabat Jordan. Smart, fast, and tailored to your preferences.",
+        hero_description: "Shop smarter with Mooneh.ai — browse hundreds of grocery products, get AI-powered recommendations, and place your order for fast doorstep delivery across Jordan.",
         hero_feature_ai: "AI-Powered Intelligence",
         hero_feature_budget: "Budget Optimization",
         hero_feature_talabat: "Direct Talabat Integration",
@@ -133,7 +133,7 @@ const translations = {
         
         // Footer
         footer_about_title: "About Mooneh.ai",
-        footer_about_text: "Your intelligent shopping assistant for Jordan. Powered by Groq AI, helping you create smart shopping lists with real prices from Talabat Jordan.",
+        footer_about_text: "Your all-in-one AI-powered grocery store for Jordan. Browse a wide range of products, chat with our smart assistant, and get your groceries delivered right to your door — fast, easy, and affordable.",
         footer_quick_links: "Quick Links",
         footer_contact: "Contact",
         footer_email: "support@mooneh.ai",
