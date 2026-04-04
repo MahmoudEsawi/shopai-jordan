@@ -415,11 +415,7 @@ function setLanguage(lang) {
     }
 }
 
-// Toggle language
-function toggleLanguage() {
-    const newLang = currentLanguage === 'en' ? 'ar' : 'en';
-    setLanguage(newLang);
-}
+
 
 // Get translation
 function t(key) {

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mooneh.ai - Sign In</title>
+    <meta name="description" content="Sign in or create an account on Mooneh.ai - Your smart shopping assistant for groceries in Jordan">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body>
+
+    <!-- Floating Back Button -->
+    <a href="/" class="back-btn" id="backBtn">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <div class="auth-container">
+        <!-- Left Panel - Branding -->
+        <div class="auth-brand">
+            <div class="brand-content">
+                <div class="brand-logo">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <h1 class="brand-title">Mooneh.ai</h1>
+                <p class="brand-subtitle">Your smart grocery shopping assistant</p>
+                
+                <div class="brand-features">
+                    <div class="brand-feature">
+                        <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                        <div>
+                            <div class="feature-title">AI-Powered Lists</div>
+                            <div class="feature-desc">Smart shopping suggestions</div>
+                        </div>
+                    </div>
+                    <div class="brand-feature">
+                        <div class="feature-icon"><i class="fas fa-tag"></i></div>
+                        <div>
+                            <div class="feature-title">Best Prices</div>
+                            <div class="feature-desc">Real-time Jordanian market prices</div>
+                        </div>
+                    </div>
+                    <div class="brand-feature">
+                        <div class="feature-icon"><i class="fas fa-truck"></i></div>
+                        <div>
+                            <div class="feature-title">Fast Delivery</div>
+                            <div class="feature-desc">Fresh groceries to your door</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Decorative circles -->
+            <div class="brand-circle brand-circle-1"></div>
+            <div class="brand-circle brand-circle-2"></div>
+            <div class="brand-circle brand-circle-3"></div>
+        </div>
+
+        <!-- Right Panel - Forms -->
+        <div class="auth-forms">
+            <!-- Sign In Form -->
+            <div class="form-panel active" id="signInPanel">
+                <div class="form-header">
+                    <h2 class="form-title">Welcome Back</h2>
+                    <p class="form-subtitle">Sign in to your account to continue shopping</p>
+                </div>
+
+                <div class="auth-error" id="signInError">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="signInErrorText">Invalid credentials</span>
+                </div>
+
+                <form id="signInForm" onsubmit="handleSignIn(event)">
+                    <div class="form-group">
+                        <label class="form-label" for="siUsername">
+                            <i class="fas fa-user"></i> Username or Email
+                        </label>
+                        <input type="text" id="siUsername" class="form-input" placeholder="Enter your username or email" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="siPassword">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <div class="password-wrapper">
+                            <input type="password" id="siPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+                            <button type="button" class="password-toggle" onclick="togglePassword('siPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkmark"></span>
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-link">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="auth-submit" id="signInBtn">
+                        <span>Sign In</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="form-divider">
+                    <span>or</span>
+                </div>
+
+                <button class="social-btn google-btn" onclick="showToastAuth('Google sign in coming soon!', 'info')">
+                    <i class="fab fa-google"></i>
+                    Continue with Google
+                </button>
+
+                <div class="form-switch">
+                    Don't have an account? 
+                    <a href="#" onclick="switchPanel('signUp'); return false;">Create Account</a>
+                </div>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div class="form-panel" id="signUpPanel">
+                <div class="form-header">
+                    <h2 class="form-title">Create Account</h2>
+                    <p class="form-subtitle">Join Mooneh.ai for a smarter shopping experience</p>
+                </div>
+
+                <div class="auth-error" id="signUpError">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="signUpErrorText">Error creating account</span>
+                </div>
+
+                <div class="auth-success" id="signUpSuccess">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Account created successfully! Redirecting...</span>
+                </div>
+
+                <form id="signUpForm" onsubmit="handleSignUp(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="suName">
+                                <i class="fas fa-id-badge"></i> Full Name
+                            </label>
+                            <input type="text" id="suName" class="form-input" placeholder="Your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="suUsername">
+                                <i class="fas fa-at"></i> Username
+                            </label>
+                            <input type="text" id="suUsername" class="form-input" placeholder="Choose a username" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="suEmail">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        <input type="email" id="suEmail" class="form-input" placeholder="you@example.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="suPassword">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <div class="password-wrapper">
+                            <input type="password" id="suPassword" class="form-input" placeholder="Min 6 characters" required minlength="6">
+                            <button type="button" class="password-toggle" onclick="togglePassword('suPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar" id="strengthBar"></div>
+                        </div>
+                        <div class="strength-text" id="strengthText"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="suConfirm">
+                            <i class="fas fa-shield-alt"></i> Confirm Password
+                        </label>
+                        <div class="password-wrapper">
+                            <input type="password" id="suConfirm" class="form-input" placeholder="Repeat your password" required minlength="6">
+                            <button type="button" class="password-toggle" onclick="togglePassword('suConfirm', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <label class="checkbox-label" style="margin-bottom: 1.25rem;">
+                        <input type="checkbox" id="agreeTerms" required>
+                        <span class="checkmark"></span>
+                        I agree to the <a href="#" style="color: var(--primary);">Terms of Service</a>
+                    </label>
+
+                    <button type="submit" class="auth-submit signup-btn" id="signUpBtn">
+                        <span>Create Account</span>
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                </form>
+
+                <div class="form-switch">
+                    Already have an account? 
+                    <a href="#" onclick="switchPanel('signIn'); return false;">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="auth-toast" id="authToast">
+        <i class="fas fa-info-circle" id="authToastIcon"></i>
+        <span id="authToastMsg">Message</span>
+    </div>
+
+    <script>
+        // ===== Panel Switching =====
+        function switchPanel(panel) {
+            const signIn = document.getElementById('signInPanel');
+            const signUp = document.getElementById('signUpPanel');
+            const title = document.querySelector('title');
+            
+            if (panel === 'signUp') {
+                signIn.classList.remove('active');
+                signUp.classList.add('active');
+                title.textContent = 'Mooneh.ai - Create Account';
+            } else {
+                signUp.classList.remove('active');
+                signIn.classList.add('active');
+                title.textContent = 'Mooneh.ai - Sign In';
+            }
+            
+            // Clear errors
+            document.querySelectorAll('.auth-error').forEach(e => e.classList.remove('show'));
+            document.getElementById('signUpSuccess').classList.remove('show');
+        }
+
+        // ===== Password Toggle =====
+        function togglePassword(fieldId, btn) {
+            const field = document.getElementById(fieldId);
+            const icon = btn.querySelector('i');
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                field.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        // ===== Password Strength =====
+        document.getElementById('suPassword')?.addEventListener('input', function() {
+            const val = this.value;
+            const bar = document.getElementById('strengthBar');
+            const text = document.getElementById('strengthText');
+            let score = 0;
+            if (val.length >= 6) score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            const levels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Excellent'];
+            const colors = ['', '#ef4444', '#f59e0b', '#eab308', '#22c55e', '#10b981'];
+            const widths = ['0%', '20%', '40%', '60%', '80%', '100%'];
+            
+            bar.style.width = widths[score];
+            bar.style.background = colors[score];
+            text.textContent = levels[score];
+            text.style.color = colors[score];
+        });
+
+        // ===== Sign In =====
+        async function handleSignIn(e) {
+            e.preventDefault();
+            const username = document.getElementById('siUsername').value.trim();
+            const password = document.getElementById('siPassword').value;
+            const btn = document.getElementById('signInBtn');
+            const error = document.getElementById('signInError');
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+            btn.disabled = true;
+            error.classList.remove('show');
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    // Store user data
+                    localStorage.setItem('user_token', data.token);
+                    localStorage.setItem('user_id', data.user.id);
+                    localStorage.setItem('username', data.user.username);
+                    localStorage.setItem('user_name', data.user.name);
+                    localStorage.setItem('is_authenticated', 'true');
+                    
+                    showToastAuth('Welcome back, ' + data.user.name + '! 🎉', 'success');
+                    setTimeout(() => window.location.href = '/', 1200);
+                } else {
+                    document.getElementById('signInErrorText').textContent = data.error || 'Invalid credentials';
+                    error.classList.add('show');
+                }
+            } catch (err) {
+                document.getElementById('signInErrorText').textContent = 'Connection error. Please try again.';
+                error.classList.add('show');
+            }
+
+            btn.innerHTML = '<span>Sign In</span><i class="fas fa-arrow-right"></i>';
+            btn.disabled = false;
+        }
+
+        // ===== Sign Up =====
+        async function handleSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('suName').value.trim();
+            const username = document.getElementById('suUsername').value.trim();
+            const email = document.getElementById('suEmail').value.trim();
+            const password = document.getElementById('suPassword').value;
+            const confirm = document.getElementById('suConfirm').value;
+            const btn = document.getElementById('signUpBtn');
+            const error = document.getElementById('signUpError');
+            const success = document.getElementById('signUpSuccess');
+
+            error.classList.remove('show');
+            success.classList.remove('show');
+
+            // Validate
+            if (password !== confirm) {
+                document.getElementById('signUpErrorText').textContent = 'Passwords do not match';
+                error.classList.add('show');
+                return;
+            }
+
+            if (password.length < 6) {
+                document.getElementById('signUpErrorText').textContent = 'Password must be at least 6 characters';
+                error.classList.add('show');
+                return;
+            }
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, username, email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    // Auto-login after registration
+                    localStorage.setItem('user_token', data.token);
+                    localStorage.setItem('user_id', data.user.id);
+                    localStorage.setItem('username', data.user.username);
+                    localStorage.setItem('user_name', data.user.name);
+                    localStorage.setItem('is_authenticated', 'true');
+
+                    success.classList.add('show');
+                    setTimeout(() => window.location.href = '/', 1500);
+                } else {
+                    document.getElementById('signUpErrorText').textContent = data.error || 'Error creating account';
+                    error.classList.add('show');
+                }
+            } catch (err) {
+                document.getElementById('signUpErrorText').textContent = 'Connection error. Please try again.';
+                error.classList.add('show');
+            }
+
+            btn.innerHTML = '<span>Create Account</span><i class="fas fa-user-plus"></i>';
+            btn.disabled = false;
+        }
+
+        // ===== Toast =====
+        function showToastAuth(msg, type = 'info') {
+            const toast = document.getElementById('authToast');
+            const icon = document.getElementById('authToastIcon');
+            document.getElementById('authToastMsg').textContent = msg;
+            toast.className = 'auth-toast ' + type;
+            const icons = { success: 'fas fa-check-circle', error: 'fas fa-exclamation-circle', info: 'fas fa-info-circle' };
+            icon.className = icons[type] || icons.info;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        // Check if already logged in
+        if (localStorage.getItem('is_authenticated') === 'true') {
+            window.location.href = '/';
+        }
+
+        // Check URL for signup flag
+        if (window.location.search.includes('signup')) {
+            switchPanel('signUp');
+        }
+    </script>
+</body>
+</html>

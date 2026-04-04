@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mooneh.ai - Admin Dashboard</title>
+    <meta name="description" content="Mooneh.ai Admin Panel - Manage products, users, and store settings">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="/pics/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body class="admin-body">
+
+    <!-- ===== LOGIN PAGE ===== -->
+    <div id="loginPage" class="login-page">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="login-logo-icon"><i class="fas fa-store"></i></div>
+                <h2>Mooneh.ai Admin</h2>
+                <p>Sign in to manage your store</p>
+            </div>
+            <div class="login-error" id="loginError">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="loginErrorText">Invalid credentials</span>
+            </div>
+            <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group-admin">
+                    <label class="form-label-admin" for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" class="form-input-admin" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div class="form-group-admin">
+                    <label class="form-label-admin" for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-input-admin" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== ADMIN LAYOUT ===== -->
+    <div id="adminLayout" style="display:none;">
+
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo-icon"><i class="fas fa-store"></i></div>
+                <div>
+                    <div class="sidebar-logo-text">Mooneh.ai</div>
+                    <span class="sidebar-logo-sub">Admin Dashboard</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-title">Main</div>
+                <a class="sidebar-link active" data-page="dashboard" onclick="switchPage('dashboard')">
+                    <i class="fas fa-chart-pie"></i> Dashboard
+                </a>
+                <a class="sidebar-link" data-page="products" onclick="switchPage('products')">
+                    <i class="fas fa-box"></i> Products
+                    <span class="badge" id="productCountBadge">0</span>
+                </a>
+                <a class="sidebar-link" data-page="categories" onclick="switchPage('categories')">
+                    <i class="fas fa-tags"></i> Categories
+                </a>
+
+                <div class="sidebar-section-title">Management</div>
+                <a class="sidebar-link" data-page="users" onclick="switchPage('users')">
+                    <i class="fas fa-users"></i> Users
+                    <span class="badge" id="userCountBadge">0</span>
+                </a>
+                <a class="sidebar-link" data-page="orders" onclick="switchPage('orders')">
+                    <i class="fas fa-shopping-bag"></i> Orders
+                </a>
+
+                <div class="sidebar-section-title">System</div>
+                <a class="sidebar-link" data-page="settings" onclick="switchPage('settings')">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar" id="sidebarAvatar">A</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Admin</div>
+                        <div class="sidebar-user-role">Super Admin</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-left">
+                <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="header-title" id="pageTitle">Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" title="Refresh Data" onclick="refreshAllData()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <a href="/" class="store-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> View Store
+                </a>
+                <button class="header-btn" title="Logout" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-content">
+
+                <!-- ===== DASHBOARD PAGE ===== -->
+                <section class="admin-page active" id="page-dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon blue"><i class="fas fa-box"></i></div>
+                                <span class="stat-change up" id="productChange">+0</span>
+                            </div>
+                            <div class="stat-value" id="statProducts">0</div>
+                            <div class="stat-label-admin">Total Products</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon green"><i class="fas fa-tags"></i></div>
+                                <span class="stat-change up">Active</span>
+                            </div>
+                            <div class="stat-value" id="statCategories">0</div>
+                            <div class="stat-label-admin">Categories</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon orange"><i class="fas fa-users"></i></div>
+                                <span class="stat-change up" id="userChange">+0</span>
+                            </div>
+                            <div class="stat-value" id="statUsers">0</div>
+                            <div class="stat-label-admin">Users</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon purple"><i class="fas fa-shopping-bag"></i></div>
+                            </div>
+                            <div class="stat-value" id="statOrders">0</div>
+                            <div class="stat-label-admin">Orders (Today)</div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-clock"></i> Recent Activity</h3>
+                            </div>
+                            <div class="admin-card-body">
+                                <ul class="activity-list" id="activityList">
+                                    <li class="activity-item">
+                                        <div class="activity-icon add"><i class="fas fa-plus"></i></div>
+                                        <div>
+                                            <div class="activity-text">System initialized</div>
+                                            <div class="activity-time">Just now</div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-chart-bar"></i> Category Breakdown</h3>
+                            </div>
+                            <div class="admin-card-body">
+                                <ul class="category-list" id="categoryBreakdown"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== PRODUCTS PAGE ===== -->
+                <section class="admin-page" id="page-products">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-box"></i> All Products</h3>
+                            <div class="table-actions">
+                                <button class="admin-btn admin-btn-primary" onclick="openProductModal()">
+                                    <i class="fas fa-plus"></i> Add Product
+                                </button>
+                            </div>
+                        </div>
+                        <div class="admin-card-body" style="padding: 0 0 0 0;">
+                            <div style="padding: 1rem 1.5rem;">
+                                <div class="table-controls">
+                                    <div class="search-box">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" id="productSearch" placeholder="Search products..." oninput="filterProducts()">
+                                    </div>
+                                    <div class="table-actions">
+                                        <select class="form-input-admin" id="categoryFilter" onchange="filterProducts()" style="width:auto;padding:0.5rem 0.75rem;font-size:0.8rem;">
+                                            <option value="">All Categories</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="data-table" id="productsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Category</th>
+                                            <th>Price (JOD)</th>
+                                            <th>Size</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productsTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="table-footer">
+                            <span id="productsPaginationInfo">Showing 0 products</span>
+                            <div class="pagination" id="productsPagination"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== CATEGORIES PAGE ===== -->
+                <section class="admin-page" id="page-categories">
+                    <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));" id="categoriesGrid"></div>
+                </section>
+
+                <!-- ===== USERS PAGE ===== -->
+                <section class="admin-page" id="page-users">
+                    <div class="user-stats-row">
+                        <div class="user-stat-card">
+                            <div class="user-stat-value" id="totalUsersCount" style="color: var(--admin-primary);">0</div>
+                            <div class="user-stat-label">Total Users</div>
+                        </div>
+                        <div class="user-stat-card">
+                            <div class="user-stat-value" id="activeUsersCount" style="color: var(--admin-success);">0</div>
+                            <div class="user-stat-label">Active</div>
+                        </div>
+                        <div class="user-stat-card">
+                            <div class="user-stat-value" id="adminUsersCount" style="color: var(--admin-info);">0</div>
+                            <div class="user-stat-label">Admins</div>
+                        </div>
+                    </div>
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-users"></i> All Users</h3>
+                            <button class="admin-btn admin-btn-primary" onclick="openUserModal()">
+                                <i class="fas fa-user-plus"></i> Add User
+                            </button>
+                        </div>
+                        <div class="admin-card-body" style="padding:0;">
+                            <div style="padding: 1rem 1.5rem;">
+                                <div class="search-box" style="max-width:320px;">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="userSearch" placeholder="Search users..." oninput="filterUsers()">
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="data-table" id="usersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Joined</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== ORDERS PAGE ===== -->
+                <section class="admin-page" id="page-orders">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-shopping-bag"></i> Orders</h3>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📦</div>
+                                <div class="empty-state-text">No orders yet. Orders will appear here once customers start shopping.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== SETTINGS PAGE ===== -->
+                <section class="admin-page" id="page-settings">
+                    <div class="settings-grid">
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-store"></i> Store Settings</h3>
+                            </div>
+                            <div class="admin-card-body">
+                                <div class="form-group-admin">
+                                    <label class="form-label-admin">Store Name</label>
+                                    <input type="text" class="form-input-admin" value="Mooneh.ai" id="settingStoreName">
+                                </div>
+                                <div class="form-group-admin">
+                                    <label class="form-label-admin">Currency</label>
+                                    <select class="form-input-admin" id="settingCurrency">
+                                        <option value="JOD" selected>JOD - Jordanian Dinar</option>
+                                        <option value="USD">USD - US Dollar</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>Maintenance Mode</h4>
+                                        <p>Temporarily disable the store</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="maintenanceToggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>AI Assistant</h4>
+                                        <p>Enable smart shopping assistant</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="aiToggle" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-database"></i> Database Info</h3>
+                            </div>
+                            <div class="admin-card-body">
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>Connection</h4>
+                                        <p id="dbConnection">Checking...</p>
+                                    </div>
+                                    <span class="status-badge active" id="dbStatusBadge">
+                                        <span class="status-dot"></span> Connected
+                                    </span>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>Database</h4>
+                                        <p>mooneh_db</p>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>Products Collection</h4>
+                                        <p id="dbProductCount">0 documents</p>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>Users Collection</h4>
+                                        <p id="dbUserCount">0 documents</p>
+                                    </div>
+                                </div>
+                                <button class="admin-btn admin-btn-outline" onclick="refreshAllData()" style="margin-top:0.5rem;">
+                                    <i class="fas fa-sync-alt"></i> Refresh Info
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- ===== PRODUCT MODAL ===== -->
+    <div class="admin-modal-overlay" id="productModal">
+        <div class="admin-modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="productModalTitle">Add New Product</h3>
+                <button class="modal-close" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="editProductId">
+                    <div class="form-row-admin">
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Product Name (Arabic) *</label>
+                            <input type="text" class="form-input-admin" id="prodNameAr" placeholder="e.g. قهوة العميد" required>
+                        </div>
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Brand</label>
+                            <input type="text" class="form-input-admin" id="prodBrand" placeholder="e.g. العميد">
+                        </div>
+                    </div>
+                    <div class="form-row-admin">
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Category *</label>
+                            <select class="form-input-admin" id="prodCategory" required>
+                                <option value="">Select category</option>
+                                <option value="مشروبات ساخنة">مشروبات ساخنة</option>
+                                <option value="ألبان وأجبان">ألبان وأجبان</option>
+                                <option value="مجمدات">مجمدات</option>
+                                <option value="لحوم">لحوم</option>
+                                <option value="لحوم باردة">لحوم باردة</option>
+                                <option value="مونة">مونة</option>
+                                <option value="معلبات">معلبات</option>
+                                <option value="زيوت">زيوت</option>
+                                <option value="صلصات">صلصات</option>
+                                <option value="بهارات">بهارات</option>
+                                <option value="حلويات">حلويات</option>
+                                <option value="سناكس">سناكس</option>
+                                <option value="مشروبات باردة">مشروبات باردة</option>
+                                <option value="مخبوزات">مخبوزات</option>
+                                <option value="متفرقات">متفرقات</option>
+                                <option value="فواكه وتمور">فواكه وتمور</option>
+                            </select>
+                        </div>
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Price (JOD) *</label>
+                            <input type="number" step="0.01" min="0" class="form-input-admin" id="prodPrice" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="form-row-admin">
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Size / Weight</label>
+                            <input type="text" class="form-input-admin" id="prodSize" placeholder="e.g. 250g, 1 Liter">
+                        </div>
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Image URL</label>
+                            <input type="text" class="form-input-admin" id="prodImage" placeholder="/pics/product.png">
+                        </div>
+                    </div>
+                    <div class="form-group-admin">
+                        <label class="form-label-admin">Description</label>
+                        <textarea class="form-input-admin" id="prodDesc" placeholder="Product description..." rows="3"></textarea>
+                    </div>
+                    <div class="form-group-admin" style="font-size:0.8rem;font-weight:600;color:var(--admin-text);margin-bottom:0.5rem;">
+                        Nutrition per 100g
+                    </div>
+                    <div class="form-row-admin">
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Calories</label>
+                            <input type="number" step="1" min="0" class="form-input-admin" id="prodCalories" placeholder="0">
+                        </div>
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Protein (g)</label>
+                            <input type="number" step="0.1" min="0" class="form-input-admin" id="prodProtein" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-row-admin">
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Carbs (g)</label>
+                            <input type="number" step="0.1" min="0" class="form-input-admin" id="prodCarbs" placeholder="0">
+                        </div>
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Fat (g)</label>
+                            <input type="number" step="0.1" min="0" class="form-input-admin" id="prodFat" placeholder="0">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="admin-btn admin-btn-outline" onclick="closeProductModal()">Cancel</button>
+                <button class="admin-btn admin-btn-primary" id="productSubmitBtn" onclick="saveProduct()">
+                    <i class="fas fa-save"></i> Save Product
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== USER MODAL ===== -->
+    <div class="admin-modal-overlay" id="userModal">
+        <div class="admin-modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="userModalTitle">Add New User</h3>
+                <button class="modal-close" onclick="closeUserModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-row-admin">
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Full Name *</label>
+                            <input type="text" class="form-input-admin" id="userName" placeholder="Full name" required>
+                        </div>
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Username *</label>
+                            <input type="text" class="form-input-admin" id="userUsername" placeholder="username" required>
+                        </div>
+                    </div>
+                    <div class="form-group-admin">
+                        <label class="form-label-admin">Email *</label>
+                        <input type="email" class="form-input-admin" id="userEmail" placeholder="email@example.com" required>
+                    </div>
+                    <div class="form-group-admin">
+                        <label class="form-label-admin" id="passwordLabel">Password *</label>
+                        <input type="password" class="form-input-admin" id="userPassword" placeholder="Enter password">
+                        <div class="form-hint" id="passwordHint" style="display:none;">Leave blank to keep current password</div>
+                    </div>
+                    <div class="form-row-admin">
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Role</label>
+                            <select class="form-input-admin" id="userRole">
+                                <option value="customer">Customer</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group-admin">
+                            <label class="form-label-admin">Status</label>
+                            <select class="form-input-admin" id="userStatus">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="admin-btn admin-btn-outline" onclick="closeUserModal()">Cancel</button>
+                <button class="admin-btn admin-btn-primary" onclick="saveUser()">
+                    <i class="fas fa-save"></i> Save User
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CONFIRM DIALOG ===== -->
+    <div class="confirm-overlay" id="confirmDialog">
+        <div class="confirm-dialog">
+            <div class="confirm-icon"><i class="fas fa-trash-alt"></i></div>
+            <h3 class="confirm-title" id="confirmTitle">Delete Item?</h3>
+            <p class="confirm-text" id="confirmText">This action cannot be undone.</p>
+            <div class="confirm-actions">
+                <button class="admin-btn admin-btn-outline" onclick="closeConfirm()">Cancel</button>
+                <button class="admin-btn admin-btn-danger" id="confirmBtn" onclick="confirmAction()">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="admin-toast" id="adminToast">
+        <i class="fas fa-check-circle" id="toastIcon"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <script src="/static/js/admin.js"></script>
+</body>
+</html>

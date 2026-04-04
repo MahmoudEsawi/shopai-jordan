@@ -396,6 +396,34 @@ function setupProductFilters() {
             if (el === searchInput || el === minProteinInput || el === maxCaloriesInput) {
                 el.addEventListener('input', filterProducts);
             }
+            if (el === searchInput) {
+                el.addEventListener('focus', () => {
+                    if (el.value.trim() !== '') {
+                        updateSearchSuggestions(el.value.toLowerCase());
+                    }
+                });
+                
+                el.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const browseSection = document.getElementById('browse');
+                        if (browseSection) {
+                            // Account for the fixed navbar height
+                            const offsetTop = browseSection.offsetTop - 80;
+                            window.scrollTo({
+                                top: offsetTop,
+                                behavior: 'smooth'
+                            });
+                        }
+                        const suggestionsEl = document.getElementById('searchSuggestions');
+                        if (suggestionsEl) {
+                            suggestionsEl.classList.add('hidden');
+                        }
+                        // Optionally blur the input to hide soft keyboard on mobile
+                        el.blur();
+                    }
+                });
+            }
         }
     });
     
@@ -436,7 +464,8 @@ function filterProducts() {
     
     filteredProducts = allProducts.filter(product => {
         // Search filter
-        if (searchTerm && !product.name.toLowerCase().includes(searchTerm) && 
+        const prodName = (product.name_ar || product.name_en || product.name || '').toLowerCase();
+        if (searchTerm && !prodName.includes(searchTerm) && 
             !(product.description || '').toLowerCase().includes(searchTerm)) {
             return false;
         }
@@ -473,20 +502,24 @@ function filterProducts() {
     filteredProducts.sort((a, b) => {
         switch(sortBy) {
             case 'price_low':
-                return (a.price || 0) - (b.price || 0);
+                return (a.price_jod || a.price || 0) - (b.price_jod || b.price || 0);
             case 'price_high':
-                return (b.price || 0) - (a.price || 0);
+                return (b.price_jod || b.price || 0) - (a.price_jod || a.price || 0);
             case 'calories_low':
                 return (a.calories_per_100g || 0) - (b.calories_per_100g || 0);
             case 'protein_high':
                 return (b.protein_per_100g || 0) - (a.protein_per_100g || 0);
             default:
-                return (a.name || '').localeCompare(b.name || '');
+                const nameA = a.name_ar || a.name_en || a.name || '';
+                const nameB = b.name_ar || b.name_en || b.name || '';
+                return nameA.localeCompare(nameB);
         }
     });
     
     // Update results count
     updateFilterResults(filteredProducts.length);
+    
+    updateSearchSuggestions(searchTerm);
     
     displayProducts();
 }
@@ -512,6 +545,55 @@ function updateFilterResults(count) {
         resultsDisplay.style.display = 'block';
     }
 }
+
+function updateSearchSuggestions(searchTerm) {
+    const suggestionsEl = document.getElementById('searchSuggestions');
+    if (!suggestionsEl) return;
+    
+    if (!searchTerm || searchTerm.trim() === '') {
+        suggestionsEl.classList.add('hidden');
+        return;
+    }
+    
+    const topResults = filteredProducts.slice(0, 3);
+    
+    if (topResults.length === 0) {
+        suggestionsEl.innerHTML = '<div class="p-4 text-sm text-gray-500 text-center font-medium">No results found</div>';
+        suggestionsEl.classList.remove('hidden');
+        return;
+    }
+    
+    const isArabic = document.documentElement.lang === 'ar' || document.documentElement.dir === 'rtl';
+    
+    suggestionsEl.innerHTML = topResults.map(product => {
+        const productName = escapeHtml(product.name_ar || product.name_en || product.name || 'Unknown Product');
+        const imageUrl = product.image_url || 'https://via.placeholder.com/50?text=No+Image';
+        const price = (product.price_jod || product.price || 0).toFixed(2);
+        const productId = product.id || product._id || '';
+        
+        return `
+            <div class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition" onclick="window.location.hash='#browse'; document.getElementById('productSearch').value=''; document.getElementById('searchSuggestions').classList.add('hidden'); setTimeout(()=> { if(typeof window.openQuickView === 'function') window.openQuickView('${productId}') }, 100);">
+                <img src="${imageUrl}" class="w-10 h-10 object-contain rounded-lg border border-gray-100" alt="Product" onerror="this.src='https://via.placeholder.com/50'">
+                <div class="flex-1 flex flex-col">
+                    <span class="text-sm font-bold text-gray-800 line-clamp-1">${productName}</span>
+                    <span class="text-[10px] text-gray-500 font-medium">${escapeHtml(product.category || '')}</span>
+                </div>
+                <div class="font-black text-brand-dark text-sm w-16 text-right">${price} JOD</div>
+            </div>
+        `;
+    }).join('');
+    
+    suggestionsEl.classList.remove('hidden');
+}
+
+// Close suggestions when clicking outside
+document.addEventListener('click', (e) => {
+    const searchInput = document.getElementById('productSearch');
+    const suggestionsEl = document.getElementById('searchSuggestions');
+    if (suggestionsEl && searchInput && !suggestionsEl.contains(e.target) && e.target !== searchInput) {
+        suggestionsEl.classList.add('hidden');
+    }
+});
 
 function displayProducts() {
     const grid = document.getElementById('productsGrid');
@@ -575,11 +657,11 @@ function displayProducts() {
         }
         
         // Escape HTML to prevent XSS (using global function)
-        const productName = isArabic ? escapeHtml(product.name_ar || product.name || 'منتج غير معروف') : escapeHtml(product.name_en || product.name || 'Unknown Product');
+        const productName = escapeHtml(product.name_ar || product.name_en || product.name || 'Unknown Product');
         const category = escapeHtml(product.category || 'General');
         const imageUrl = product.image_url || 'https://via.placeholder.com/300?text=No+Image';
         const productUrl = product.product_url || '#';
-        const price = (product.price || 0).toFixed(2);
+        const price = (product.price_jod || product.price || 0).toFixed(2);
         const productId = product.id || '';
         
         // Build nutrition info (hidden by default, shown only on eye click)
@@ -1351,7 +1433,7 @@ function displayProductSuggestions(products, originalRequest) {
                 ${productCategory}
             </div>
             <div style="font-weight: 700; color: var(--primary); margin-bottom: 0.75rem; font-size: 1.1rem;">
-                ${product.price.toFixed(2)} ${product.currency || 'JOD'}
+                ${(product.price_jod || product.price || 0).toFixed(2)} ${product.currency || 'JOD'}
             </div>
             <button onclick="addProductToList('${product.id}')" style="
                 width: 100%;
@@ -1488,7 +1570,7 @@ async function addProductToList(productId) {
                 name_ar: product.name_ar || product.name,
                 name_en: product.name_en || product.name,
                 quantity: 1,
-                unit_price: parseFloat(product.price) || 0,
+                unit_price: parseFloat(product.price_jod || product.price) || 0,
                 currency: product.currency || 'JOD',
                 category: product.category || 'general',
                 image_url: product.image_url || '',
@@ -1789,7 +1871,7 @@ window.openQuickView = function(productId) {
     const titleEl = document.getElementById('qvTitle');
     if (titleEl) titleEl.textContent = product.name_ar || product.name || 'Unnamed Product';
     
-    const priceStr = parseFloat(product.price).toFixed(2);
+    const priceStr = parseFloat(product.price_jod || product.price || 0).toFixed(2);
     const [priceInt, priceDec] = priceStr.split('.');
     
     const intEl = document.getElementById('qvPriceInt');

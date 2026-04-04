@@ -18,7 +18,7 @@ async function run() {
     console.log("✅ تم الاتصال بسيرفر MongoDB بنجاح يا معلم!");
 
     // إنشاء الداتا بيس والـ Collection
-    const database = client.db('jordanian_supermarket_2026');
+    const database = client.db('mooneh_db');
     const productsCollection = database.collection('products');
 
     // الداتا: 100 منتج أردني حقيقي (مرتبة بطريقة NoSQL احترافية)

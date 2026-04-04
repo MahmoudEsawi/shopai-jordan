@@ -25,11 +25,11 @@ let client;
 
 async function connectDB() {
     try {
-        const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/jordanian_supermarket_2026';
+        const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/mooneh_db';
         client = new MongoClient(uri);
         await client.connect();
-        db = client.db('jordanian_supermarket_2026');
-        console.log('Connected to MongoDB - Database: jordanian_supermarket_2026');
+        db = client.db('mooneh_db');
+        console.log('Connected to MongoDB - Database: mooneh_db');
     } catch (error) {
         console.error('MongoDB connection error:', error);
         // Continue without MongoDB for basic functionality
@@ -101,7 +101,13 @@ async function loadProducts() {
         
         // Fallback to JSON file if MongoDB is not available or empty
         const data = await fs.readFile(path.join(__dirname, 'data', 'jordan_products.json'), 'utf8');
-        products = JSON.parse(data);
+        const parsed = JSON.parse(data);
+        products = parsed.map((p, index) => {
+            if (!p.id && !p._id) {
+                p.id = 'prod_' + index;
+            }
+            return p;
+        });
         console.log(`📄 Loaded ${products.length} products from JSON file`);
     } catch (error) {
         console.error('Error loading products:', error);
@@ -2512,6 +2518,14 @@ Be friendly, concise, and focus on being helpful.`;
     }
 });
 
+// In-memory cart store (fallback when MongoDB is unavailable)
+const memoryCart = {};
+
+function getMemoryCart(sessionId) {
+    if (!memoryCart[sessionId]) memoryCart[sessionId] = { items: [] };
+    return memoryCart[sessionId];
+}
+
 // Cart endpoints
 app.get('/api/cart', async (req, res) => {
     try {
@@ -2522,6 +2536,8 @@ app.get('/api/cart', async (req, res) => {
             const cartCollection = db.collection('carts');
             const cart = await cartCollection.findOne({ sessionId });
             items = cart?.items || [];
+        } else {
+            items = getMemoryCart(sessionId).items;
         }
         
         // Build structured response expected by _updateCartDisplay
@@ -2562,22 +2578,20 @@ app.post('/api/cart/add', async (req, res) => {
         
         const pid = String(product.id || product._id);
         
+        const cartItem = {
+            productId: pid,
+            name: product.name_ar || product.name,
+            price: product.price_jod || product.price,
+            currency: product.currency || 'JOD',
+            quantity: parseInt(quantity),
+            image_url: product.image_url || '',
+            category: product.category || 'General',
+        };
+        
         if (db) {
             const cartCollection = db.collection('carts');
             const cart = await cartCollection.findOne({ sessionId });
-            
-            const cartItem = {
-                productId: pid,
-                name: product.name_ar || product.name,
-                price: product.price_jod || product.price,
-                currency: product.currency || 'JOD',
-                quantity: parseInt(quantity),
-                image_url: product.image_url || '',
-                category: product.category || 'General',
-            };
-            
             if (cart) {
-                // Use strict string comparison to avoid duplicates
                 const existingItemIndex = cart.items.findIndex(item => String(item.productId) === pid);
                 if (existingItemIndex >= 0) {
                     cart.items[existingItemIndex].quantity += parseInt(quantity);
@@ -2587,6 +2601,14 @@ app.post('/api/cart/add', async (req, res) => {
                 await cartCollection.updateOne({ sessionId }, { $set: { items: cart.items, updatedAt: new Date() } });
             } else {
                 await cartCollection.insertOne({ sessionId, items: [cartItem], createdAt: new Date(), updatedAt: new Date() });
+            }
+        } else {
+            const memCart = getMemoryCart(sessionId);
+            const existingIdx = memCart.items.findIndex(i => String(i.productId) === pid);
+            if (existingIdx >= 0) {
+                memCart.items[existingIdx].quantity += parseInt(quantity);
+            } else {
+                memCart.items.push(cartItem);
             }
         }
         
@@ -2610,6 +2632,9 @@ app.post('/api/cart/remove', async (req, res) => {
                 cart.items = cart.items.filter(item => String(item.productId) !== pid);
                 await cartCollection.updateOne({ sessionId }, { $set: { items: cart.items, updatedAt: new Date() } });
             }
+        } else {
+            const memCart = getMemoryCart(sessionId);
+            memCart.items = memCart.items.filter(i => String(i.productId) !== pid);
         }
         
         res.json({ success: true, message: 'Product removed from cart' });
@@ -2631,13 +2656,20 @@ app.post('/api/cart/update', async (req, res) => {
             const cart = await cartCollection.findOne({ sessionId });
             if (cart) {
                 if (qty <= 0) {
-                    // Remove item if qty drops to 0
                     cart.items = cart.items.filter(item => String(item.productId) !== pid);
                 } else {
                     const idx = cart.items.findIndex(item => String(item.productId) === pid);
                     if (idx >= 0) cart.items[idx].quantity = qty;
                 }
                 await cartCollection.updateOne({ sessionId }, { $set: { items: cart.items, updatedAt: new Date() } });
+            }
+        } else {
+            const memCart = getMemoryCart(sessionId);
+            if (qty <= 0) {
+                memCart.items = memCart.items.filter(i => String(i.productId) !== pid);
+            } else {
+                const idx = memCart.items.findIndex(i => String(i.productId) === pid);
+                if (idx >= 0) memCart.items[idx].quantity = qty;
             }
         }
         
@@ -2658,6 +2690,9 @@ app.post('/api/cart/clear', async (req, res) => {
                 { sessionId },
                 { $set: { items: [], updatedAt: new Date() } }
             );
+        } else {
+            const memCart = getMemoryCart(sessionId);
+            memCart.items = [];
         }
         
         res.json({ success: true, message: 'Cart cleared' });
@@ -2700,10 +2735,542 @@ app.post('/api/export', async (req, res) => {
     }
 });
 
+// ============================================================
+// USER AUTHENTICATION API (Storefront)
+// ============================================================
+
+// Serve auth page
+app.get('/auth', async (req, res) => {
+    try {
+        let html = await fs.readFile(path.join(__dirname, 'templates', 'auth.html'), 'utf8');
+        res.send(html);
+    } catch (error) {
+        console.error('Error serving auth page:', error);
+        res.status(500).send('Error loading auth page');
+    }
+});
+
+// User Registration
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { name, username, email, password } = req.body;
+        
+        if (!name || !username || !email || !password) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+
+        if (!db) {
+            return res.status(503).json({ error: 'Database not available' });
+        }
+
+        const usersCol = db.collection('users');
+        
+        // Check for existing username or email
+        const existing = await usersCol.findOne({ 
+            $or: [{ username: username.toLowerCase() }, { email: email.toLowerCase() }] 
+        });
+        if (existing) {
+            if (existing.username === username.toLowerCase()) {
+                return res.status(409).json({ error: 'Username already taken' });
+            }
+            return res.status(409).json({ error: 'Email already registered' });
+        }
+
+        // Create user
+        const crypto = require('crypto');
+        const hashedPassword = crypto.createHash('sha256').update(password + 'mooneh_salt').digest('hex');
+        
+        const userData = {
+            name,
+            username: username.toLowerCase(),
+            email: email.toLowerCase(),
+            password: hashedPassword,
+            role: 'customer',
+            status: 'active',
+            created_at: new Date().toISOString()
+        };
+
+        const result = await usersCol.insertOne(userData);
+        
+        // Generate token for auto-login
+        const tokenId = crypto.randomBytes(32).toString('hex');
+        
+        console.log(`👤 New user registered: ${username} (${email})`);
+        
+        res.status(201).json({
+            success: true,
+            token: tokenId,
+            user: {
+                id: result.insertedId,
+                name,
+                username: username.toLowerCase(),
+                email: email.toLowerCase(),
+                role: 'customer'
+            }
+        });
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Registration failed. Please try again.' });
+    }
+});
+
+// User Login
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+
+        if (!db) {
+            return res.status(503).json({ error: 'Database not available' });
+        }
+
+        const crypto = require('crypto');
+        const hashedPassword = crypto.createHash('sha256').update(password + 'mooneh_salt').digest('hex');
+        
+        const usersCol = db.collection('users');
+        const user = await usersCol.findOne({
+            $or: [
+                { username: username.toLowerCase(), password: hashedPassword },
+                { email: username.toLowerCase(), password: hashedPassword }
+            ]
+        });
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid username or password' });
+        }
+
+        if (user.status === 'inactive') {
+            return res.status(403).json({ error: 'Account is inactive. Contact support.' });
+        }
+
+        const tokenId = crypto.randomBytes(32).toString('hex');
+        
+        console.log(`🔑 User logged in: ${user.username}`);
+
+        res.json({
+            success: true,
+            token: tokenId,
+            user: {
+                id: user._id,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Login failed. Please try again.' });
+    }
+});
+
+// ============================================================
+// ADMIN DASHBOARD API
+// ============================================================
+const crypto = require('crypto');
+
+// Simple token-based auth (no external JWT dependency needed)
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'mooneh_admin_secret_2026_' + crypto.randomBytes(8).toString('hex');
+const tokenStore = new Map(); // tokenId -> { userId, username, role, expires }
+
+function hashPassword(password) {
+    return crypto.createHash('sha256').update(password + 'mooneh_salt').digest('hex');
+}
+
+function generateToken(user) {
+    const tokenId = crypto.randomBytes(32).toString('hex');
+    tokenStore.set(tokenId, {
+        userId: user._id?.toString() || user.id,
+        username: user.username,
+        role: user.role,
+        name: user.name,
+        expires: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+    });
+    return tokenId;
+}
+
+function verifyToken(token) {
+    const data = tokenStore.get(token);
+    if (!data) return null;
+    if (Date.now() > data.expires) {
+        tokenStore.delete(token);
+        return null;
+    }
+    return data;
+}
+
+// Admin auth middleware
+function adminAuth(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authorization required' });
+    }
+    const token = authHeader.split(' ')[1];
+    const userData = verifyToken(token);
+    if (!userData) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    req.adminUser = userData;
+    next();
+}
+
+// Serve admin page
+app.get('/admin', async (req, res) => {
+    try {
+        let html = await fs.readFile(path.join(__dirname, 'templates', 'admin.html'), 'utf8');
+        res.send(html);
+    } catch (error) {
+        console.error('Error serving admin page:', error);
+        res.status(500).send('Error loading admin page');
+    }
+});
+
+// Seed default admin user if none exists
+async function seedAdminUser() {
+    if (!db) return;
+    try {
+        const usersCol = db.collection('users');
+        const adminExists = await usersCol.findOne({ role: 'admin' });
+        if (!adminExists) {
+            await usersCol.insertOne({
+                name: 'Admin',
+                username: 'admin',
+                email: 'admin@mooneh.ai',
+                password: hashPassword('admin123'),
+                role: 'admin',
+                status: 'active',
+                created_at: new Date().toISOString()
+            });
+            console.log('👤 Default admin user created (admin / admin123)');
+        }
+    } catch (err) {
+        console.error('Error seeding admin user:', err);
+    }
+}
+
+// ---- Auth Routes ----
+app.post('/api/admin/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password required' });
+        }
+
+        if (!db) {
+            return res.status(503).json({ error: 'Database not available' });
+        }
+
+        const usersCol = db.collection('users');
+        const user = await usersCol.findOne({ 
+            username: username,
+            password: hashPassword(password)
+        });
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid username or password' });
+        }
+
+        if (user.role !== 'admin') {
+            return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+        }
+
+        if (user.status === 'inactive') {
+            return res.status(403).json({ error: 'Account is inactive. Contact an administrator.' });
+        }
+
+        const token = generateToken(user);
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Login failed' });
+    }
+});
+
+app.get('/api/admin/verify', adminAuth, (req, res) => {
+    res.json({ valid: true, user: req.adminUser });
+});
+
+// ---- Admin Products CRUD ----
+app.get('/api/admin/products', adminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.json({ products: products });
+        }
+        const productsCol = db.collection('products');
+        const allProds = await productsCol.find({}).toArray();
+        res.json({ products: allProds });
+    } catch (error) {
+        console.error('Error listing products:', error);
+        res.status(500).json({ error: 'Error loading products' });
+    }
+});
+
+app.post('/api/admin/products', adminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ error: 'Database not available' });
+        }
+        const productData = req.body;
+        if (!productData.name_ar && !productData.name) {
+            return res.status(400).json({ error: 'Product name is required' });
+        }
+        if (!productData.price_jod && !productData.price) {
+            return res.status(400).json({ error: 'Price is required' });
+        }
+
+        productData.created_at = new Date().toISOString();
+        
+        const productsCol = db.collection('products');
+        const result = await productsCol.insertOne(productData);
+        
+        // Reload in-memory products
+        await loadProducts();
+        
+        res.status(201).json({ 
+            success: true, 
+            message: 'Product added',
+            productId: result.insertedId 
+        });
+    } catch (error) {
+        console.error('Error adding product:', error);
+        res.status(500).json({ error: 'Error adding product' });
+    }
+});
+
+app.put('/api/admin/products/:id', adminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ error: 'Database not available' });
+        }
+        const { ObjectId } = require('mongodb');
+        let objectId;
+        try {
+            objectId = new ObjectId(req.params.id);
+        } catch (e) {
+            return res.status(400).json({ error: 'Invalid product ID' });
+        }
+
+        const updateData = { ...req.body };
+        delete updateData._id;
+        updateData.updated_at = new Date().toISOString();
+
+        const productsCol = db.collection('products');
+        const result = await productsCol.updateOne(
+            { _id: objectId },
+            { $set: updateData }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        await loadProducts();
+        res.json({ success: true, message: 'Product updated' });
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({ error: 'Error updating product' });
+    }
+});
+
+app.delete('/api/admin/products/:id', adminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ error: 'Database not available' });
+        }
+        const { ObjectId } = require('mongodb');
+        let objectId;
+        try {
+            objectId = new ObjectId(req.params.id);
+        } catch (e) {
+            return res.status(400).json({ error: 'Invalid product ID' });
+        }
+
+        const productsCol = db.collection('products');
+        const result = await productsCol.deleteOne({ _id: objectId });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        await loadProducts();
+        res.json({ success: true, message: 'Product deleted' });
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.status(500).json({ error: 'Error deleting product' });
+    }
+});
+
+// ---- Admin Users CRUD ----
+app.get('/api/admin/users', adminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.json({ users: [] });
+        }
+        const usersCol = db.collection('users');
+        const allUsrs = await usersCol.find({}, { projection: { password: 0 } }).toArray();
+        res.json({ users: allUsrs });
+    } catch (error) {
+        console.error('Error listing users:', error);
+        res.status(500).json({ error: 'Error loading users' });
+    }
+});
+
+app.post('/api/admin/users', adminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ error: 'Database not available' });
+        }
+        const { name, username, email, password, role, status } = req.body;
+        
+        if (!name || !username || !email || !password) {
+            return res.status(400).json({ error: 'Name, username, email, and password are required' });
+        }
+
+        const usersCol = db.collection('users');
+        
+        // Check for duplicate username or email
+        const existing = await usersCol.findOne({ $or: [{ username }, { email }] });
+        if (existing) {
+            return res.status(409).json({ error: 'Username or email already exists' });
+        }
+
+        const userData = {
+            name,
+            username,
+            email,
+            password: hashPassword(password),
+            role: role || 'customer',
+            status: status || 'active',
+            created_at: new Date().toISOString()
+        };
+
+        const result = await usersCol.insertOne(userData);
+        res.status(201).json({ 
+            success: true, 
+            message: 'User created',
+            userId: result.insertedId 
+        });
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({ error: 'Error creating user' });
+    }
+});
+
+app.put('/api/admin/users/:id', adminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ error: 'Database not available' });
+        }
+        const { ObjectId } = require('mongodb');
+        let objectId;
+        try {
+            objectId = new ObjectId(req.params.id);
+        } catch (e) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        const updateData = { ...req.body };
+        delete updateData._id;
+        
+        // Hash password if provided
+        if (updateData.password) {
+            updateData.password = hashPassword(updateData.password);
+        } else {
+            delete updateData.password; // Don't overwrite if not provided
+        }
+
+        updateData.updated_at = new Date().toISOString();
+
+        const usersCol = db.collection('users');
+
+        // Check for duplicate username/email (excluding current user)
+        if (updateData.username || updateData.email) {
+            const conditions = [];
+            if (updateData.username) conditions.push({ username: updateData.username });
+            if (updateData.email) conditions.push({ email: updateData.email });
+            const existing = await usersCol.findOne({ 
+                $or: conditions,
+                _id: { $ne: objectId }
+            });
+            if (existing) {
+                return res.status(409).json({ error: 'Username or email already taken' });
+            }
+        }
+
+        const result = await usersCol.updateOne(
+            { _id: objectId },
+            { $set: updateData }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({ success: true, message: 'User updated' });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Error updating user' });
+    }
+});
+
+app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ error: 'Database not available' });
+        }
+        const { ObjectId } = require('mongodb');
+        let objectId;
+        try {
+            objectId = new ObjectId(req.params.id);
+        } catch (e) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        // Prevent deleting yourself
+        if (req.adminUser.userId === req.params.id) {
+            return res.status(400).json({ error: 'Cannot delete your own account' });
+        }
+
+        const usersCol = db.collection('users');
+        const result = await usersCol.deleteOne({ _id: objectId });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({ success: true, message: 'User deleted' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Error deleting user' });
+    }
+});
+
+// ============================================================
+// END ADMIN DASHBOARD API
+// ============================================================
+
 // Initialize and start server
 async function startServer() {
     // Connect to DB first
     await connectDB();
+    // Seed default admin user if needed
+    await seedAdminUser();
     // Then load products (will use MongoDB if available)
     await loadProducts();
     
