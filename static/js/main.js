@@ -53,6 +53,109 @@ function toggleCart() {
     }, 300);
 }
 
+function toggleOrdersPanel() {
+    const sideOrders = document.getElementById('sideOrders');
+    const overlay = document.getElementById('ordersOverlay');
+    
+    if (!sideOrders || !overlay) return;
+    
+    // Prevent multiple rapid toggles
+    if (sideOrders.classList.contains('toggling')) return;
+    sideOrders.classList.add('toggling');
+    
+    const isActive = sideOrders.classList.contains('active');
+    
+    if (isActive) {
+        // Closing
+        sideOrders.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    } else {
+        // Opening
+        loadMyOrders();
+        sideOrders.classList.add('active');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    setTimeout(() => {
+        sideOrders.classList.remove('toggling');
+    }, 300);
+}
+
+async function loadMyOrders() {
+    const content = document.getElementById('myOrdersContent');
+    if (!content) return;
+    
+    content.innerHTML = `
+        <div class="cart-empty flex flex-col items-center justify-center h-full text-gray-400 gap-4 opacity-70 mt-10">
+            <i class="fas fa-spinner fa-spin text-4xl"></i>
+            <div class="text-lg font-bold">Loading orders...</div>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch('/api/orders/me', {
+            headers: { 'X-Session-ID': getSessionId() }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.orders && data.orders.length > 0) {
+            content.innerHTML = data.orders.map(order => {
+                const date = new Date(order.created_at).toLocaleString();
+                const statusColor = order.status === 'Delivered' ? 'text-green-600 bg-green-100 border border-green-200' :
+                                    order.status === 'Cancelled' ? 'text-red-600 bg-red-100 border border-red-200' :
+                                    'text-blue-600 bg-blue-100 border border-blue-200';
+                                    
+                return `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition">
+                        <div class="flex justify-between items-start border-b border-gray-50 pb-3 mb-3">
+                            <div>
+                                <div class="font-black text-brand-dark tracking-tight">${order.order_id || 'Order'}</div>
+                                <div class="text-[11px] text-gray-400 font-medium tracking-wide uppercase mt-1">${date}</div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wide uppercase ${statusColor}">${order.status}</span>
+                        </div>
+                        <div class="space-y-2 mb-3">
+                            ${(order.items || []).map(item => `
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="text-gray-600 flex items-center gap-2">
+                                        <span class="font-bold text-gray-900 bg-gray-100 px-1.5 py-0.5 rounded text-xs">${item.quantity}x</span>
+                                        <span class="truncate max-w-[150px] font-medium text-gray-700">${item.name_ar || item.name}</span>
+                                    </div>
+                                    <div class="font-bold text-gray-800">${(parseFloat(item.price) * item.quantity).toFixed(2)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="flex justify-between items-center pt-3 border-t border-gray-100 bg-gray-50 -mx-4 -mb-4 px-4 py-3 rounded-b-2xl">
+                            <span class="font-bold text-gray-500 text-xs tracking-wide uppercase">Total Amount</span>
+                            <span class="font-black text-brand-dark text-lg">${parseFloat(order.total_amount).toFixed(2)} <span class="text-xs">JOD</span></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            content.innerHTML = `
+                <div class="cart-empty flex flex-col items-center justify-center h-full text-gray-400 gap-4 opacity-70 mt-10">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                        <i class="fas fa-box-open text-4xl text-gray-300"></i>
+                    </div>
+                    <div class="text-xl font-black text-gray-600">No orders yet</div>
+                    <div class="text-sm font-medium text-center max-w-[200px]">Place an order to start tracking your deliveries here</div>
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error('Error fetching orders:', err);
+        content.innerHTML = `
+            <div class="cart-empty flex flex-col items-center justify-center h-full text-red-400 gap-4 opacity-70 mt-10">
+                <i class="fas fa-exclamation-circle text-4xl"></i>
+                <div class="text-lg font-bold">Failed to load orders</div>
+            </div>
+        `;
+    }
+}
+
 // Close cart when clicking outside
 document.addEventListener('click', (e) => {
     const sideCart = document.getElementById('sideCart');

@@ -292,6 +292,25 @@ app.post('/api/checkout', async (req, res) => {
     }
 });
 
+// Fetch Customer Orders
+app.get('/api/orders/me', async (req, res) => {
+    try {
+        if (!db) return res.status(503).json({ error: 'Database disconnected' });
+        
+        const sessionId = req.headers['x-session-id'] || req.query.sessionId;
+        if (!sessionId || sessionId === 'guest') {
+            return res.status(401).json({ error: 'Unauthorized to view orders' });
+        }
+
+        const ordersCol = db.collection('orders');
+        const orders = await ordersCol.find({ session_id: sessionId }).sort({ created_at: -1 }).toArray();
+        res.json({ success: true, orders });
+    } catch (error) {
+        console.error('Error fetching user orders:', error);
+        res.status(500).json({ error: 'Internal server error fetching orders' });
+    }
+});
+
 
 // Add a new product
 app.post('/api/products', async (req, res) => {

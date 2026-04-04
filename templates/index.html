@@ -72,6 +72,9 @@
             </div>
 
             <!-- Icons -->
+            <button class="relative hover:text-brand-light transition p-2" id="ordersToggleBtn" onclick="toggleOrdersPanel()" title="My Orders">
+                <i class="fas fa-box-open text-lg md:text-xl"></i>
+            </button>
             <button class="relative hover:text-brand-light transition p-2" id="cartToggleBtn" onclick="toggleCart()" title="Cart">
                 <i class="fas fa-shopping-cart text-lg md:text-xl"></i>
                 <span id="navCartCount" class="absolute top-0 right-0 bg-brand-light text-brand-dark text-[9px] md:text-[10px] font-bold w-[16px] h-[16px] md:w-[18px] md:h-[18px] flex items-center justify-center rounded-full border-2 border-brand-dark">0</span>
@@ -226,6 +229,27 @@
                     <i class="fas fa-trash-alt"></i>
                     <span data-translate="clear_cart">Clear Basket</span>
                 </button>
+            </div>
+        </div>
+        
+        <!-- Side Orders Panel -->
+        <div id="ordersOverlay" class="cart-overlay" onclick="toggleOrdersPanel()" style="z-index: 9997;"></div>
+        <div id="sideOrders" class="side-cart">
+            <div class="bg-brand-default px-6 py-5 flex items-center justify-between border-b-2 border-brand-light/30">
+                <h2 class="text-2xl font-black text-brand-dark tracking-tight flex items-center gap-3 m-0">
+                    <i class="fas fa-box-open"></i>
+                    <span>My Orders</span>
+                </h2>
+                <button class="w-10 h-10 rounded-full bg-brand-dark/10 hover:bg-brand-dark/20 text-brand-dark flex items-center justify-center transition-colors" onclick="toggleOrdersPanel()" aria-label="Close Orders">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <div id="myOrdersContent" class="side-cart-items bg-gray-50 flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="cart-empty flex flex-col items-center justify-center h-full text-gray-400 gap-4 opacity-70 mt-10" id="ordersLoadingState">
+                    <i class="fas fa-spinner fa-spin text-4xl"></i>
+                    <div class="text-lg font-bold">Loading orders...</div>
+                </div>
             </div>
         </div>
         
