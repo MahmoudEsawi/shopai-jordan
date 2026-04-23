@@ -2527,6 +2527,7 @@ CORE RULES:
    - For each item, show: Item name | Quantity | Price per unit | Line total.
    - Summarize the final total cost as calculated in the list.
    - Keep it concise and friendly.
+4. **CRITICAL:** DO NOT repeat the conversation history. DO NOT repeat the user's message. ONLY output your response.
 `;
 
             // Try multiple models in order (fallback if one is overloaded)

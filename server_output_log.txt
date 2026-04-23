@@ -1,0 +1,8 @@
+Connected to MongoDB - Database: mooneh_db
+📊 MongoDB collection 'products' has 164 documents
+📦 Raw MongoDB product sample: {"_id":"69d1850245dc7e239efaf456","name_ar":"قهوة العميد (مع هيل)","brand":"العميد","category":"مشروبات ساخنة","price_jod":2.85,"size":"250g","image_url":"/pics/BanAlAmeed_Turkish_Coffee_Medium_Cardam...
+✅ Loaded 164 products from MongoDB collection 'products'
+Server running on http://localhost:3000
+Products loaded: 164
+⚠️  HuggingFace AI not configured - set HUGGINGFACE_API_KEY in .env
+✅ MongoDB connected

@@ -289,7 +289,10 @@ async function sendMessage() {
         chatHistory.push({ role: 'assistant', content: aiText });
         
         // Clean markdown
-        aiText = escapeHtml(aiText).replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        aiText = escapeHtml(aiText)
+            .replace(/\n/g, '<br>')
+            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+            .replace(/(?:^|<br>)\s*[\*\-]\s+(.*?)(?=<br>|$)/g, '<br><span class="text-green-500 mr-2 ml-2">•</span> $1');
         
         // Check if there are relevant products to offer "Add to cart"
         const suggestedProducts = (response.data.shopping_list && response.data.shopping_list.items.length > 0) 
