@@ -298,6 +298,7 @@
                     localStorage.setItem('user_id', data.user.id);
                     localStorage.setItem('username', data.user.username);
                     localStorage.setItem('user_name', data.user.name);
+                    localStorage.setItem('user_role', data.user.role || 'user');
                     localStorage.setItem('is_authenticated', 'true');
                     
                     showToastAuth('Welcome back, ' + data.user.name + '! 🎉', 'success');
@@ -360,6 +361,7 @@
                     localStorage.setItem('user_id', data.user.id);
                     localStorage.setItem('username', data.user.username);
                     localStorage.setItem('user_name', data.user.name);
+                    localStorage.setItem('user_role', data.user.role || 'user');
                     localStorage.setItem('is_authenticated', 'true');
 
                     success.classList.add('show');

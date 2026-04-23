@@ -48,9 +48,23 @@ class ProductModal {
 
         body.innerHTML = `
             <div class="product-modal-image">
-                <img src="${product.image_url || 'https://via.placeholder.com/400?text=No+Image'}" 
+                <img id="modalMainImg"
+                     src="${product.image_url || 'https://via.placeholder.com/400?text=No+Image'}" 
                      alt="${this.escapeHtml(product.name)}"
                      onerror="this.src='https://via.placeholder.com/400?text=No+Image'">
+                ${product.image_url_2 ? `
+                <div class="modal-image-thumbs">
+                    <img class="modal-thumb active"
+                         src="${product.image_url}"
+                         alt="Image 1"
+                         onclick="document.getElementById('modalMainImg').src=this.src; document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active')); this.classList.add('active');"
+                         onerror="this.style.display='none'">
+                    <img class="modal-thumb"
+                         src="${product.image_url_2}"
+                         alt="Image 2"
+                         onclick="document.getElementById('modalMainImg').src=this.src; document.querySelectorAll('.modal-thumb').forEach(t=>t.classList.remove('active')); this.classList.add('active');"
+                         onerror="this.style.display='none'">
+                </div>` : ''}
             </div>
             <div class="product-modal-details">
                 <h2 class="product-modal-title">${this.escapeHtml(product.name)}</h2>

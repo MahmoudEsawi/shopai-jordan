@@ -79,6 +79,12 @@
                 <i class="fas fa-shopping-cart text-lg md:text-xl"></i>
                 <span id="navCartCount" class="absolute top-0 right-0 bg-brand-light text-brand-dark text-[9px] md:text-[10px] font-bold w-[16px] h-[16px] md:w-[18px] md:h-[18px] flex items-center justify-center rounded-full border-2 border-brand-dark">0</span>
             </button>
+            
+            <!-- Admin Dashboard Button (Only for Admins) -->
+            <a href="/admin" class="hidden items-center justify-center p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition" id="adminDashboardBtn" title="Admin Dashboard">
+                <i class="fas fa-user-shield text-lg"></i>
+                <span class="hidden md:inline ml-1.5 font-bold text-xs">Admin</span>
+            </a>
 
             
             <!-- Auth Button -->
@@ -97,6 +103,13 @@
             </button>
         </div>
     </nav>
+    
+    <!-- Floating Cart Button -->
+    <button id="floatingCartBtn" class="floating-cart flex items-center justify-center" onclick="toggleCart()" title="View Cart">
+        <i class="fas fa-shopping-cart text-xl"></i>
+        <span id="floatingCartCount" class="floating-cart-count">0</span>
+    </button>
+
     
     <div>
         <!-- Hero Section -->
@@ -397,16 +410,22 @@
         <div id="chatContainer" class="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50 flex flex-col">
             <!-- Messages will appear here -->
             <div class="message bot bg-white text-gray-800 p-4 border border-gray-100 rounded-2xl rounded-tr-sm shadow-sm self-start max-w-[85%] text-[15px] font-medium leading-relaxed">
-                Hello! I'm Mooneh.ai robot. How can I help you pick out your groceries? <br><br>
-                Try asking: <b>"Suggest a cheap healthy dinner."</b>
+                Hello! I'm Mooneh.ai robot. How can I help you pick out your groceries?
             </div>
         </div>
         
-        <div class="p-4 bg-white border-t border-gray-100 flex gap-3 items-center shadow-[0_-5px_15px_rgba(0,0,0,0.02)]">
+        <div class="bg-white border-t border-gray-100 shadow-[0_-5px_15px_rgba(0,0,0,0.02)]">
+            <div class="px-4 py-3 flex gap-2 overflow-x-auto whitespace-nowrap bg-gray-50" style="scrollbar-width: none;">
+                <button onclick="document.getElementById('chatInput').value='Suggest a cheap healthy dinner'; sendMessage();" class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-[#075480] hover:text-[#075480] transition shadow-sm">Suggest a cheap healthy dinner</button>
+                <button onclick="document.getElementById('chatInput').value='بدي اسوي حفلة مشاوي ل 10 اشخاص'; sendMessage();" class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-[#075480] hover:text-[#075480] transition shadow-sm">حفلة مشاوي ل 10 اشخاص</button>
+                <button onclick="document.getElementById('chatInput').value='شو بتنصحني لعشاء خفيف ومفيد؟'; sendMessage();" class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-[#075480] hover:text-[#075480] transition shadow-sm">عشاء خفيف ومفيد</button>
+            </div>
+            <div class="p-4 flex gap-3 items-center">
             <input type="text" id="chatInput" placeholder="Ask finding items..." class="flex-1 bg-gray-50 border border-gray-200 rounded-full px-5 py-3 outline-none focus:border-[#075480] text-sm font-medium transition">
             <button onclick="sendMessage()" class="w-11 h-11 bg-gradient-to-r from-[#075480] to-[#033c5e] text-white rounded-full flex justify-center items-center hover:opacity-90 shadow-md transform hover:-translate-y-0.5 transition">
                 <i class="fas fa-paper-plane text-[15px]"></i>
             </button>
+            </div>
         </div>
     </div>
 
@@ -435,6 +454,7 @@
     <script src="{{ url_for('static', filename='js/wishlist-panel.js') }}"></script>
     <!-- Script Logic for Modals and Utils -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
@@ -591,6 +611,8 @@
         function signOut() {
             localStorage.removeItem('user_id');
             localStorage.removeItem('username');
+            localStorage.removeItem('user_name');
+            localStorage.removeItem('user_role');
             localStorage.removeItem('is_authenticated');
             window.location.reload();
         }

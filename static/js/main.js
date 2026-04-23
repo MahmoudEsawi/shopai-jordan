@@ -13,12 +13,32 @@ const productsPerPage = 12; // Show 12 products per page
 
 // Generate or retrieve session ID required for API carts
 function getSessionId() {
+    // If user is logged in, use their user ID as the session ID
+    // This ensures their cart follows them across devices
+    let userId = localStorage.getItem('user_id');
+    if (userId) return 'user_' + userId;
+
     let sessionId = localStorage.getItem('shopai_session_id');
     if (!sessionId) {
-        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        sessionId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('shopai_session_id', sessionId);
     }
     return sessionId;
+}
+
+// Function to check user role and update UI
+function initAuthUI() {
+    const role = localStorage.getItem('user_role');
+    const adminBtn = document.getElementById('adminDashboardBtn');
+    if (adminBtn) {
+        if (role === 'admin') {
+            adminBtn.classList.remove('hidden');
+            adminBtn.classList.add('flex');
+        } else {
+            adminBtn.classList.add('hidden');
+            adminBtn.classList.remove('flex');
+        }
+    }
 }
 
 // Cart Toggle Functions - Improved to prevent glitching
@@ -181,6 +201,7 @@ document.addEventListener('keydown', (e) => {
 window.onload = () => {
     loadStats();
     loadCart();
+    initAuthUI(); // Check for admin dashboard button
     
     // Load products and setup filters when browse section is available
     if (document.getElementById('productsGrid')) {
@@ -217,8 +238,161 @@ async function loadStats() {
     }
 }
 
-// AI Chat Functions removed
-function sendMessage() {}
+// AI Chat Functions
+let chatHistory = []; // Track conversation history
+
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const container = document.getElementById('chatContainer');
+    if (!input || !container) return;
+    
+    const message = input.value.trim();
+    if (!message) return;
+    
+    // Add user message to history
+    chatHistory.push({ role: 'user', content: message });
+    
+    // Append user message
+    container.innerHTML += `
+        <div class="message user bg-[#075480] text-white p-4 rounded-2xl rounded-tr-sm shadow-sm self-end max-w-[85%] text-[15px] font-medium leading-relaxed ms-auto mt-3">
+            ${escapeHtml(message)}
+        </div>
+    `;
+    input.value = '';
+    
+    // Append loading bubble
+    const loadingId = 'loading-' + Date.now();
+    container.innerHTML += `
+        <div id="${loadingId}" class="message bot bg-white text-gray-800 p-4 border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm self-start max-w-[85%] text-[15px] font-medium leading-relaxed mt-3 flex items-center gap-2">
+            <i class="fas fa-circle-notch fa-spin text-[#075480]"></i> جاري التفكير...
+        </div>
+    `;
+    container.scrollTop = container.scrollHeight;
+    
+    try {
+        // Send conversation history along with the message
+        const response = await axios.post('/api/chat', { 
+            message,
+            conversation_history: chatHistory.slice(-10) // Send last 10 messages for context
+        });
+        const el = document.getElementById(loadingId);
+        if (el) el.remove();
+        
+        let aiText = response.data.response || "عذراً، حدث خطأ غير متوقع.";
+        
+        // Add AI response to history
+        chatHistory.push({ role: 'assistant', content: aiText });
+        
+        // Clean markdown
+        aiText = escapeHtml(aiText).replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        
+        // Check if there are relevant products to offer "Add to cart"
+        const suggestedProducts = (response.data.shopping_list && response.data.shopping_list.items.length > 0) 
+            ? response.data.shopping_list.items 
+            : (response.data.relevantProducts || []);
+        const hasProducts = suggestedProducts.length > 0 && !aiText.toLowerCase().includes('?') && !aiText.includes('؟');
+        
+        // Build the "Add all to cart" button if products were suggested
+        let addToCartBtn = '';
+        if (hasProducts) {
+            const btnId = 'addAllBtn-' + Date.now();
+            // Store products data on window for the button to use
+            window['_chatProducts_' + btnId] = suggestedProducts;
+            addToCartBtn = `
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                    <button id="${btnId}" onclick="addAllChatProductsToCart('${btnId}')" 
+                        class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#1B4B36] to-[#2d6b4e] text-white font-bold py-2.5 px-4 rounded-xl hover:opacity-90 transition transform hover:scale-[1.02] active:scale-95 shadow-md text-sm">
+                        <i class="fas fa-cart-plus"></i>
+                        <span>Add all items to cart 🛒</span>
+                    </button>
+                </div>
+            `;
+        }
+        
+        container.innerHTML += `
+            <div class="message bot bg-white text-gray-800 p-4 border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm self-start max-w-[85%] text-[15px] font-medium leading-relaxed mt-3">
+                ${aiText}
+                ${addToCartBtn}
+            </div>
+        `;
+    } catch (err) {
+        console.error("Chat Error: ", err);
+        const el = document.getElementById(loadingId);
+        if (el) el.remove();
+        container.innerHTML += `
+            <div class="message bot bg-red-50 text-red-800 p-4 border border-red-100 rounded-2xl rounded-tl-sm shadow-sm self-start max-w-[85%] text-[15px] font-medium leading-relaxed mt-3">
+                ⚠️ حدث خطأ أثناء الاتصال بالمساعد الذكي. الرجاء المحاولة مرة أخرى.
+            </div>
+        `;
+    }
+    container.scrollTop = container.scrollHeight;
+}
+
+// Add all AI-suggested products to cart at once
+async function addAllChatProductsToCart(btnId) {
+    const products = window['_chatProducts_' + btnId];
+    const btn = document.getElementById(btnId);
+    if (!products || !btn) return;
+    
+    // Disable button and show loading
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Adding items...</span>';
+    btn.classList.add('opacity-70');
+    
+    let addedCount = 0;
+    let failedCount = 0;
+    
+    for (const product of products) {
+        try {
+            const productId = product.id || product._id;
+            if (!productId) continue;
+            
+            await fetch('/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Session-ID': getSessionId()
+                },
+                body: JSON.stringify({ productId: productId, quantity: product.quantity || 1 })
+            });
+            addedCount++;
+        } catch (err) {
+            console.error('Failed to add product:', err);
+            failedCount++;
+        }
+    }
+    
+    // Update cart UI
+    await loadCart();
+    
+    // Sync floating cart count
+    const floatingCount = document.getElementById('floatingCartCount');
+    const navCartCount = document.getElementById('navCartCount');
+    if (floatingCount && navCartCount) {
+        floatingCount.textContent = navCartCount.textContent;
+    }
+    
+    // Show success state on button
+    if (failedCount === 0) {
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> <span>Added ' + addedCount + ' items ✅</span>';
+        btn.classList.remove('from-[#1B4B36]', 'to-[#2d6b4e]');
+        btn.classList.add('bg-green-500');
+    } else {
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> <span>Added ' + addedCount + ' / ' + (addedCount + failedCount) + ' items</span>';
+    }
+    
+    // Clean up stored products
+    delete window['_chatProducts_' + btnId];
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('chatInput');
+    if (input) {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    }
+});
 // Mobile Menu Toggle
 function toggleMobileMenu() {
     const navMenu = document.getElementById('navMenu');
@@ -824,9 +998,9 @@ function displayProducts() {
                     window.cartHelpers.update(pid, currentQty - 1);
                 } else if (cartBtn.classList.contains('qty-plus')) {
                     const currentQty = parseInt(cartBtn.parentElement.querySelector('span').textContent);
-                    window.cartHelpers.update(pid, currentQty + 1);
+                    window.cartHelpers.update(pid, currentQty + 1, cartBtn);
                 } else {
-                    window.cartHelpers.add(pid);
+                    window.cartHelpers.add(pid, cartBtn);
                 }
                 return;
             }
@@ -969,6 +1143,13 @@ function _updateCartDisplay(cart) {
                 navCartCount.textContent = itemCount;
                 navCartCount.style.display = itemCount > 0 ? 'flex' : 'none';
             }
+
+            // Sync floating count
+            const floatingCartCount = document.getElementById('floatingCartCount');
+            if (floatingCartCount) {
+                floatingCartCount.textContent = itemCount;
+            }
+
             if (cartFooterTotal) cartFooterTotal.textContent = `${totalCost.toFixed(2)} JOD`;
 
             // Show/hide footer
@@ -1097,7 +1278,16 @@ async function addToCart(productId, quantity = 1) {
             // Auto open side cart
             const sideCart = document.getElementById('sideCart');
             if (sideCart && !sideCart.classList.contains('active')) {
-                toggleCart();
+                // Determine if we should open automatically or just show a pulse
+                // Some users prefer it stays closed so they can keep shopping
+                // toggleCart(); 
+            }
+            
+            // Sync floating count
+            const floatingCount = document.getElementById('floatingCartCount');
+            const navCartCount = document.getElementById('navCartCount');
+            if (floatingCount && navCartCount) {
+                floatingCount.textContent = navCartCount.textContent;
             }
             
             // showNotification(data.message || t.product_added_to_cart, 'success');
@@ -1961,9 +2151,92 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// Animation to Fly Item to Cart
+async function animateFlyToCart(sourceImg) {
+    if (!sourceImg) return;
+    
+    // Choose the best target (Floating Cart if visible, otherwise Nav Cart)
+    const floatingBtn = document.getElementById('floatingCartBtn');
+    const navBtn = document.getElementById('cartToggleBtn');
+    
+    let cartBtn = navBtn;
+    if (floatingBtn && floatingBtn.classList.contains('visible')) {
+        cartBtn = floatingBtn;
+    }
+    
+    if (!cartBtn) return;
+    
+    // Create a clone of the image
+    const flyingImg = sourceImg.cloneNode();
+    const rect = sourceImg.getBoundingClientRect();
+    const cartRect = cartBtn.getBoundingClientRect();
+    
+    // Calculate center of cart
+    const cartCenterX = cartRect.left + (cartRect.width / 2);
+    const cartCenterY = cartRect.top + (cartRect.height / 2);
+    
+    // Set initial styles - start a bit smaller if original is huge
+    const startSize = Math.min(rect.width, 100);
+    
+    flyingImg.classList.add('flying-item');
+    flyingImg.style.width = startSize + 'px';
+    flyingImg.style.height = startSize + 'px';
+    flyingImg.style.top = (rect.top + (rect.height / 2) - (startSize / 2)) + 'px';
+    flyingImg.style.left = (rect.left + (rect.width / 2) - (startSize / 2)) + 'px';
+    
+    document.body.appendChild(flyingImg);
+    
+    // Force reflow
+    flyingImg.offsetHeight;
+    
+    // Set target styles - fly INTO the cart icon
+    flyingImg.style.top = (cartCenterY - 10) + 'px';
+    flyingImg.style.left = (cartCenterX - 10) + 'px';
+    flyingImg.style.width = '15px';
+    flyingImg.style.height = '15px';
+    flyingImg.style.opacity = '0.4';
+    flyingImg.style.transform = 'scale(0.2) rotate(360deg)';
+    
+    // Remove after animation
+    setTimeout(() => {
+        flyingImg.remove();
+        // Add a nice pop effect to the cart
+        cartBtn.classList.add('cart-pop');
+        setTimeout(() => cartBtn.classList.remove('cart-pop'), 400);
+    }, 700); // Should match --fly-duration
+}
+
 // Custom AddToCart Helpers for ProductCards Animation
 window.cartHelpers = {
-    add: async (id) => {
+    add: async (id, sourceElement = null) => {
+        // Optimistic UI update
+        const navCount = document.getElementById('navCartCount');
+        const floatCount = document.getElementById('floatingCartCount');
+        const sideCount = document.getElementById('cartItemCount');
+        
+        [navCount, floatCount, sideCount].forEach(el => {
+            if (el) {
+                const current = parseInt(el.textContent) || 0;
+                el.textContent = current + 1;
+                if (el.id === 'navCartCount') el.style.display = 'flex';
+            }
+        });
+
+        // Trigger animation
+        let img = null;
+        if (sourceElement) {
+            const card = sourceElement.closest('.product-card');
+            if (card) img = card.querySelector('img');
+            else if (document.getElementById('quickViewGlobalModal') && !document.getElementById('quickViewGlobalModal').classList.contains('hidden')) {
+                img = document.getElementById('qvImage');
+            }
+        }
+        if (!img && id) {
+            const card = document.querySelector(`.product-card[data-product-id="${id}"]`);
+            if (card) img = card.querySelector('img');
+        }
+        if (img) animateFlyToCart(img);
+
         try {
             await addToCart(id, 1);
             if (typeof window.syncProductCards === 'function') window.syncProductCards();
@@ -1971,8 +2244,19 @@ window.cartHelpers = {
             console.error('Add to cart failed:', e);
         }
     },
-    update: async (id, qty) => {
-        // updateCartQuantity handles qty<=0 by removing the item
+    update: async (id, qty, sourceElement = null) => {
+        // Trigger animation if quantity is increasing (optimistic check)
+        if (sourceElement && (sourceElement.classList.contains('qty-plus') || sourceElement.closest('.qty-plus'))) {
+            let img = null;
+            const card = sourceElement.closest('.product-card');
+            if (card) {
+                img = card.querySelector('img');
+            } else if (document.getElementById('quickViewGlobalModal') && !document.getElementById('quickViewGlobalModal').classList.contains('hidden')) {
+                img = document.getElementById('qvImage');
+            }
+            if (img) animateFlyToCart(img);
+        }
+
         await updateCartQuantity(id, qty);
         if (typeof window.syncProductCards === 'function') window.syncProductCards();
     }
@@ -2022,12 +2306,12 @@ window.syncProductCards = function() {
                         <div class="h-12 bg-[#DCF3CA] text-brand-dark w-full rounded-full flex items-center justify-between px-4 transition-colors duration-200">
                             <button class="qty-minus w-8 h-8 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center transition shadow-sm" onclick="window.cartHelpers.update('${pid}', ${qty - 1})"><i class="fas fa-minus text-sm"></i></button>
                             <span class="font-bold text-lg select-none">${qty}</span>
-                            <button class="qty-plus w-8 h-8 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center transition shadow-sm" onclick="window.cartHelpers.update('${pid}', ${qty + 1})"><i class="fas fa-plus text-sm"></i></button>
+                            <button class="qty-plus w-8 h-8 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center transition shadow-sm" onclick="window.cartHelpers.update('${pid}', ${qty + 1}, this)"><i class="fas fa-plus text-sm"></i></button>
                         </div>
                     `;
                 } else {
                     qvWrapper.innerHTML = `
-                        <button class="w-full h-12 rounded-full border-2 border-brand-light bg-brand-light hover:bg-[#8bc025] text-brand-dark font-bold transition flex items-center justify-center gap-2 shadow-sm" onclick="window.cartHelpers.add('${pid}')">
+                        <button class="w-full h-12 rounded-full border-2 border-brand-light bg-brand-light hover:bg-[#8bc025] text-brand-dark font-bold transition flex items-center justify-center gap-2 shadow-sm" onclick="window.cartHelpers.add('${pid}', this)">
                             <i class="fas fa-shopping-cart"></i> Add to cart
                         </button>
                     `;
@@ -2131,3 +2415,15 @@ window.closeQuickView = function() {
     }, 300);
 };
 
+
+// Show/Hide Floating Cart on Scroll
+window.addEventListener('scroll', () => {
+    const floatingCart = document.getElementById('floatingCartBtn');
+    if (!floatingCart) return;
+    
+    if (window.scrollY > 300) {
+        floatingCart.classList.add('visible');
+    } else {
+        floatingCart.classList.remove('visible');
+    }
+});
