@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mooneh.ai - Smart Shopping Assistant</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cart-sidebar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/quick-view.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ux-enhancements.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-2026.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-2026.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -114,6 +116,10 @@
     <div>
         <!-- Hero Section -->
         <div id="home" class="bg-brand-dark relative pt-16 pb-32 px-6 lg:px-16 overflow-hidden">
+            <!-- Animated floating blobs -->
+            <div class="hero-blob hero-blob-1"></div>
+            <div class="hero-blob hero-blob-2"></div>
+            <div class="hero-blob hero-blob-3"></div>
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
                 <div class="flex-1 text-white space-y-6 md:pr-12">
                     <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight font-sans">
@@ -390,41 +396,89 @@
         </div>
         
         <div class="footer-bottom">
-            <p data-translate="footer_copyright">© 2024 Mooneh.ai. All rights reserved.</p>
+            <p data-translate="footer_copyright">© 2026 Mooneh.ai. All rights reserved.</p>
         </div>
     </footer>
     
-    <!-- AI Chat Panel -->
+    <!-- AI Chat Panel — 2026 Redesign -->
     <div id="aiChatOverlay" class="cart-overlay" onclick="toggleAIChat()" style="z-index: 9997;"></div>
-    <div id="aiChatPanel" class="fixed top-0 right-0 h-full w-[400px] max-w-[90vw] bg-white shadow-2xl z-[9998] transform translate-x-full transition-transform duration-300 flex flex-col">
-        <div class="bg-gradient-to-r from-[#075480] to-[#033c5e] px-6 py-5 flex items-center justify-between text-white shadow-md z-10">
-            <h2 class="text-xl font-bold flex items-center gap-3 m-0">
-                <i class="fas fa-robot text-brand-default text-2xl"></i>
-                <span>Smart AI Assistant</span>
-            </h2>
-            <button class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors" onclick="toggleAIChat()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div id="chatContainer" class="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50 flex flex-col">
-            <!-- Messages will appear here -->
-            <div class="message bot bg-white text-gray-800 p-4 border border-gray-100 rounded-2xl rounded-tr-sm shadow-sm self-start max-w-[85%] text-[15px] font-medium leading-relaxed">
-                Hello! I'm Mooneh.ai robot. How can I help you pick out your groceries?
+    <div id="aiChatPanel" class="chat-panel fixed top-0 right-0 h-full w-[440px] max-w-[95vw] z-[9998] transform translate-x-full transition-transform duration-500 flex flex-col" style="transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);">
+
+        <!-- ▸ HEADER -->
+        <div class="chat-header">
+            <div class="chat-header-glow"></div>
+            <div class="chat-header-content">
+                <div class="chat-header-left">
+                    <div class="chat-avatar-ring">
+                        <div class="chat-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <span class="chat-status-dot"></span>
+                    </div>
+                    <div class="chat-header-info">
+                        <h2>Mooneh AI</h2>
+                        <span class="chat-status-text">
+                            <span class="chat-status-pulse"></span>
+                            Online — ready to help
+                        </span>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="chat-header-btn" onclick="clearChatHistory()" title="Clear chat">
+                        <i class="fas fa-broom"></i>
+                    </button>
+                    <button class="chat-header-btn chat-close-btn" onclick="toggleAIChat()" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
         </div>
-        
-        <div class="bg-white border-t border-gray-100 shadow-[0_-5px_15px_rgba(0,0,0,0.02)]">
-            <div class="px-4 py-3 flex gap-2 overflow-x-auto whitespace-nowrap bg-gray-50" style="scrollbar-width: none;">
-                <button onclick="document.getElementById('chatInput').value='Suggest a cheap healthy dinner'; sendMessage();" class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-[#075480] hover:text-[#075480] transition shadow-sm">Suggest a cheap healthy dinner</button>
-                <button onclick="document.getElementById('chatInput').value='بدي اسوي حفلة مشاوي ل 10 اشخاص'; sendMessage();" class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-[#075480] hover:text-[#075480] transition shadow-sm">حفلة مشاوي ل 10 اشخاص</button>
-                <button onclick="document.getElementById('chatInput').value='شو بتنصحني لعشاء خفيف ومفيد؟'; sendMessage();" class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-[#075480] hover:text-[#075480] transition shadow-sm">عشاء خفيف ومفيد</button>
+
+        <!-- ▸ MESSAGES -->
+        <div id="chatContainer" class="chat-messages">
+            <!-- Welcome card -->
+            <div class="chat-welcome-card">
+                <div class="chat-welcome-icon">
+                    <i class="fas fa-sparkles"></i>
+                </div>
+                <h3>مرحبا! أنا مساعد مونة الذكي 👋</h3>
+                <p>I can help you find products, suggest recipes, and build your shopping list. Ask me anything!</p>
             </div>
-            <div class="p-4 flex gap-3 items-center">
-            <input type="text" id="chatInput" placeholder="Ask finding items..." class="flex-1 bg-gray-50 border border-gray-200 rounded-full px-5 py-3 outline-none focus:border-[#075480] text-sm font-medium transition">
-            <button onclick="sendMessage()" class="w-11 h-11 bg-gradient-to-r from-[#075480] to-[#033c5e] text-white rounded-full flex justify-center items-center hover:opacity-90 shadow-md transform hover:-translate-y-0.5 transition">
-                <i class="fas fa-paper-plane text-[15px]"></i>
+
+            <div class="message bot">
+                <div class="chat-bot-avatar"><i class="fas fa-robot"></i></div>
+                <div class="chat-bubble chat-bubble-bot">
+                    Hello! I'm Mooneh.ai assistant. How can I help you pick out your groceries?
+                </div>
+            </div>
+        </div>
+
+        <!-- ▸ QUICK REPLIES -->
+        <div class="chat-suggestions">
+            <button class="chat-chip" onclick="document.getElementById('chatInput').value='Suggest a cheap healthy dinner'; sendMessage();">
+                <i class="fas fa-utensils"></i> Healthy dinner ideas
             </button>
+            <button class="chat-chip" onclick="document.getElementById('chatInput').value='بدي اسوي حفلة مشاوي ل 10 اشخاص'; sendMessage();">
+                <i class="fas fa-fire"></i> حفلة مشاوي
+            </button>
+            <button class="chat-chip" onclick="document.getElementById('chatInput').value='شو بتنصحني لعشاء خفيف ومفيد؟'; sendMessage();">
+                <i class="fas fa-leaf"></i> عشاء خفيف
+            </button>
+            <button class="chat-chip" onclick="document.getElementById('chatInput').value='What are today\\'s best deals?'; sendMessage();">
+                <i class="fas fa-tags"></i> Best deals
+            </button>
+        </div>
+
+        <!-- ▸ INPUT AREA -->
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off">
+                <button onclick="sendMessage()" class="chat-send-btn" id="chatSendBtn">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </div>
+            <div class="chat-input-hint">
+                <i class="fas fa-language"></i> Supports English & Arabic
             </div>
         </div>
     </div>
@@ -637,6 +691,25 @@
                 document.body.style.overflow = 'hidden';
                 setTimeout(() => document.getElementById('chatInput').focus(), 300);
             }
+        }
+
+        function clearChatHistory() {
+            const container = document.getElementById('chatContainer');
+            if (!container) return;
+            if (typeof chatHistory !== 'undefined') chatHistory.length = 0;
+            container.innerHTML = `
+                <div class="chat-welcome-card">
+                    <div class="chat-welcome-icon"><i class="fas fa-sparkles"></i></div>
+                    <h3>مرحبا! أنا مساعد مونة الذكي 👋</h3>
+                    <p>I can help you find products, suggest recipes, and build your shopping list. Ask me anything!</p>
+                </div>
+                <div class="message bot">
+                    <div class="chat-bot-avatar"><i class="fas fa-robot"></i></div>
+                    <div class="chat-bubble chat-bubble-bot">
+                        Hello! I'm Mooneh.ai assistant. How can I help you pick out your groceries?
+                    </div>
+                </div>
+            `;
         }
     </script>
 </body>

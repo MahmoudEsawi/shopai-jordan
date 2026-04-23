@@ -254,8 +254,10 @@ async function sendMessage() {
     
     // Append user message
     container.innerHTML += `
-        <div class="message user bg-[#075480] text-white p-4 rounded-2xl rounded-tr-sm shadow-sm self-end max-w-[85%] text-[15px] font-medium leading-relaxed ms-auto mt-3">
-            ${escapeHtml(message)}
+        <div class="message user">
+            <div class="chat-bubble chat-bubble-user">
+                ${escapeHtml(message)}
+            </div>
         </div>
     `;
     input.value = '';
@@ -263,8 +265,11 @@ async function sendMessage() {
     // Append loading bubble
     const loadingId = 'loading-' + Date.now();
     container.innerHTML += `
-        <div id="${loadingId}" class="message bot bg-white text-gray-800 p-4 border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm self-start max-w-[85%] text-[15px] font-medium leading-relaxed mt-3 flex items-center gap-2">
-            <i class="fas fa-circle-notch fa-spin text-[#075480]"></i> جاري التفكير...
+        <div id="${loadingId}" class="chat-typing">
+            <div class="chat-bot-avatar"><i class="fas fa-robot"></i></div>
+            <div class="chat-typing-dots">
+                <span></span><span></span><span></span>
+            </div>
         </div>
     `;
     container.scrollTop = container.scrollHeight;
@@ -296,23 +301,22 @@ async function sendMessage() {
         let addToCartBtn = '';
         if (hasProducts) {
             const btnId = 'addAllBtn-' + Date.now();
-            // Store products data on window for the button to use
             window['_chatProducts_' + btnId] = suggestedProducts;
             addToCartBtn = `
-                <div class="mt-3 pt-3 border-t border-gray-100">
-                    <button id="${btnId}" onclick="addAllChatProductsToCart('${btnId}')" 
-                        class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#1B4B36] to-[#2d6b4e] text-white font-bold py-2.5 px-4 rounded-xl hover:opacity-90 transition transform hover:scale-[1.02] active:scale-95 shadow-md text-sm">
-                        <i class="fas fa-cart-plus"></i>
-                        <span>Add all items to cart 🛒</span>
-                    </button>
-                </div>
+                <button id="${btnId}" onclick="addAllChatProductsToCart('${btnId}')" class="chat-add-cart-btn">
+                    <i class="fas fa-cart-plus"></i>
+                    <span>Add all items to cart 🛒</span>
+                </button>
             `;
         }
         
         container.innerHTML += `
-            <div class="message bot bg-white text-gray-800 p-4 border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm self-start max-w-[85%] text-[15px] font-medium leading-relaxed mt-3">
-                ${aiText}
-                ${addToCartBtn}
+            <div class="message bot">
+                <div class="chat-bot-avatar"><i class="fas fa-robot"></i></div>
+                <div class="chat-bubble chat-bubble-bot">
+                    ${aiText}
+                    ${addToCartBtn}
+                </div>
             </div>
         `;
     } catch (err) {
@@ -320,8 +324,11 @@ async function sendMessage() {
         const el = document.getElementById(loadingId);
         if (el) el.remove();
         container.innerHTML += `
-            <div class="message bot bg-red-50 text-red-800 p-4 border border-red-100 rounded-2xl rounded-tl-sm shadow-sm self-start max-w-[85%] text-[15px] font-medium leading-relaxed mt-3">
-                ⚠️ حدث خطأ أثناء الاتصال بالمساعد الذكي. الرجاء المحاولة مرة أخرى.
+            <div class="message bot">
+                <div class="chat-bot-avatar"><i class="fas fa-robot"></i></div>
+                <div class="chat-bubble chat-bubble-error">
+                    ⚠️ حدث خطأ أثناء الاتصال بالمساعد الذكي. الرجاء المحاولة مرة أخرى.
+                </div>
             </div>
         `;
     }
