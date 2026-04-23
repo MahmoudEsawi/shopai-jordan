@@ -289,10 +289,10 @@
 }
 
 .chat-bubble-bot {
-    background: #1c2432 !important;
-    color: #ffffff !important;
+    background: #112a1d !important;
+    color: #f8fafc !important;
     border-radius: 1.1rem 1.1rem 1.1rem 0.25rem;
-    border: 1px solid rgba(255,255,255,0.1) !important;
+    border: 1px solid rgba(34,197,94,0.15) !important;
     box-shadow: 0 2px 12px rgba(0,0,0,0.25);
     font-weight: 500;
 }
@@ -319,9 +319,9 @@
     align-items: center;
     gap: 5px;
     padding: 0.75rem 1.1rem;
-    background: #1c2432;
+    background: #112a1d;
     border-radius: 1.1rem 1.1rem 1.1rem 0.25rem;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(34,197,94,0.15);
 }
 
 .chat-typing-dots span {
@@ -396,10 +396,10 @@
 .chat-chip {
     flex-shrink: 0;
     padding: 0.45rem 0.8rem;
-    background: #1a2233;
-    border: 1px solid rgba(255,255,255,0.12);
+    background: #0f2416;
+    border: 1px solid rgba(34,197,94,0.2);
     border-radius: 0.65rem;
-    color: #e2e8f0;
+    color: #f1f5f9;
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -444,8 +444,8 @@
     display: flex;
     align-items: center;
     gap: 0.55rem;
-    background: #161d2a;
-    border: 1.5px solid rgba(255,255,255,0.12);
+    background: #0f2416;
+    border: 1.5px solid rgba(34,197,94,0.15);
     border-radius: 0.85rem;
     padding: 0.3rem 0.3rem 0.3rem 1rem;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -453,7 +453,7 @@
 
 .chat-input-wrapper:focus-within {
     border-color: rgba(34,197,94,0.5);
-    background: #1a2233;
+    background: #112a1d;
     box-shadow: 0 0 0 3px rgba(34,197,94,0.1), 0 4px 20px rgba(0,0,0,0.2);
 }
 
