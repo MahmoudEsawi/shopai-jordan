@@ -372,31 +372,41 @@ section.max-w-7xl > .rounded-3xl:hover {
     padding: 1.5rem !important;
 }
 
-/* Bot messages */
-#chatContainer .message.bot {
-    background: #fff !important;
-    border: 1px solid rgba(0,0,0,0.06) !important;
-    border-radius: 1.25rem 1.25rem 1.25rem 0.35rem !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    padding: 1rem 1.25rem !important;
-    color: #1e293b !important;
-    font-size: 0.94rem !important;
-    line-height: 1.65 !important;
+/* Message wrapper — flex layout only, no visual styling */
+#chatContainer .message.bot,
+#chatContainer .message.user {
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
     animation: msgSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
 }
 
-/* User messages */
-#chatContainer .message.user {
-    background: var(--m-gradient-chat-user) !important;
+/* Bot chat bubble — the actual styled element */
+#chatContainer .chat-bubble-bot {
+    background: #112a1d !important;
+    color: #f0f2f5 !important;
+    border: 1px solid rgba(34,197,94,0.15) !important;
+    border-radius: 1.15rem 1.15rem 1.15rem 0.3rem !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    padding: 0.9rem 1.15rem !important;
+    font-size: 0.93rem !important;
+    line-height: 1.7 !important;
+    max-width: 100%;
+}
+
+/* User chat bubble — the actual styled element */
+#chatContainer .chat-bubble-user {
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%) !important;
     color: #fff !important;
     border: none !important;
-    border-radius: 1.25rem 1.25rem 0.35rem 1.25rem !important;
-    box-shadow: 0 4px 15px rgba(27,75,54,0.2);
-    padding: 1rem 1.25rem !important;
-    font-size: 0.94rem !important;
-    line-height: 1.6 !important;
-    animation: msgSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 1.15rem 1.15rem 0.3rem 1.15rem !important;
+    box-shadow: 0 4px 15px rgba(22,163,74,0.35);
+    padding: 0.9rem 1.15rem !important;
+    font-size: 0.93rem !important;
+    line-height: 1.7 !important;
+    max-width: 100%;
 }
 
 @keyframes msgSlideIn {

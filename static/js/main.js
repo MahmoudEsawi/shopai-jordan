@@ -18,10 +18,10 @@ function getSessionId() {
     let userId = localStorage.getItem('user_id');
     if (userId) return 'user_' + userId;
 
-    let sessionId = localStorage.getItem('shopai_session_id');
+    let sessionId = localStorage.getItem('mooneh_session_id');
     if (!sessionId) {
         sessionId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('shopai_session_id', sessionId);
+        localStorage.setItem('mooneh_session_id', sessionId);
     }
     return sessionId;
 }
@@ -354,18 +354,25 @@ async function addAllChatProductsToCart(btnId) {
     
     for (const product of products) {
         try {
-            const productId = product.id || product._id;
-            if (!productId) continue;
-            
-            await fetch('/api/cart/add', {
+            const productId = product.productId || product.id || product._id;
+            if (!productId) { failedCount++; continue; }
+
+            const qty = parseInt(product.quantity) || 1;
+            const resp = await fetch('/api/cart/add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Session-ID': getSessionId()
                 },
-                body: JSON.stringify({ productId: productId, quantity: product.quantity || 1 })
+                body: JSON.stringify({ productId: String(productId), quantity: qty })
             });
-            addedCount++;
+            const data = await resp.json();
+            if (resp.ok && data.success) {
+                addedCount++;
+            } else {
+                console.warn('Could not add product to cart:', productId, data);
+                failedCount++;
+            }
         } catch (err) {
             console.error('Failed to add product:', err);
             failedCount++;
@@ -470,7 +477,7 @@ async function shareList(shareUrl) {
     if (navigator.share) {
         try {
             await navigator.share({
-                title: 'My Shopping List - ShopAI Jordan',
+                title: 'My Shopping List - Mooneh.ai',
                 text: window.currentShoppingList ? 
                     `Shopping list for ${window.currentShoppingList.num_people} people - ${window.currentShoppingList.total_cost.toFixed(2)} JOD` :
                     'Check out my shopping list!',
@@ -1395,7 +1402,26 @@ function checkoutCart() {
         if(typeof Toast !== 'undefined') Toast.warning('Cart is empty!');
         return;
     }
-    
+
+    // 🔒 Require sign-in to place an order
+    if (localStorage.getItem('is_authenticated') !== 'true') {
+        // Close the cart sidebar first
+        const sideCart = document.getElementById('sideCart');
+        const overlay = document.getElementById('cartOverlay');
+        if (sideCart && sideCart.classList.contains('active')) {
+            sideCart.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        if (typeof Toast !== 'undefined') {
+            Toast.warning('يجب تسجيل الدخول أولاً لإتمام الطلب — Please sign in to place your order.');
+        }
+        setTimeout(() => {
+            window.location.href = '/auth?redirect=checkout';
+        }, 1800);
+        return;
+    }
+
     // Auto-fill available user info if logged in
     const username = localStorage.getItem('username');
     if (username) {
@@ -1997,8 +2023,8 @@ async function addListToCart() {
         
         for (const item of window.currentShoppingList.items) {
             try {
-                const productId = item.productId || item.id;
-                const quantity = parseInt(document.getElementById(`list_quantity_${window.currentShoppingList.items.indexOf(item)}`)?.value || item.quantity);
+                const productId = item.productId || item.id || item._id;
+                const quantity = parseInt(document.getElementById(`list_quantity_${window.currentShoppingList.items.indexOf(item)}`)?.value) || parseInt(item.quantity) || 1;
                 
                 if (!productId) {
                     failedCount++;
@@ -2012,7 +2038,7 @@ async function addListToCart() {
                         'X-Session-ID': getSessionId()
                     },
                     body: JSON.stringify({
-                        productId: productId,
+                        productId: String(productId),
                         quantity: quantity
                     })
                 });

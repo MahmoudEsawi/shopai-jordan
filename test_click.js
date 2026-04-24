@@ -17,7 +17,7 @@ const puppeteer = require('puppeteer');
   
   // Get the session ID being used
   const sessionId = await page.evaluate(() => {
-    return localStorage.getItem('shopai_session_id') || window.sessionId || 'NOT FOUND';
+    return localStorage.getItem('mooneh_session_id') || window.sessionId || 'NOT FOUND';
   });
   console.log('Session ID:', sessionId);
   

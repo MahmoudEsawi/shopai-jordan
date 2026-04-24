@@ -63,7 +63,13 @@
             <div class="form-panel active" id="signInPanel">
                 <div class="form-header">
                     <h2 class="form-title">Welcome Back</h2>
-                    <p class="form-subtitle">Sign in to your account to continue shopping</p>
+                    <p class="form-subtitle" id="signInSubtitle">Sign in to your account to continue shopping</p>
+                </div>
+
+                <!-- Checkout redirect notice (shown when coming from cart) -->
+                <div id="checkoutNotice" style="display:none; background: linear-gradient(135deg,#1B4B36,#2d6b4e); color:#fff; border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:0.88rem; display:none; align-items:center; gap:10px;">
+                    <i class="fas fa-lock" style="font-size:1rem;"></i>
+                    <span>Sign in to complete your order — your cart is saved!</span>
                 </div>
 
                 <div class="auth-error" id="signInError">
@@ -302,7 +308,10 @@
                     localStorage.setItem('is_authenticated', 'true');
                     
                     showToastAuth('Welcome back, ' + data.user.name + '! 🎉', 'success');
-                    setTimeout(() => window.location.href = '/', 1200);
+                    const redirectTarget = new URLSearchParams(window.location.search).get('redirect');
+                    setTimeout(() => {
+                        window.location.href = redirectTarget === 'checkout' ? '/?checkout=1' : '/';
+                    }, 1200);
                 } else {
                     document.getElementById('signInErrorText').textContent = data.error || 'Invalid credentials';
                     error.classList.add('show');
@@ -365,7 +374,10 @@
                     localStorage.setItem('is_authenticated', 'true');
 
                     success.classList.add('show');
-                    setTimeout(() => window.location.href = '/', 1500);
+                    const redirectTarget = new URLSearchParams(window.location.search).get('redirect');
+                    setTimeout(() => {
+                        window.location.href = redirectTarget === 'checkout' ? '/?checkout=1' : '/';
+                    }, 1500);
                 } else {
                     document.getElementById('signUpErrorText').textContent = data.error || 'Error creating account';
                     error.classList.add('show');
@@ -393,12 +405,20 @@
 
         // Check if already logged in
         if (localStorage.getItem('is_authenticated') === 'true') {
-            window.location.href = '/';
+            const redir = new URLSearchParams(window.location.search).get('redirect');
+            window.location.href = redir === 'checkout' ? '/?checkout=1' : '/';
         }
 
         // Check URL for signup flag
         if (window.location.search.includes('signup')) {
             switchPanel('signUp');
+        }
+
+        // Show checkout notice if redirected from cart
+        if (new URLSearchParams(window.location.search).get('redirect') === 'checkout') {
+            const notice = document.getElementById('checkoutNotice');
+            if (notice) notice.style.display = 'flex';
+            document.getElementById('signInSubtitle').textContent = 'Sign in to complete your order';
         }
     </script>
 </body>

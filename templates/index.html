@@ -671,6 +671,16 @@
                     userNavGreeting.textContent = `Hello, ${username}!`;
                 }
             }
+
+            // Auto-open checkout if redirected here after login
+            if (new URLSearchParams(window.location.search).get('checkout') === '1') {
+                // Clean the URL without reloading
+                window.history.replaceState({}, document.title, '/');
+                // Wait for cart to load, then open checkout modal
+                setTimeout(() => {
+                    if (typeof checkoutCart === 'function') checkoutCart();
+                }, 1200);
+            }
         });
         
         function signOut() {

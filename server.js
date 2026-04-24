@@ -42,11 +42,6 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 // Using gemini-2.5-flash (latest stable model)
 
-// HuggingFace AI configuration (fallback/legacy)
-const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || '';
-const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models';
-// Using a text generation model that's more reliable
-const CHAT_MODEL = 'mistralai/Mistral-7B-Instruct-v0.2';
 
 // Helper: map a raw MongoDB product doc to the app's expected format
 function mapProduct(p) {
@@ -64,7 +59,7 @@ function mapProduct(p) {
         description: p.description || '',
         brand: p.brand || p.store_name || '',
         size: p.size || '',
-        store_name: p.store_name || p.brand || 'ShopAI Jordan',
+        store_name: p.store_name || p.brand || 'Mooneh.ai',
         product_url: p.product_url || '#',
         image_url: p.image_url || `https://via.placeholder.com/300x300/FF6B00/fff?text=${encodeURIComponent(p.name_ar || p.name || 'منتج')}`,
         image_url_2: p.image_url_2 || null,
@@ -254,6 +249,15 @@ app.post('/api/checkout', async (req, res) => {
         }
 
         const { customerInfo, items, total, session_id } = req.body;
+
+        // 🔒 Require a signed-in user session — reject guests
+        if (!session_id || session_id === 'guest' || session_id.startsWith('guest_')) {
+            return res.status(401).json({
+                success: false,
+                error: 'You must be signed in to place an order.',
+                requiresAuth: true
+            });
+        }
 
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'Cannot checkout an empty cart.' });
@@ -872,8 +876,8 @@ function generateIntelligentResponse(message, relevantProducts, categories) {
     // Greeting responses
     if (messageLower.match(/\b(hello|hi|hey|السلام|أهلا|مرحبا|اهلين|صباح|مساء)\b/i)) {
         return isArabic
-            ? `أهلاً وسهلاً! أنا مساعدك الذكي للتسوق في ShopAI Jordan. يمكنني مساعدتك في:\n• البحث عن المنتجات\n• إنشاء قائمة تسوق\n• اقتراح المنتجات\n• حساب الميزانية\n\nماذا تحتاج؟`
-            : `Hello! I'm your smart shopping assistant for ShopAI Jordan. I can help you with:\n• Finding products\n• Creating shopping lists\n• Product recommendations\n• Budget calculations\n\nWhat do you need?`;
+            ? `أهلاً وسهلاً! أنا مساعدك الذكي للتسوق في Mooneh.ai. يمكنني مساعدتك في:\n• البحث عن المنتجات\n• إنشاء قائمة تسوق\n• اقتراح المنتجات\n• حساب الميزانية\n\nماذا تحتاج؟`
+            : `Hello! I'm your smart shopping assistant for Mooneh.ai. I can help you with:\n• Finding products\n• Creating shopping lists\n• Product recommendations\n• Budget calculations\n\nWhat do you need?`;
     }
 
     // Product search results - make response dynamic based on query
@@ -1026,11 +1030,31 @@ app.post('/api/chat', async (req, res) => {
         let aiResponse = generateIntelligentResponse(message, relevantProducts, categories);
 
         const messageLower = message.toLowerCase();
-        // Improved regex to detect actual shopping requests or planning
-        const isShoppingRequest = fromSmartPlanner || messageLower.match(/\b(bbq|grill|شوي|شواء|أريد|I want|I need|shopping list|قائمة|تسوق|add|أضف|إضافة|breakfast|lunch|dinner|party|فطور|غداء|عشاء|عزومة|حفلة|meal|recipe|وصفة|buy|اشتري)\b/i);
+
+        // Build conversation context from history to understand follow-up answers (like budget or people count)
+        const recentUserMessages = conversation_history
+            .filter(h => h.role === 'user')
+            .slice(-2) // Get last 2 user messages
+            .map(h => h.content)
+            .join(' ');
+        const contextualMessage = `${recentUserMessages} ${message}`;
+        const contextualMessageLower = contextualMessage.toLowerCase();
+
+        // Improved regex to detect actual shopping requests or planning using context!
+        // Note: \b doesn't work well with Arabic characters in JS regex, so we handle English and Arabic separately
+        const englishShoppingRegex = /\b(bbq|grill|i want|i need|shopping list|add|breakfast|lunch|dinner|party|meal|recipe|buy)\b/i;
+        const arabicShoppingRegex = /(شوي|شواء|مشاوي|أريد|قائمة|تسوق|أضف|إضافة|فطور|غداء|عشاء|عزومة|حفلة|وصفة|اشتري|اغراض|بدي)/i;
+        
+        const isShoppingRequest = fromSmartPlanner || 
+                                 contextualMessageLower.match(englishShoppingRegex) || 
+                                 contextualMessageLower.match(arabicShoppingRegex);
+
+
 
         let shoppingList = null;
         let listItems = [];
+        let needsBudgetPrompt = false;
+
         // ONLY create shopping list if this is an explicit shopping/planning request
         if (isShoppingRequest && relevantProducts.length > 0) {
             // Use data from Smart Shopping Planner if available, otherwise extract from message
@@ -1077,14 +1101,14 @@ app.post('/api/chat', async (req, res) => {
 
                 console.log(`📋 Final Smart Shopping Planner data: ${eventType} for ${numPeople} people, budget: ${budget !== null ? budget + ' JOD' : 'auto (will calculate)'}`);
             } else {
-                // Priority 2: Extract from message
+                // Priority 2: Extract from contextual message for event type and numPeople
                 // Convert Arabic/Hindi numerals (٠١٢٣٤٥٦٧٨٩) to Western digits before parsing
-                const normalizedMessage = message
+                const normalizedMessage = contextualMessage
                     .replace(/[٠]/g, '0').replace(/[١]/g, '1').replace(/[٢]/g, '2')
                     .replace(/[٣]/g, '3').replace(/[٤]/g, '4').replace(/[٥]/g, '5')
                     .replace(/[٦]/g, '6').replace(/[٧]/g, '7').replace(/[٨]/g, '8')
                     .replace(/[٩]/g, '9');
-                console.log(`🔢 Normalized message for number extraction: "${normalizedMessage}"`);
+                console.log(`🔢 Normalized contextual message for number extraction: "${normalizedMessage}"`);
 
                 // Extract quantity hints from message (number of people, quantity, etc.)
                 const quantityPatterns = [
@@ -1112,25 +1136,25 @@ app.post('/api/chat', async (req, res) => {
                 }
 
                 // Extract event type from message (more comprehensive)
-                if (messageLower.includes('bbq') || messageLower.includes('شوي') || messageLower.includes('شواء') || messageLower.includes('grill')) {
+                if (contextualMessageLower.includes('bbq') || contextualMessageLower.includes('شوي') || contextualMessageLower.includes('شواء') || contextualMessageLower.includes('مشاوي') || contextualMessageLower.includes('grill')) {
                     eventType = 'bbq';
                     console.log(`🎯 Detected event type: BBQ/شواء from message`);
-                } else if (messageLower.includes('party') || messageLower.includes('حفلة') || messageLower.includes('party')) {
+                } else if (contextualMessageLower.includes('party') || contextualMessageLower.includes('حفلة')) {
                     eventType = 'party';
                     console.log(`🎯 Detected event type: Party/حفلة from message`);
-                } else if (messageLower.includes('dinner') || messageLower.includes('عشاء')) {
+                } else if (contextualMessageLower.includes('dinner') || contextualMessageLower.includes('عشاء')) {
                     eventType = 'dinner';
                     console.log(`🎯 Detected event type: Dinner/عشاء from message`);
-                } else if (messageLower.includes('lunch') || messageLower.includes('غداء')) {
+                } else if (contextualMessageLower.includes('lunch') || contextualMessageLower.includes('غداء')) {
                     eventType = 'lunch';
                     console.log(`🎯 Detected event type: Lunch/غداء from message`);
-                } else if (messageLower.includes('breakfast') || messageLower.includes('فطور')) {
+                } else if (contextualMessageLower.includes('breakfast') || contextualMessageLower.includes('فطور')) {
                     eventType = 'breakfast';
                     console.log(`🎯 Detected event type: Breakfast/فطور from message`);
-                } else if (messageLower.includes('family') || messageLower.includes('عائلة')) {
+                } else if (contextualMessageLower.includes('family') || contextualMessageLower.includes('عائلة')) {
                     eventType = 'family';
                     console.log(`🎯 Detected event type: Family/عائلة from message`);
-                } else if (messageLower.includes('traditional') || messageLower.includes('تقليدي')) {
+                } else if (contextualMessageLower.includes('traditional') || contextualMessageLower.includes('تقليدي')) {
                     eventType = 'traditional';
                     console.log(`🎯 Detected event type: Traditional/تقليدي from message`);
                 } else {
@@ -1179,14 +1203,22 @@ app.post('/api/chat', async (req, res) => {
             // Extract or use budget
             // Only extract from message if NOT from Smart Planner and budget not already set
             if (!fromSmartPlanner && (budget === null || budget === undefined)) {
+                // Extract budget from the CURRENT message first (to avoid confusing with numPeople from history)
+                const currentNormalizedMessage = message
+                    .replace(/[٠]/g, '0').replace(/[١]/g, '1').replace(/[٢]/g, '2')
+                    .replace(/[٣]/g, '3').replace(/[٤]/g, '4').replace(/[٥]/g, '5')
+                    .replace(/[٦]/g, '6').replace(/[٧]/g, '7').replace(/[٨]/g, '8')
+                    .replace(/[٩]/g, '9');
+
                 const budgetPatterns = [
                     /(?:budget|ميزانية|حدود|maximum|أقل من|على|لـ|for)\s*(\d+)\s*(?:jod|jd|دينار|dinar)?/i,
                     /(\d+)\s*(?:jod|jd|دينار|dinar)\s*(?:budget|ميزانية|حدود)?/i,
-                    /(?:limit|حد|to|إلى)\s*(\d+)\s*(?:jod|jd|دينار|dinar)?/i
+                    /(?:limit|حد|to|إلى)\s*(\d+)\s*(?:jod|jd|دينار|dinar)?/i,
+                    /^\s*(\d+)\s*$/  // Match a lone number as budget (e.g. "4" or "4 ")
                 ];
 
                 for (const pattern of budgetPatterns) {
-                    const budgetMatch = message.match(pattern);
+                    const budgetMatch = currentNormalizedMessage.match(pattern);
                     if (budgetMatch) {
                         const extractedBudget = parseFloat(budgetMatch[1]);
                         if (!isNaN(extractedBudget) && extractedBudget > 0) {
@@ -1198,21 +1230,22 @@ app.post('/api/chat', async (req, res) => {
                 }
             }
 
-            // If no budget found (null or undefined), calculate automatic budget
-            // IMPORTANT: Only calculate if budget is null/undefined, NOT if it's already set from Smart Planner or message
+            // If no budget found (null or undefined), we will ask the user for it
+
             console.log(`🔍 Final budget check: budget=${budget}, type=${typeof budget}, isNull=${budget === null}, isUndefined=${budget === undefined}, isNaN=${typeof budget === 'number' && isNaN(budget)}, isPositive=${typeof budget === 'number' && budget > 0}`);
 
             if (budget === null || budget === undefined || (typeof budget === 'number' && isNaN(budget))) {
-                const autoBudget = calculateBudgetForJordan(numPeople, eventType);
-                budget = autoBudget;
-                console.log(`💰 Calculated automatic budget for ${numPeople} people (${eventType}): ${budget} JOD (~${(budget / numPeople).toFixed(2)} per person)`);
+                needsBudgetPrompt = true;
+                console.log(`⚠️ No budget provided by user. Will ask for budget before generating list.`);
             } else if (typeof budget === 'number' && budget > 0) {
                 console.log(`✅ FINAL BUDGET CONFIRMED: ${budget} JOD (${fromSmartPlanner ? 'from Smart Shopping Planner' : 'extracted from message'}) - WILL BE USED`);
             } else {
-                console.log(`⚠️ Budget has unexpected value: ${budget}, type: ${typeof budget} - calculating automatic budget`);
-                budget = calculateBudgetForJordan(numPeople, eventType);
-                console.log(`💰 Calculated automatic budget: ${budget} JOD`);
+                needsBudgetPrompt = true;
+                budget = null;
+                console.log(`⚠️ Budget has unexpected value. Will ask for budget.`);
             }
+
+            if (!needsBudgetPrompt) {
 
             // Function to calculate logical quantity based on product type, number of people, and budget
             // If budget is specified, calculate based on budget allocation per category
@@ -2488,18 +2521,28 @@ app.post('/api/chat', async (req, res) => {
             }
 
             console.log(`📋 Created shopping list for ${numPeople} people${budget ? ` with budget ${budget} JOD` : ''}: ${listItems.length} items, Total: ${totalCost.toFixed(2)} JOD${numPeople > 1 ? ` (~${(totalCost / numPeople).toFixed(2)} per person)` : ''}`);
+            } // END of if (!needsBudgetPrompt) block
         }
 
         // 🟢🟢🟢 NEW GEMINI AI IMPLEMENTATION (with model fallback) 🟢🟢🟢
         if (GEMINI_API_KEY && GEMINI_API_KEY !== 'your_api_key_here') {
             // Format ALL products into a simple text list for the AI so it can act as a true meal planner
-            // Use the generated shopping list items if available, otherwise fallback to relevantProducts or all products
-            const itemsToUse = (typeof listItems !== "undefined" && listItems.length > 0) ? listItems : (relevantProducts && relevantProducts.length > 0 ? relevantProducts : products);
+            // If needsBudgetPrompt is true, we don't want to show any products yet.
+            // If it's a shopping request, strictly use listItems (even if empty due to strict budget constraints)
+            // Otherwise, for general questions, use relevantProducts.
+            let itemsToUse = [];
+            if (needsBudgetPrompt) {
+                itemsToUse = [];
+            } else {
+                // Pass ALL products so the AI can freely choose the best ingredients
+                itemsToUse = products;
+            }
+            
             const productsListText = itemsToUse.map(p =>
-                `- ${p.name_ar || p.name} (${p.category || "عام"}): ${p.unit_price || p.price_jod || p.price} JOD${p.quantity ? ` (Quantity: ${p.quantity})` : ""}`
+                `- ID: ${p.id || p._id} | ${p.name_ar || p.name} (${p.category || "عام"}): ${p.price_jod || p.price} JOD`
             ).join("\n");
             
-            console.log("🟢🟢🟢 PROMPT PRODUCTS LIST 🟢🟢🟢\n" + productsListText);
+            console.log("🟢🟢🟢 PROMPT PRODUCTS LIST 🟢🟢🟢\n" + productsListText.substring(0, 500) + "... (truncated)");
 
             // Build conversation context from history
             const historyText = conversation_history.length > 0
@@ -2507,25 +2550,36 @@ app.post('/api/chat', async (req, res) => {
                 : '';
 
             const prompt = `
-You are 'Mooneh' (مونتي), a friendly culinary assistant and personal shopper for ShopAI Jordan grocery store. 
+You are 'Mooneh' (مونتي), a friendly culinary assistant and expert event planner for Mooneh.ai grocery store. 
 
 CONVERSATION SO FAR:
 ${historyText || '(This is the start of the conversation)'}
 
 USER'S LATEST MESSAGE: "${message}"
 
-SELECTED ITEMS FOR THE USER'S CART:
-${productsListText || "No matching products found."}
+${(typeof needsBudgetPrompt !== 'undefined' && needsBudgetPrompt) ? `
+CRITICAL RULE: The user is asking for items for an event, party, or recipe BUT THEY DID NOT SPECIFY A BUDGET.
+DO NOT list any items yet!
+Act as a smart event planner. Ask them politely and naturally in Jordanian Levantine Arabic what their budget is so you can prepare the perfect list that fits their needs.
+DO NOT INCLUDE ANY GROCERY ITEMS IN YOUR RESPONSE. JUST ASK FOR THE BUDGET.` : `
+AVAILABLE GROCERY CATALOG:
+${productsListText || "No products found."}
 
 CORE RULES:
-1. **Understand Intent:** Determine if the user is just saying hello/making small talk, or if they are actually asking for a shopping list/recipes/ingredients.
-2. **For Greetings/Small Talk:** Respond warmly in Jordanian Levantine dialect (e.g., "يا هلا فيك بمونتي!"). Ask how you can help them with their groceries or event planning today. DO NOT list any items or mention the total cost.
-3. **For Grocery/List Requests:** 
-   - Briefly explain that you have prepared their shopping list.
-   - Present the exact items from the "SELECTED ITEMS" list above. DO NOT invent or recalculate items.
-   - Format each item cleanly: Item name | Quantity | Price per unit | Line total.
-   - Summarize the final total cost.
-4. **CRITICAL:** DO NOT repeat the conversation history. DO NOT repeat the user's message. KEEP IT CONCISE.
+1. **Understand Intent:** Determine if the user is asking for a recipe, event planning, or shopping list.
+2. **For Greetings/Small Talk:** Respond warmly in Jordanian Levantine dialect. DO NOT list any items.
+3. **For Grocery/List/Recipe Requests:** 
+   - Pick the BEST matching ingredients from the "AVAILABLE GROCERY CATALOG" above.
+   - Present your response naturally in Jordanian Arabic.
+   - Format each recommended item cleanly with its price.
+4. **CRITICAL OUTPUT FORMAT:** You must output your normal, friendly response FIRST. Then, at the VERY END of your response, you MUST append a JSON block containing the IDs of the products you selected and their quantities.
+Example format:
+[Your amazing Arabic response here...]
+\`\`\`json
+[{"id": "prod_123", "quantity": 1}, {"id": "prod_456", "quantity": 2}]
+\`\`\`
+DO NOT FORGET THE JSON BLOCK IF YOU SUGGESTED ITEMS!
+`}
 `;
 
             // Try multiple models in order (fallback if one is overloaded)
@@ -2566,6 +2620,61 @@ CORE RULES:
             if (!geminiSuccess) {
                 console.log('⚠️ All Gemini models failed, using fallback response');
                 // aiResponse already has the fallback from generateIntelligentResponse
+            }
+        }
+        
+        // 🟢🟢🟢 EXTRACT JSON SHOPPING LIST FROM AI RESPONSE 🟢🟢🟢
+        if (GEMINI_API_KEY && aiResponse && aiResponse.includes('```json')) {
+            try {
+                const jsonMatch = aiResponse.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch && jsonMatch[1]) {
+                    const extractedItems = JSON.parse(jsonMatch[1]);
+                    if (Array.isArray(extractedItems) && extractedItems.length > 0) {
+                        const newItems = [];
+                        let newTotal = 0;
+                        for (const item of extractedItems) {
+                            const p = products.find(prod => String(prod.id || prod._id) === String(item.id));
+                            if (p) {
+                                const qty = parseInt(item.quantity) || 1;
+                                const unitPrice = parseFloat(p.price_jod || p.price) || 0;
+                                newItems.push({
+                                    productId: p.id || p._id,
+                                    id: p.id || p._id,
+                                    _id: p._id || p.id,
+                                    name: p.name || p.name_ar || p.name_en,
+                                    name_ar: p.name_ar || p.name || p.name_en,
+                                    name_en: p.name_en || p.name || p.name_ar,
+                                    quantity: qty,
+                                    unit_price: unitPrice,
+                                    currency: p.currency || 'JOD',
+                                    category: p.category || 'general',
+                                    image_url: p.image_url || 'https://via.placeholder.com/80?text=No+Image',
+                                    product_url: p.product_url || '#',
+                                    description: p.description || ''
+                                });
+                                newTotal += unitPrice * qty;
+                            }
+                        }
+                        
+                        // Sync shopping list with AI's accurate selection
+                        if (newItems.length > 0) {
+                            shoppingList = shoppingList || {};
+                            shoppingList.items = newItems;
+                            shoppingList.total_cost = newTotal;
+                            shoppingList.num_people = shoppingList.num_people || 1;
+                            shoppingList.budget = shoppingList.budget || null;
+                            shoppingList.event_type = shoppingList.event_type || 'general';
+                            shoppingList.created_at = shoppingList.created_at || new Date().toISOString();
+                            console.log(`✅ Synced UI Shopping List with AI selection: ${newItems.length} items`);
+                        }
+                    }
+                }
+                // Strip the JSON block from the response sent to UI
+                aiResponse = aiResponse.replace(/```json\n[\s\S]*?\n```/g, '').trim();
+            } catch (err) {
+                console.error('Failed to parse AI JSON block:', err);
+                // On failure, AI response remains as is but stripped of broken block to not confuse user
+                aiResponse = aiResponse.replace(/```json\n[\s\S]*?\n```/g, '').trim();
             }
         }
         // 🟢🟢🟢 END OF NEW GEMINI AI IMPLEMENTATION 🟢🟢🟢
@@ -3398,8 +3507,11 @@ app.put('/api/admin/orders/:id', adminAuth, async (req, res) => {
 
 // Initialize and start server
 async function startServer() {
+    console.log("Starting server process...");
     // Connect to DB first
+    console.log("Connecting to DB...");
     await connectDB();
+    console.log("DB connected, seeding admin user...");
     // Seed default admin user if needed
     await seedAdminUser();
     // Then load products (will use MongoDB if available)
@@ -3408,10 +3520,10 @@ async function startServer() {
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
         console.log(`Products loaded: ${products.length}`);
-        if (HUGGINGFACE_API_KEY && HUGGINGFACE_API_KEY !== 'your_api_key_here') {
-            console.log('✅ HuggingFace AI configured');
+        if (GEMINI_API_KEY && GEMINI_API_KEY !== '') {
+            console.log('✅ Gemini AI configured');
         } else {
-            console.log('⚠️  HuggingFace AI not configured - set HUGGINGFACE_API_KEY in .env');
+            console.log('⚠️  Gemini AI not configured - set GEMINI_API_KEY in .env');
         }
         if (db) {
             console.log('✅ MongoDB connected');
