@@ -27,7 +27,7 @@ let client;
 async function connectDB() {
     try {
         const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/mooneh_db';
-        client = new MongoClient(uri);
+        client = new MongoClient(uri, { serverSelectionTimeoutMS: 2000 });
         await client.connect();
         db = client.db('mooneh_db');
         console.log('Connected to MongoDB - Database: mooneh_db');
@@ -1025,15 +1025,14 @@ app.post('/api/chat', async (req, res) => {
         // Generate intelligent response using fallback (works without external API)
         let aiResponse = generateIntelligentResponse(message, relevantProducts, categories);
 
-
-        // Always create shopping list if we have relevant products (not just for explicit shopping requests)
         const messageLower = message.toLowerCase();
-        const isShoppingRequest = messageLower.match(/\b(bbq|grill|شوي|شواء|أريد|I want|I need|shopping list|قائمة|تسوق|add|أضف|إضافة)\b/i);
+        // Improved regex to detect actual shopping requests or planning
+        const isShoppingRequest = fromSmartPlanner || messageLower.match(/\b(bbq|grill|شوي|شواء|أريد|I want|I need|shopping list|قائمة|تسوق|add|أضف|إضافة|breakfast|lunch|dinner|party|فطور|غداء|عشاء|عزومة|حفلة|meal|recipe|وصفة|buy|اشتري)\b/i);
 
         let shoppingList = null;
         let listItems = [];
-        // Create shopping list if we have relevant products (even without explicit shopping request)
-        if (relevantProducts.length > 0) {
+        // ONLY create shopping list if this is an explicit shopping/planning request
+        if (isShoppingRequest && relevantProducts.length > 0) {
             // Use data from Smart Shopping Planner if available, otherwise extract from message
             let numPeople = 1;
             let eventType = 'general';
@@ -2033,10 +2032,11 @@ app.post('/api/chat', async (req, res) => {
                 // Sort by event category priority first (essential items first), then by price
                 // This ensures meat, charcoal etc. are included before drinks/snacks fill all slots
                 const categoryPriorityMap = {
-                    'لحوم': 1, 'لحوم باردة': 1, 'مجمدات': 2,
-                    'مستلزمات شوي': 2, 'خضار': 3, 'مخبوزات': 4,
-                    'صلصات': 5, 'مشروبات باردة': 6, 'مشروبات ساخنة': 7,
-                    'مستلزمات حفلات': 8, 'ألبان وأجبان': 5, 'سناكس': 9
+                    'لحوم': 1, 'لحوم باردة': 1, 'meat': 1, 'مجمدات': 2,
+                    'مستلزمات شوي': 2, 'charcoal': 2, 'خضار': 3, 'vegetables': 3, 'مخبوزات': 4, 'bread': 4,
+                    'صلصات': 5, 'مشروبات باردة': 6, 'drinks': 6, 'مشروبات ساخنة': 7,
+                    'مستلزمات حفلات': 8, 'supplies': 8, 'ألبان وأجبان': 5, 'dairy': 5, 'سناكس': 9, 'snacks': 9,
+                    'fruits': 5, 'salads': 4
                 };
                 affordableProducts.sort((a, b) => {
                     const priorityA = categoryPriorityMap[a.category] || 10;
@@ -2518,16 +2518,14 @@ SELECTED ITEMS FOR THE USER'S CART:
 ${productsListText || "No matching products found."}
 
 CORE RULES:
-1. **Summarize the Cart:** Our smart system has ALREADY calculated the exact items, quantities, and prices for the user based on their headcount and budget. 
-2. **DO NOT INVENT OR RECALCULATE:** You MUST ONLY list the exact items and quantities provided in the "SELECTED ITEMS" list above. Do not add, remove, or recalculate any quantities.
-3. **Output Format:**
-   - Greet the user warmly in Jordanian Levantine dialect (e.g., "يا هلا فيك!").
+1. **Understand Intent:** Determine if the user is just saying hello/making small talk, or if they are actually asking for a shopping list/recipes/ingredients.
+2. **For Greetings/Small Talk:** Respond warmly in Jordanian Levantine dialect (e.g., "يا هلا فيك بمونتي!"). Ask how you can help them with their groceries or event planning today. DO NOT list any items or mention the total cost.
+3. **For Grocery/List Requests:** 
    - Briefly explain that you have prepared their shopping list.
-   - Present the items in a clean, categorized list.
-   - For each item, show: Item name | Quantity | Price per unit | Line total.
-   - Summarize the final total cost as calculated in the list.
-   - Keep it concise and friendly.
-4. **CRITICAL:** DO NOT repeat the conversation history. DO NOT repeat the user's message. ONLY output your response.
+   - Present the exact items from the "SELECTED ITEMS" list above. DO NOT invent or recalculate items.
+   - Format each item cleanly: Item name | Quantity | Price per unit | Line total.
+   - Summarize the final total cost.
+4. **CRITICAL:** DO NOT repeat the conversation history. DO NOT repeat the user's message. KEEP IT CONCISE.
 `;
 
             // Try multiple models in order (fallback if one is overloaded)

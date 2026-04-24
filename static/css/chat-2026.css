@@ -285,7 +285,7 @@
     max-width: 85%;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    word-break: break-word;
+    /* Removed aggressive word-break to prevent short words from splitting */
 }
 
 .chat-bubble-bot {
