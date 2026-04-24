@@ -73,6 +73,12 @@
                 <a href="#browse" class="hover:text-brand-light transition" data-translate="browse_products">Products</a>
             </div>
 
+            <!-- Language Toggle -->
+            <button class="relative hover:text-brand-light transition p-2 flex items-center gap-1.5" onclick="setLanguage(currentLanguage === 'ar' ? 'en' : 'ar')" title="Toggle Language">
+                <i class="fas fa-globe text-lg md:text-xl"></i>
+                <span id="languageText" class="font-bold text-sm tracking-wide mt-0.5">EN</span>
+            </button>
+
             <!-- Icons -->
             <button class="relative hover:text-brand-light transition p-2" id="ordersToggleBtn" onclick="toggleOrdersPanel()" title="My Orders">
                 <i class="fas fa-box-open text-lg md:text-xl"></i>
