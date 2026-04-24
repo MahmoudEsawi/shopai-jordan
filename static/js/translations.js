@@ -21,6 +21,24 @@ const translations = {
         hero_feature_talabat: "Direct Talabat Integration",
         hero_feature_instant: "Instant Results",
         
+        // Categories
+        cat_pantry: "Pantry",
+        cat_frozen: "Frozen",
+        cat_dairy: "Dairy",
+        cat_meat: "Meat",
+        
+        // Banners
+        banner_about_badge: "About Mooneh.ai",
+        banner_about_desc: "Your smart shopping assistant for fresh groceries and local goods.",
+        banner_selection_badge: "Vast Selection",
+        banner_selection_title: "Explore 100+ quality items.",
+        banner_selection_desc: "From fresh produce to meats and pantry staples.",
+        banner_ai_badge: "AI ASSISTANT",
+        banner_ai_title: "Need Ideas?",
+        banner_ai_desc: "Click to chat with our smart assistant.",
+        banner_delivery_badge: "Fast Service",
+        banner_delivery_desc: "Fast & reliable delivery to your doorstep.",
+        
         // Features Section
         features_title: "Powerful Features",
         features_subtitle: "Everything you need for smart shopping",
@@ -199,6 +217,24 @@ const translations = {
         hero_feature_talabat: "تكامل مباشر مع طلبات",
         hero_feature_instant: "نتائج فورية",
         
+        // Categories
+        cat_pantry: "مونة",
+        cat_frozen: "مجمدات",
+        cat_dairy: "ألبان وأجبان",
+        cat_meat: "لحوم",
+        
+        // Banners
+        banner_about_badge: "عن مونتي.ai",
+        banner_about_desc: "مساعدك الذكي لتسوق الخضار الطازجة والمنتجات المحلية.",
+        banner_selection_badge: "خيارات واسعة",
+        banner_selection_title: "تصفح أكثر من 100 منتج عالي الجودة.",
+        banner_selection_desc: "من الخضار الطازجة إلى اللحوم ومستلزمات المونة.",
+        banner_ai_badge: "المساعد الذكي",
+        banner_ai_title: "محتاج أفكار؟",
+        banner_ai_desc: "اضغط للدردشة مع مساعدنا الذكي.",
+        banner_delivery_badge: "خدمة سريعة",
+        banner_delivery_desc: "توصيل سريع وموثوق لباب بيتك.",
+        
         // Features Section
         features_title: "مميزات قوية",
         features_subtitle: "كل ما تحتاجه للتسوق الذكي",
@@ -317,7 +353,7 @@ const translations = {
         footer_email: "support@mooneh.ai",
         footer_website: "www.mooneh.ai",
         footer_follow: "تابعنا",
-        footer_powered_by: "مدعوم من Hugging Face AI",
+        footer_powered_by: "مدعوم من Gemini AI",
         footer_copyright: "© 2024 Mooneh.ai. جميع الحقوق محفوظة.",
         
         // Pagination

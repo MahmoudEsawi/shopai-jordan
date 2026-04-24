@@ -152,22 +152,22 @@
                 <!-- Category 1 -->
                 <div class="relative bg-[#8D1852] rounded-[2rem] p-6 h-48 cursor-pointer overflow-hidden group hover:shadow-lg transition flex flex-col justify-end" onclick="document.getElementById('categoryFilter').value='مونة'; document.getElementById('categoryFilter').dispatchEvent(new Event('change')); document.getElementById('browse').scrollIntoView({ behavior: 'smooth', block: 'start' });">
                     <i class="fa-solid fa-basket-shopping absolute -top-4 -right-2 text-7xl text-white/20 group-hover:scale-110 group-hover:text-white/40 transition duration-500 drop-shadow-2xl"></i>
-                    <span class="text-white font-bold text-lg leading-tight relative z-10 w-2/3">Pantry</span>
+                    <span class="text-white font-bold text-lg leading-tight relative z-10 w-2/3" data-translate="cat_pantry">Pantry</span>
                 </div>
                 <!-- Category 2 -->
                 <div class="relative bg-[#E65C00] rounded-[2rem] p-6 h-48 cursor-pointer overflow-hidden group hover:shadow-lg transition flex flex-col justify-end" onclick="document.getElementById('categoryFilter').value='مجمدات'; document.getElementById('categoryFilter').dispatchEvent(new Event('change')); document.getElementById('browse').scrollIntoView({ behavior: 'smooth', block: 'start' });">
                     <i class="fa-solid fa-snowflake absolute -top-4 -right-2 text-7xl text-white/20 group-hover:scale-110 group-hover:text-white/40 transition duration-500 drop-shadow-2xl"></i>
-                    <span class="text-white font-bold text-lg leading-tight relative z-10 w-2/3">Frozen</span>
+                    <span class="text-white font-bold text-lg leading-tight relative z-10 w-2/3" data-translate="cat_frozen">Frozen</span>
                 </div>
                 <!-- Category 3 -->
                 <div class="relative bg-[#004B87] rounded-[2rem] p-6 h-48 cursor-pointer overflow-hidden group hover:shadow-lg transition flex flex-col justify-end" onclick="document.getElementById('categoryFilter').value='ألبان وأجبان'; document.getElementById('categoryFilter').dispatchEvent(new Event('change')); document.getElementById('browse').scrollIntoView({ behavior: 'smooth', block: 'start' });">
                     <i class="fa-solid fa-cheese absolute -top-4 -right-2 text-7xl text-white/20 group-hover:scale-110 group-hover:text-white/40 transition duration-500 drop-shadow-2xl"></i>
-                    <span class="text-white font-bold text-lg leading-tight relative z-10 w-2/3">Dairy</span>
+                    <span class="text-white font-bold text-lg leading-tight relative z-10 w-2/3" data-translate="cat_dairy">Dairy</span>
                 </div>
                 <!-- Category 4 -->
                 <div class="relative bg-[#6A2C70] rounded-[2rem] p-6 h-48 cursor-pointer overflow-hidden group hover:shadow-lg transition flex flex-col justify-end" onclick="document.getElementById('categoryFilter').value='لحوم'; document.getElementById('categoryFilter').dispatchEvent(new Event('change')); document.getElementById('browse').scrollIntoView({ behavior: 'smooth', block: 'start' });">
                     <i class="fa-solid fa-drumstick-bite absolute -top-4 -right-2 text-7xl text-white/20 group-hover:scale-110 group-hover:text-white/40 transition duration-500 drop-shadow-2xl"></i>
-                    <span class="text-white font-bold text-lg leading-tight relative z-10 w-2/3">Meat</span>
+                    <span class="text-white font-bold text-lg leading-tight relative z-10 w-2/3" data-translate="cat_meat">Meat</span>
                 </div>
             </div>
         </section>
@@ -176,33 +176,33 @@
         <section class="max-w-7xl mx-auto px-6 pb-12 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             <!-- Banner 1: Purpose -->
             <div class="rounded-3xl p-6 relative overflow-hidden text-white shadow-md hover:shadow-lg transition hover:-translate-y-1" style="background: linear-gradient(135deg, #1B4B36, #0e2a1e);">
-                <span class="text-xs font-bold uppercase tracking-wider opacity-90 border border-white/30 px-2 py-1 rounded inline-block mb-3">About Mooneh.ai</span>
-                <p class="text-lg mb-6 max-w-[85%] leading-relaxed font-bold">Your smart shopping assistant for fresh groceries and local goods.</p>
+                <span class="text-xs font-bold uppercase tracking-wider opacity-90 border border-white/30 px-2 py-1 rounded inline-block mb-3" data-translate="banner_about_badge">About Mooneh.ai</span>
+                <p class="text-lg mb-6 max-w-[85%] leading-relaxed font-bold" data-translate="banner_about_desc">Your smart shopping assistant for fresh groceries and local goods.</p>
                 <i class="fas fa-shopping-basket absolute -bottom-4 -right-4 text-7xl text-white/10"></i>
             </div>
             <!-- Banner 2: Number of Items -->
             <div class="rounded-3xl p-6 relative overflow-hidden text-black shadow-md hover:shadow-lg transition hover:-translate-y-1" style="background: linear-gradient(135deg, #fcebcf, #fadab0);">
-                <span class="text-xs font-bold uppercase tracking-wider opacity-90 border border-black/20 px-2 py-1 rounded inline-block mb-3">Vast Selection</span>
-                <p class="text-lg mb-2 max-w-[85%] leading-relaxed font-bold">Explore <span class="font-black text-brand-dark">100+</span> quality items.</p>
-                <p class="text-sm opacity-80 font-medium">From fresh produce to meats and pantry staples.</p>
+                <span class="text-xs font-bold uppercase tracking-wider opacity-90 border border-black/20 px-2 py-1 rounded inline-block mb-3" data-translate="banner_selection_badge">Vast Selection</span>
+                <p class="text-lg mb-2 max-w-[85%] leading-relaxed font-bold" data-translate="banner_selection_title">Explore <span class="font-black text-brand-dark">100+</span> quality items.</p>
+                <p class="text-sm opacity-80 font-medium" data-translate="banner_selection_desc">From fresh produce to meats and pantry staples.</p>
                 <i class="fas fa-store absolute -bottom-4 -right-4 text-7xl text-black/5"></i>
             </div>
             <!-- Banner 3: AI Robot (HIGHLIGHTED) -->
             <div class="rounded-3xl p-6 relative overflow-hidden text-white shadow-[0_0_25px_rgba(34,197,94,0.4)] hover:shadow-[0_0_35px_rgba(34,197,94,0.6)] transition-all duration-300 hover:-translate-y-2 cursor-pointer border border-green-400/40" style="background: linear-gradient(135deg, #166534, #22c55e);" onclick="toggleAIChat()">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_50%)]"></div>
-                <span class="text-xs font-extrabold uppercase tracking-wider border border-white/50 px-3 py-1 rounded-full inline-flex items-center gap-1.5 mb-3 bg-white/20 shadow-sm relative z-10">
+                <span class="text-xs font-extrabold uppercase tracking-wider border border-white/50 px-3 py-1 rounded-full inline-flex items-center gap-1.5 mb-3 bg-white/20 shadow-sm relative z-10" data-translate="banner_ai_badge">
                     <span class="w-2 h-2 rounded-full bg-green-200 animate-ping absolute opacity-75"></span>
                     <span class="w-2 h-2 rounded-full bg-green-100 relative"></span>
                     AI ASSISTANT
                 </span>
-                <p class="text-xl mb-2 max-w-[70%] leading-relaxed font-black relative z-10 drop-shadow-md">Need Ideas?</p>
-                <p class="text-sm opacity-90 font-semibold relative z-10 max-w-[65%]">Click to chat with our smart assistant.</p>
+                <p class="text-xl mb-2 max-w-[70%] leading-relaxed font-black relative z-10 drop-shadow-md" data-translate="banner_ai_title">Need Ideas?</p>
+                <p class="text-sm opacity-90 font-semibold relative z-10 max-w-[65%]" data-translate="banner_ai_desc">Click to chat with our smart assistant.</p>
                 <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="absolute -bottom-2 -right-2 w-[120px] h-[120px] object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.5)] hover:scale-110 transition-transform duration-500 animate-pulse" alt="AI Robot" />
             </div>
             <!-- Banner 4: Delivery -->
             <div class="rounded-3xl p-6 relative overflow-hidden text-white shadow-md hover:shadow-lg transition hover:-translate-y-1" style="background: linear-gradient(135deg, #511c75, #350b52);">
-                <span class="text-xs font-bold uppercase tracking-wider opacity-90 border border-white/30 px-2 py-1 rounded inline-block mb-3">Fast Service</span>
-                <p class="text-lg mb-6 max-w-[85%] leading-relaxed font-bold">Fast & reliable delivery to your doorstep.</p>
+                <span class="text-xs font-bold uppercase tracking-wider opacity-90 border border-white/30 px-2 py-1 rounded inline-block mb-3" data-translate="banner_delivery_badge">Fast Service</span>
+                <p class="text-lg mb-6 max-w-[85%] leading-relaxed font-bold" data-translate="banner_delivery_desc">Fast & reliable delivery to your doorstep.</p>
                 <i class="fas fa-truck absolute -bottom-4 -right-4 text-7xl text-white/10"></i>
             </div>
         </section>
