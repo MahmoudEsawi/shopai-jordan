@@ -824,6 +824,15 @@ function generateInvoice(id) {
         </div>
     `;
     
+    inv.style.width = '800px';
+    
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = '-9999px';
+    wrapper.style.top = '0';
+    wrapper.appendChild(inv);
+    document.body.appendChild(wrapper);
+
     const opt = {
         margin: 0,
         filename: `Invoice_${o.order_id || id.substring(0,8)}.pdf`,
@@ -834,8 +843,15 @@ function generateInvoice(id) {
     
     showToast('Generating Invoice...', 'info');
     if(typeof html2pdf !== 'undefined'){
-        html2pdf().set(opt).from(inv).save().then(() => showToast('Invoice Downloaded ✅', 'success')).catch(e=>showToast('Error','error'));
+        html2pdf().set(opt).from(inv).save().then(() => {
+            document.body.removeChild(wrapper);
+            showToast('Invoice Downloaded ✅', 'success');
+        }).catch(e=>{
+            document.body.removeChild(wrapper);
+            showToast('Error','error');
+        });
     }else{
+        document.body.removeChild(wrapper);
         showToast('PDF library not loaded','error');
     }
 }

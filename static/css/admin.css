@@ -1135,6 +1135,8 @@ select.form-input-admin {
     
     .admin-header {
         left: 0;
+        width: 100%;
+        padding: 0 1rem;
     }
     
     .admin-main {
@@ -1145,17 +1147,27 @@ select.form-input-admin {
         display: flex;
     }
     
-    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
     
-    .admin-content { padding: 1rem; }
+    .admin-content { padding: 1rem; width: 100%; overflow-x: hidden; }
     
     .form-row-admin { grid-template-columns: 1fr; }
     
-    .table-controls { flex-direction: column; align-items: stretch; }
-    .search-box { max-width: 100%; }
+    .table-controls { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+    .search-box { max-width: 100%; width: 100%; }
     
     .data-table { font-size: 0.8rem; }
-    .data-table th, .data-table td { padding: 0.6rem 0.5rem; }
+    .data-table th, .data-table td { padding: 0.6rem 0.5rem; white-space: nowrap; }
+    .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    
+    .user-stats-row { grid-template-columns: 1fr; }
+    
+    .charts-grid { grid-template-columns: 1fr; }
+    
+    /* Make the top right header buttons fit */
+    .header-right .store-link span { display: none; }
+    .header-right { gap: 0.5rem; }
+    .header-btn, .store-link { padding: 0.5rem; }
 }
 
 @media (max-width: 480px) {
