@@ -40,8 +40,9 @@ It is divided into two primary systems:
 
 ### 🧠 AI-Powered Grocery Assistance
 * **Event Planning Chatbot:** Natural language AI (powered by **Google Gemini**) parses your needs (e.g. *"I need a BBQ plan for 10 people at 50 JOD"*).
+* **Multimodal Fridge Vision:** Snap a photo of your fridge, and the AI will analyze your existing ingredients to build recipes and missing grocery lists instantly.
 * **Budget Optimization:** AI creates balanced category allocations depending on your budget restrictions.
-* **Bilingual Support:** Seamless interactions in both **Local Arabic** and **English**.
+* **Bilingual Persona:** Seamless interactions in both **Local Arabic** and **English**, perfectly synchronized with the active UI language.
 
 ### 🛍️ Premium eCommerce Storefront
 * **Beautiful, Modern Aesthetics:** Featuring a deep forest green (`#1a4d3c`) and lime (`#98d02e`) design system using modern pill-shaped UI components.
@@ -49,9 +50,11 @@ It is divided into two primary systems:
 * **Complex Filtering:** Filter your local Jordanian produce by Categories, Sorting, and robust client/server-side validation.
 * **Sidebar Cart & Wishlist:** Fully interactive drawer controls allowing instant cart calculations.
 
-### 🛡️ Complete Admin Dashboard (`/admin`)
+### 🛡️ Complete Admin Dashboard (`/admin` & `/supervisor`)
 * **Secure Access:** Built-in robust token session management. (Default admin bootstraps automatically on first run).
 * **Direct Database Management:** Full CRUD (Create, Read, Update, Delete) capability attached directly to your MongoDB to manage **Products** and **Users**.
+* **Live Order WebSockets:** Employs Socket.io for instantaneous real-time push notifications of new orders—no page refreshes required.
+* **PDF Invoicing:** Generate professional, downloadable PDF invoices directly from the dashboard for any completed order.
 * **Live Analytics Board:** Visual dashboard presenting total active users, live product catalogs, and daily system logs.
 
 ### 💻 Developer Experience Optimized
