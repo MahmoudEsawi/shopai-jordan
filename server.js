@@ -7,9 +7,20 @@ const fs = require('fs').promises;
 const { MongoClient } = require('mongodb');
 const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+// Store io instance globally so we can emit events
+app.set('io', io);
+
+io.on('connection', (socket) => {
+    console.log('🔗 Client connected to WebSocket');
+});
+
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -291,6 +302,12 @@ app.post('/api/checkout', async (req, res) => {
                 { sessionId: session_id },
                 { $set: { items: [], updatedAt: new Date() } }
             );
+        }
+
+        // Emit new order event via WebSockets
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('new_order', orderDoc);
         }
 
         res.status(201).json({
@@ -975,11 +992,13 @@ app.post('/api/chat', async (req, res) => {
             minProtein,
             maxCalories,
             additionalRequests,
-            fromSmartPlanner
+            fromSmartPlanner,
+            image_data,
+            lang = 'ar'
         } = req.body;
 
-        if (!message || message.trim().length === 0) {
-            return res.status(400).json({ error: 'Message is required' });
+        if (!message || message.trim().length === 0 && !image_data) {
+            return res.status(400).json({ error: 'Message or image is required' });
         }
 
         // Log Smart Shopping Planner data if provided
@@ -2562,17 +2581,17 @@ USER'S LATEST MESSAGE: "${message}"
 ${(typeof needsBudgetPrompt !== 'undefined' && needsBudgetPrompt) ? `
 CRITICAL RULE: The user is asking for items for an event, party, or recipe BUT THEY DID NOT SPECIFY A BUDGET.
 DO NOT list any items yet!
-Act as a smart event planner. Ask them politely and naturally in Jordanian Levantine Arabic what their budget is so you can prepare the perfect list that fits their needs.
+Act as a smart event planner. Ask them politely and naturally in ${lang === 'en' ? 'English' : 'Jordanian Levantine Arabic'} what their budget is so you can prepare the perfect list that fits their needs.
 DO NOT INCLUDE ANY GROCERY ITEMS IN YOUR RESPONSE. JUST ASK FOR THE BUDGET.` : `
 AVAILABLE GROCERY CATALOG:
 ${productsListText || "No products found."}
 
 CORE RULES:
 1. **Understand Intent:** Determine if the user is asking for a recipe, event planning, or shopping list.
-2. **For Greetings/Small Talk:** Respond warmly in Jordanian Levantine dialect. DO NOT list any items.
+2. **For Greetings/Small Talk:** Respond warmly in ${lang === 'en' ? 'English' : 'Jordanian Levantine dialect'}. DO NOT list any items.
 3. **For Grocery/List/Recipe Requests:** 
    - Pick the BEST matching ingredients from the "AVAILABLE GROCERY CATALOG" above.
-   - Present your response naturally in Jordanian Arabic.
+   - Present your response naturally in ${lang === 'en' ? 'English' : 'Jordanian Arabic'}.
    - Format each recommended item cleanly with its price.
 4. **CRITICAL OUTPUT FORMAT:** You must output your normal, friendly response FIRST. Then, at the VERY END of your response, you MUST append a JSON block containing the IDs of the products you selected and their quantities.
 Example format:
@@ -2588,6 +2607,24 @@ DO NOT FORGET THE JSON BLOCK IF YOU SUGGESTED ITEMS!
             const modelsToTry = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-flash-latest"];
             let geminiSuccess = false;
 
+            // Prepare multimodal payload
+            let payload = [prompt];
+            if (image_data) {
+                try {
+                    const mimeType = image_data.split(';')[0].split(':')[1];
+                    const base64Data = image_data.split(',')[1];
+                    payload.push({
+                        inlineData: {
+                            data: base64Data,
+                            mimeType: mimeType
+                        }
+                    });
+                    console.log(`📸 Image added to Gemini payload (${mimeType})`);
+                } catch (e) {
+                    console.error('Failed to parse image data', e);
+                }
+            }
+
             for (const modelName of modelsToTry) {
                 try {
                     console.log(`🤖 Trying model: ${modelName}...`);
@@ -2595,7 +2632,7 @@ DO NOT FORGET THE JSON BLOCK IF YOU SUGGESTED ITEMS!
                         model: modelName,
                         generationConfig: { maxOutputTokens: 4096 }
                     });
-                    const result = await model.generateContent(prompt);
+                    const result = await model.generateContent(payload);
                     aiResponse = result.response.text();
                     console.log(`✅ Success with model: ${modelName}. Response length: ${aiResponse ? aiResponse.length : 0}`);
                     if (!aiResponse) console.log("⚠️ aiResponse was empty!");
@@ -3530,7 +3567,7 @@ async function startServer() {
     // Then load products (will use MongoDB if available)
     await loadProducts();
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
         console.log(`Products loaded: ${products.length}`);
         if (GEMINI_API_KEY && GEMINI_API_KEY !== '') {

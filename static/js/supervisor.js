@@ -17,6 +17,21 @@ function showLogin(){document.getElementById('loginPage').style.display='flex';d
 function showAdmin(u){document.getElementById('loginPage').style.display='none';document.getElementById('adminLayout').style.display='block';
   if(u){document.getElementById('sidebarUserName').textContent=u.name||u.username;document.getElementById('sidebarAvatar').textContent=(u.name||u.username||'S')[0].toUpperCase()}
   refreshAllData();
+  initSocket();
+}
+
+let socket;
+function initSocket() {
+  if (socket) return;
+  socket = io();
+  socket.on('new_order', (order) => {
+    // Play sound notification
+    const audio = new Audio('/static/audio/notification.mp3'); // We'll create this or ignore if missing
+    audio.play().catch(e => console.log('Audio play prevented by browser'));
+    
+    showToast('🚨 New Order Received!', 'info');
+    refreshAllData(); // Quick reload of orders and stats
+  });
 }
 async function handleLogin(e){
   e.preventDefault();const un=document.getElementById('loginUsername').value.trim(),pw=document.getElementById('loginPassword').value;
@@ -117,8 +132,92 @@ function renderOrders(){
     <td>${(o.items||[]).length} items</td><td class="price-cell">${(parseFloat(o.total_amount)||0).toFixed(2)}</td>
     <td style="font-size:0.85rem;color:var(--admin-text-muted)">${date}</td>
     <td><span class="status-badge ${sc}"><span class="status-dot"></span> ${o.status||'Pending'}</span></td>
-    <td><select class="form-input-admin" style="width:auto;padding:0.25rem;font-size:0.8rem" onchange="updateOrderStatus('${id}',this.value)">
-    ${['Pending','Processing','Shipped','Delivered','Cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></td></tr>`}).join('')}</tbody></table></div>`;
+    <td><div style="display:flex;gap:0.5rem;align-items:center"><select class="form-input-admin" style="width:auto;padding:0.25rem;font-size:0.8rem" onchange="updateOrderStatus('${id}',this.value)">
+    ${['Pending','Processing','Shipped','Delivered','Cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}</select>
+    <button onclick="generateInvoice('${id}')" title="Download Invoice" style="background:var(--admin-primary);color:white;border:none;border-radius:4px;padding:0.25rem 0.5rem;cursor:pointer"><i class="fas fa-file-pdf"></i></button></div></td></tr>`}).join('')}</tbody></table></div>`;
+}
+
+function generateInvoice(id) {
+    const o = allOrders.find(x => (x._id || x.id) === id);
+    if (!o) return;
+    
+    const inv = document.createElement('div');
+    inv.style.padding = '40px';
+    inv.style.fontFamily = 'Inter, sans-serif';
+    inv.style.color = '#333';
+    inv.innerHTML = `
+        <div style="display:flex;justify-content:space-between;border-bottom:2px solid #eee;padding-bottom:20px;margin-bottom:20px">
+            <div><h1 style="color:#06b6d4;margin:0">Mooneh.ai</h1><p style="margin:5px 0;color:#666">Invoice / Receipt</p></div>
+            <div style="text-align:right">
+                <h3 style="margin:0">Order ${o.order_id || id.substring(0,8)}</h3>
+                <p style="margin:5px 0;color:#666">Date: ${new Date(o.created_at).toLocaleString()}</p>
+                <span style="display:inline-block;padding:4px 8px;background:#e0f2fe;color:#0369a1;border-radius:4px;font-size:0.8rem;font-weight:bold">${o.status}</span>
+            </div>
+        </div>
+        <div style="margin-bottom:30px">
+            <h4 style="margin:0 0 10px 0;color:#444;text-transform:uppercase;font-size:0.8rem">Billed To:</h4>
+            <p style="margin:0;font-weight:bold">${o.customer?.name || 'Customer'}</p>
+            <p style="margin:5px 0 0 0;color:#666">${o.customer?.phone || '-'}</p>
+            <p style="margin:5px 0 0 0;color:#666">${o.customer?.address || '-'}</p>
+        </div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:30px">
+            <thead>
+                <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;text-align:left">
+                    <th style="padding:12px;font-size:0.9rem">Item</th>
+                    <th style="padding:12px;font-size:0.9rem;text-align:center">Qty</th>
+                    <th style="padding:12px;font-size:0.9rem;text-align:right">Price</th>
+                    <th style="padding:12px;font-size:0.9rem;text-align:right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${(o.items||[]).map(i => `
+                <tr style="border-bottom:1px solid #f1f5f9">
+                    <td style="padding:12px">
+                        <div style="font-weight:bold">${i.name_ar || i.name}</div>
+                        ${i.brand ? `<div style="font-size:0.8rem;color:#666">${i.brand}</div>` : ''}
+                    </td>
+                    <td style="padding:12px;text-align:center">${i.quantity}</td>
+                    <td style="padding:12px;text-align:right">${parseFloat(i.price).toFixed(2)} JOD</td>
+                    <td style="padding:12px;text-align:right;font-weight:bold">${(parseFloat(i.price) * i.quantity).toFixed(2)} JOD</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end">
+            <div style="width:300px;background:#f8fafc;padding:20px;border-radius:8px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+                    <span style="color:#666">Subtotal:</span>
+                    <span>${parseFloat(o.total_amount).toFixed(2)} JOD</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+                    <span style="color:#666">Delivery:</span>
+                    <span>Free</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-top:2px solid #e2e8f0;padding-top:10px;margin-top:10px;font-size:1.2rem;font-weight:bold">
+                    <span>Total:</span>
+                    <span style="color:#06b6d4">${parseFloat(o.total_amount).toFixed(2)} JOD</span>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:50px;text-align:center;color:#94a3b8;font-size:0.8rem;border-top:1px solid #eee;padding-top:20px">
+            <p>Thank you for shopping with Mooneh.ai!</p>
+            <p>If you have any questions, contact us at support@mooneh.ai</p>
+        </div>
+    `;
+    
+    const opt = {
+        margin: 0,
+        filename: `Invoice_${o.order_id || id.substring(0,8)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    
+    showToast('Generating Invoice...', 'info');
+    if(typeof html2pdf !== 'undefined'){
+        html2pdf().set(opt).from(inv).save().then(() => showToast('Invoice Downloaded ✅', 'success')).catch(e=>showToast('Error','error'));
+    }else{
+        showToast('PDF library not loaded','error');
+    }
 }
 
 async function updateOrderStatus(id,st){

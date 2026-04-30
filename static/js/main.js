@@ -240,27 +240,57 @@ async function loadStats() {
 
 // AI Chat Functions
 let chatHistory = []; // Track conversation history
+let chatBase64Image = null; // Store base64 image
+
+function handleChatImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        chatBase64Image = e.target.result; // This includes the data URI scheme
+        document.getElementById('chatImagePreview').src = chatBase64Image;
+        document.getElementById('chatImagePreviewContainer').classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeChatImage() {
+    chatBase64Image = null;
+    document.getElementById('chatImagePreviewContainer').classList.add('hidden');
+    document.getElementById('chatImageUpload').value = '';
+}
 
 async function sendMessage() {
     const input = document.getElementById('chatInput');
     const container = document.getElementById('chatContainer');
     if (!input || !container) return;
     
-    const message = input.value.trim();
-    if (!message) return;
+    let message = input.value.trim();
+    if (!message && !chatBase64Image) return; // Allow sending just an image
+    if (!message && chatBase64Image) message = "What can I cook with these ingredients?";
     
     // Add user message to history
     chatHistory.push({ role: 'user', content: message });
     
-    // Append user message
+    // Append user message (and image if any)
+    let userHtml = escapeHtml(message);
+    if (chatBase64Image) {
+        userHtml += `<br><img src="${chatBase64Image}" class="mt-2 rounded-lg max-w-full h-auto border border-gray-200">`;
+    }
+
     container.innerHTML += `
         <div class="message user">
             <div class="chat-bubble chat-bubble-user">
-                ${escapeHtml(message)}
+                ${userHtml}
             </div>
         </div>
     `;
     input.value = '';
+    
+    // Capture the image payload and clear it from UI immediately
+    const imagePayload = chatBase64Image;
+    removeChatImage();
     
     // Append loading bubble
     const loadingId = 'loading-' + Date.now();
@@ -275,10 +305,12 @@ async function sendMessage() {
     container.scrollTop = container.scrollHeight;
     
     try {
-        // Send conversation history along with the message
+        // Send conversation history along with the message and image
         const response = await axios.post('/api/chat', { 
             message,
-            conversation_history: chatHistory.slice(-10) // Send last 10 messages for context
+            conversation_history: chatHistory.slice(-10), // Send last 10 messages for context
+            image_data: imagePayload, // Pass base64 image data to the backend
+            lang: typeof currentLanguage !== 'undefined' ? currentLanguage : 'en'
         });
         const el = document.getElementById(loadingId);
         if (el) el.remove();
