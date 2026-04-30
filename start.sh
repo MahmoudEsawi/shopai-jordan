@@ -27,22 +27,29 @@ echo ""
 # -- Step 1: Start MongoDB --
 echo -e "${YELLOW}[1/3]${NC} Checking MongoDB..."
 
-if lsof -i :27017 >/dev/null 2>&1; then
+if nc -z localhost 27017 2>/dev/null; then
     echo -e "  ${GREEN}✅ MongoDB is already running on port 27017${NC}"
 else
     echo -e "  ⏳ Starting MongoDB..."
     mkdir -p "$DB_PATH"
-    "$MONGOD_BIN" --dbpath "$DB_PATH" --fork --logpath "$PROJECT_DIR/mongodb.log" >/dev/null 2>&1
+    
+    if command -v brew &> /dev/null && brew services list 2>/dev/null | grep -q mongodb; then
+        brew services start mongodb-community >/dev/null 2>&1
+    elif [ -x "$MONGOD_BIN" ]; then
+        "$MONGOD_BIN" --dbpath "$DB_PATH" --fork --logpath "$PROJECT_DIR/mongodb.log" >/dev/null 2>&1
+    elif command -v mongod &> /dev/null; then
+        mongod --dbpath "$DB_PATH" --fork --logpath "$PROJECT_DIR/mongodb.log" >/dev/null 2>&1
+    fi
 
     for i in {1..10}; do
-        if lsof -i :27017 >/dev/null 2>&1; then
+        if nc -z localhost 27017 2>/dev/null; then
             echo -e "  ${GREEN}✅ MongoDB started successfully${NC}"
             break
         fi
         sleep 0.5
     done
 
-    if ! lsof -i :27017 >/dev/null 2>&1; then
+    if ! nc -z localhost 27017 2>/dev/null; then
         echo -e "  ${RED}❌ Failed to start MongoDB. Check mongodb.log${NC}"
         echo -e "  ${YELLOW}Server will run using JSON fallback data.${NC}"
     fi
@@ -52,7 +59,7 @@ fi
 echo ""
 echo -e "${YELLOW}[2/3]${NC} Starting Node.js server..."
 
-EXISTING_PID=$(lsof -ti :$PORT 2>/dev/null)
+EXISTING_PID=$(lsof -ti :$PORT 2>/dev/null || true)
 if [ -n "$EXISTING_PID" ]; then
     echo -e "  ⏳ Stopping existing process on port $PORT..."
     kill -9 $EXISTING_PID 2>/dev/null
@@ -77,7 +84,7 @@ for i in {1..60}; do
         echo -e "  ${RED}❌ Server process crashed. Check terminal output above.${NC}"
         exit 1
     fi
-    if lsof -i :$PORT -sTCP:LISTEN >/dev/null 2>&1; then
+    if nc -z localhost $PORT 2>/dev/null; then
         echo -e "  ${GREEN}✅ Server is live at http://localhost:$PORT  (took ${i}s)${NC}"
         SERVER_READY=true
         break

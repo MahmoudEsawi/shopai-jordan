@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mooneh.ai - Supervisor Dashboard</title>
+    <meta name="description" content="Mooneh.ai Supervisor Panel - Monitor operations, orders, and analytics">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="/pics/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <link rel="stylesheet" href="/static/css/supervisor.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body class="admin-body">
+
+    <!-- ===== LOGIN PAGE ===== -->
+    <div id="loginPage" class="login-page">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="login-logo-icon"><i class="fas fa-shield-alt"></i></div>
+                <h2>Mooneh.ai Supervisor</h2>
+                <p>Sign in to monitor store operations</p>
+            </div>
+            <div class="login-error" id="loginError">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="loginErrorText">Invalid credentials</span>
+            </div>
+            <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group-admin">
+                    <label class="form-label-admin" for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" class="form-input-admin" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div class="form-group-admin">
+                    <label class="form-label-admin" for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-input-admin" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== SUPERVISOR LAYOUT ===== -->
+    <div id="adminLayout" style="display:none;">
+
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Sidebar -->
+        <aside class="admin-sidebar supervisor-sidebar" id="adminSidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo-icon" style="background: #06b6d4;"><i class="fas fa-shield-alt"></i></div>
+                <div>
+                    <div class="sidebar-logo-text">Mooneh.ai</div>
+                    <span class="sidebar-logo-sub">Supervisor Panel</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-title">Overview</div>
+                <a class="sidebar-link active" data-page="dashboard" onclick="switchPage('dashboard')">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+                <a class="sidebar-link" data-page="orders" onclick="switchPage('orders')">
+                    <i class="fas fa-shopping-bag"></i> Orders
+                    <span class="badge" id="orderCountBadge">0</span>
+                </a>
+
+                <div class="sidebar-section-title">Inventory</div>
+                <a class="sidebar-link" data-page="inventory" onclick="switchPage('inventory')">
+                    <i class="fas fa-warehouse"></i> Stock Monitor
+                    <span class="badge" id="stockAlertBadge" style="background:rgba(239,68,68,0.3);color:#fca5a5;">0</span>
+                </a>
+                <a class="sidebar-link" data-page="categories" onclick="switchPage('categories')">
+                    <i class="fas fa-tags"></i> Categories
+                </a>
+
+                <div class="sidebar-section-title">People</div>
+                <a class="sidebar-link" data-page="customers" onclick="switchPage('customers')">
+                    <i class="fas fa-users"></i> Customers
+                    <span class="badge" id="customerCountBadge">0</span>
+                </a>
+
+                <div class="sidebar-section-title">Reports</div>
+                <a class="sidebar-link" data-page="revenue" onclick="switchPage('revenue')">
+                    <i class="fas fa-coins"></i> Revenue
+                </a>
+                <a class="sidebar-link" data-page="ai-monitor" onclick="switchPage('ai-monitor')">
+                    <i class="fas fa-robot"></i> AI Monitor
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar" id="sidebarAvatar" style="background:#06b6d4;color:white;">S</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Supervisor</div>
+                        <div class="sidebar-user-role">Supervisor</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-left">
+                <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="header-title" id="pageTitle">Analytics Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <div class="live-pulse-indicator">
+                    <span class="live-dot"></span>
+                    <span class="live-text">Live</span>
+                </div>
+                <button class="header-btn" title="Refresh Data" onclick="refreshAllData()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <a href="/" class="store-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> View Store
+                </a>
+                <a href="/admin" class="store-link" style="background:var(--admin-primary);">
+                    <i class="fas fa-user-shield"></i> Admin
+                </a>
+                <button class="header-btn" title="Logout" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-content">
+
+                <!-- ===== ANALYTICS DASHBOARD PAGE ===== -->
+                <section class="admin-page active" id="page-dashboard">
+                    <!-- KPI Cards Row -->
+                    <div class="stats-grid">
+                        <div class="stat-card-admin kpi-card">
+                            <div class="stat-card-top">
+                                <div class="stat-icon blue"><i class="fas fa-coins"></i></div>
+                                <span class="stat-change up" id="revenueChange">+0%</span>
+                            </div>
+                            <div class="stat-value" id="statRevenue">0.00</div>
+                            <div class="stat-label-admin">Total Revenue (JOD)</div>
+                        </div>
+                        <div class="stat-card-admin kpi-card">
+                            <div class="stat-card-top">
+                                <div class="stat-icon green"><i class="fas fa-shopping-bag"></i></div>
+                                <span class="stat-change up" id="ordersChange">+0</span>
+                            </div>
+                            <div class="stat-value" id="statTotalOrders">0</div>
+                            <div class="stat-label-admin">Total Orders</div>
+                        </div>
+                        <div class="stat-card-admin kpi-card">
+                            <div class="stat-card-top">
+                                <div class="stat-icon orange"><i class="fas fa-calculator"></i></div>
+                            </div>
+                            <div class="stat-value" id="statAvgOrder">0.00</div>
+                            <div class="stat-label-admin">Avg. Order Value (JOD)</div>
+                        </div>
+                        <div class="stat-card-admin kpi-card">
+                            <div class="stat-card-top">
+                                <div class="stat-icon purple"><i class="fas fa-box"></i></div>
+                                <span class="stat-change" id="productChange" style="background:#fef3c7;color:#d97706;">0 alerts</span>
+                            </div>
+                            <div class="stat-value" id="statProducts">0</div>
+                            <div class="stat-label-admin">Total Products</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 1 -->
+                    <div class="charts-row">
+                        <div class="admin-card chart-card chart-card-wide">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-chart-area"></i> Revenue Over Time</h3>
+                                <div class="chart-period-selector">
+                                    <button class="period-btn active" data-period="7d" onclick="changeRevenuePeriod('7d', this)">7D</button>
+                                    <button class="period-btn" data-period="30d" onclick="changeRevenuePeriod('30d', this)">30D</button>
+                                    <button class="period-btn" data-period="all" onclick="changeRevenuePeriod('all', this)">All</button>
+                                </div>
+                            </div>
+                            <div class="admin-card-body chart-body">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="admin-card chart-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-chart-pie"></i> Orders by Status</h3>
+                            </div>
+                            <div class="admin-card-body chart-body">
+                                <canvas id="orderStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 2 -->
+                    <div class="charts-row">
+                        <div class="admin-card chart-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-chart-bar"></i> Top Categories</h3>
+                            </div>
+                            <div class="admin-card-body chart-body">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="admin-card chart-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-fire"></i> Top Selling Products</h3>
+                            </div>
+                            <div class="admin-card-body chart-body">
+                                <canvas id="topProductsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 3 -->
+                    <div class="charts-row">
+                        <div class="admin-card chart-card chart-card-wide">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-clock"></i> Orders by Time of Day</h3>
+                            </div>
+                            <div class="admin-card-body chart-body">
+                                <canvas id="hourlyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="admin-card chart-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-money-bill-wave"></i> Price Distribution</h3>
+                            </div>
+                            <div class="admin-card-body chart-body">
+                                <canvas id="priceDistChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== ORDERS PAGE ===== -->
+                <section class="admin-page" id="page-orders">
+                    <div class="order-status-cards">
+                        <div class="order-status-card pending-card" onclick="filterOrdersByStatus('Pending')">
+                            <div class="order-status-icon"><i class="fas fa-hourglass-half"></i></div>
+                            <div class="order-status-value" id="pendingCount">0</div>
+                            <div class="order-status-label">Pending</div>
+                        </div>
+                        <div class="order-status-card processing-card" onclick="filterOrdersByStatus('Processing')">
+                            <div class="order-status-icon"><i class="fas fa-cog fa-spin"></i></div>
+                            <div class="order-status-value" id="processingCount">0</div>
+                            <div class="order-status-label">Processing</div>
+                        </div>
+                        <div class="order-status-card shipped-card" onclick="filterOrdersByStatus('Shipped')">
+                            <div class="order-status-icon"><i class="fas fa-truck"></i></div>
+                            <div class="order-status-value" id="shippedCount">0</div>
+                            <div class="order-status-label">Shipped</div>
+                        </div>
+                        <div class="order-status-card delivered-card" onclick="filterOrdersByStatus('Delivered')">
+                            <div class="order-status-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="order-status-value" id="deliveredCount">0</div>
+                            <div class="order-status-label">Delivered</div>
+                        </div>
+                        <div class="order-status-card cancelled-card" onclick="filterOrdersByStatus('Cancelled')">
+                            <div class="order-status-icon"><i class="fas fa-times-circle"></i></div>
+                            <div class="order-status-value" id="cancelledCount">0</div>
+                            <div class="order-status-label">Cancelled</div>
+                        </div>
+                    </div>
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-shopping-bag"></i> All Orders</h3>
+                            <div class="table-actions">
+                                <select class="form-input-admin" id="orderStatusFilter" onchange="renderOrders()" style="width:auto;padding:0.5rem 0.75rem;font-size:0.8rem;">
+                                    <option value="">All Statuses</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Processing">Processing</option>
+                                    <option value="Shipped">Shipped</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-card-body" id="ordersContainer" style="padding:0;">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📦</div>
+                                <div class="empty-state-text">No orders yet.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== INVENTORY / STOCK MONITOR PAGE ===== -->
+                <section class="admin-page" id="page-inventory">
+                    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon green"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="stat-value" id="inStockCount">0</div>
+                            <div class="stat-label-admin">In Stock</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
+                            </div>
+                            <div class="stat-value" id="lowStockCount">0</div>
+                            <div class="stat-label-admin">Low Stock (< 5)</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);"><i class="fas fa-times"></i></div>
+                            </div>
+                            <div class="stat-value" id="outOfStockCount">0</div>
+                            <div class="stat-label-admin">Out of Stock</div>
+                        </div>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-warehouse"></i> Inventory Overview</h3>
+                            <div class="table-actions">
+                                <select class="form-input-admin" id="stockFilter" onchange="renderInventory()" style="width:auto;padding:0.5rem 0.75rem;font-size:0.8rem;">
+                                    <option value="">All Products</option>
+                                    <option value="low">Low Stock Only</option>
+                                    <option value="out">Out of Stock</option>
+                                    <option value="healthy">Healthy Stock</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-card-body" style="padding:0;">
+                            <div class="table-wrapper">
+                                <table class="data-table" id="inventoryTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Category</th>
+                                            <th>Price (JOD)</th>
+                                            <th>Stock Qty</th>
+                                            <th>Status</th>
+                                            <th>Quick Update</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inventoryTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== CATEGORIES PAGE ===== -->
+                <section class="admin-page" id="page-categories">
+                    <div class="admin-card chart-card" style="margin-bottom: 1.5rem;">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-chart-pie"></i> Category Distribution</h3>
+                        </div>
+                        <div class="admin-card-body chart-body" style="height: 350px;">
+                            <canvas id="categoryDonutChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));" id="categoriesGrid"></div>
+                </section>
+
+                <!-- ===== CUSTOMERS PAGE ===== -->
+                <section class="admin-page" id="page-customers">
+                    <div class="user-stats-row">
+                        <div class="user-stat-card">
+                            <div class="user-stat-value" id="totalCustomersCount" style="color: var(--admin-primary);">0</div>
+                            <div class="user-stat-label">Total Customers</div>
+                        </div>
+                        <div class="user-stat-card">
+                            <div class="user-stat-value" id="activeCustomersCount" style="color: var(--admin-success);">0</div>
+                            <div class="user-stat-label">Active</div>
+                        </div>
+                        <div class="user-stat-card">
+                            <div class="user-stat-value" id="newCustomersCount" style="color: var(--admin-info);">0</div>
+                            <div class="user-stat-label">New (This Month)</div>
+                        </div>
+                    </div>
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-users"></i> All Customers</h3>
+                        </div>
+                        <div class="admin-card-body" style="padding:0;">
+                            <div style="padding: 1rem 1.5rem;">
+                                <div class="search-box" style="max-width:320px;">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="customerSearch" placeholder="Search customers..." oninput="renderCustomers()">
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="data-table" id="customersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Customer</th>
+                                            <th>Email</th>
+                                            <th>Status</th>
+                                            <th>Joined</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customersTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== REVENUE PAGE ===== -->
+                <section class="admin-page" id="page-revenue">
+                    <div class="stats-grid">
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon blue"><i class="fas fa-coins"></i></div>
+                            </div>
+                            <div class="stat-value" id="revTotalRevenue">0.00</div>
+                            <div class="stat-label-admin">Lifetime Revenue (JOD)</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon green"><i class="fas fa-calendar-day"></i></div>
+                            </div>
+                            <div class="stat-value" id="revTodayRevenue">0.00</div>
+                            <div class="stat-label-admin">Today's Revenue (JOD)</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon orange"><i class="fas fa-calendar-week"></i></div>
+                            </div>
+                            <div class="stat-value" id="revWeekRevenue">0.00</div>
+                            <div class="stat-label-admin">This Week (JOD)</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon purple"><i class="fas fa-calendar-alt"></i></div>
+                            </div>
+                            <div class="stat-value" id="revMonthRevenue">0.00</div>
+                            <div class="stat-label-admin">This Month (JOD)</div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row">
+                        <div class="admin-card chart-card chart-card-full">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-chart-line"></i> Daily Revenue Trend</h3>
+                            </div>
+                            <div class="admin-card-body chart-body" style="height: 380px;">
+                                <canvas id="revenueTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row">
+                        <div class="admin-card chart-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-wallet"></i> Revenue by Category</h3>
+                            </div>
+                            <div class="admin-card-body chart-body">
+                                <canvas id="revByCategoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="admin-card chart-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-credit-card"></i> Payment Methods</h3>
+                            </div>
+                            <div class="admin-card-body chart-body">
+                                <canvas id="paymentMethodChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== AI MONITOR PAGE ===== -->
+                <section class="admin-page" id="page-ai-monitor">
+                    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon green"><i class="fas fa-robot"></i></div>
+                            </div>
+                            <div class="stat-value" style="color: var(--admin-success);">Online</div>
+                            <div class="stat-label-admin">AI Status</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon blue"><i class="fas fa-brain"></i></div>
+                            </div>
+                            <div class="stat-value">Gemini 2.5</div>
+                            <div class="stat-label-admin">AI Model</div>
+                        </div>
+                        <div class="stat-card-admin">
+                            <div class="stat-card-top">
+                                <div class="stat-icon purple"><i class="fas fa-database"></i></div>
+                            </div>
+                            <div class="stat-value" id="aiProductAccess">0</div>
+                            <div class="stat-label-admin">Products in AI Catalog</div>
+                        </div>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-terminal"></i> AI System Info</h3>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="ai-info-grid">
+                                <div class="ai-info-item">
+                                    <div class="ai-info-label">Model</div>
+                                    <div class="ai-info-value">Google Gemini 2.5 Flash</div>
+                                </div>
+                                <div class="ai-info-item">
+                                    <div class="ai-info-label">Persona</div>
+                                    <div class="ai-info-value">Mooneh - Jordanian Shopping Assistant</div>
+                                </div>
+                                <div class="ai-info-item">
+                                    <div class="ai-info-label">Capabilities</div>
+                                    <div class="ai-info-value">Event Planning, Budget Optimization, Product Recommendations, Nutrition Info</div>
+                                </div>
+                                <div class="ai-info-item">
+                                    <div class="ai-info-label">Languages</div>
+                                    <div class="ai-info-value">Arabic (Primary), English</div>
+                                </div>
+                                <div class="ai-info-item">
+                                    <div class="ai-info-label">Context Window</div>
+                                    <div class="ai-info-value">Full product catalog + user cart + session history</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-list-check"></i> AI Feature Checklist</h3>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="ai-checklist">
+                                <div class="ai-check-item"><i class="fas fa-check-circle" style="color:var(--admin-success)"></i> Smart Product Search</div>
+                                <div class="ai-check-item"><i class="fas fa-check-circle" style="color:var(--admin-success)"></i> Budget-Aware Planning</div>
+                                <div class="ai-check-item"><i class="fas fa-check-circle" style="color:var(--admin-success)"></i> Event Type Recognition</div>
+                                <div class="ai-check-item"><i class="fas fa-check-circle" style="color:var(--admin-success)"></i> Add to Cart via Chat</div>
+                                <div class="ai-check-item"><i class="fas fa-check-circle" style="color:var(--admin-success)"></i> Arabic Language Support</div>
+                                <div class="ai-check-item"><i class="fas fa-check-circle" style="color:var(--admin-success)"></i> Nutrition Information</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="admin-toast" id="adminToast">
+        <i class="fas fa-check-circle" id="toastIcon"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <script src="/static/js/supervisor.js"></script>
+</body>
+</html>

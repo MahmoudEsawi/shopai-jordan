@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -6,6 +7,7 @@ const fs = require('fs').promises;
 const { MongoClient } = require('mongodb');
 const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -3129,6 +3131,17 @@ app.get('/admin', async (req, res) => {
     }
 });
 
+// Serve supervisor page
+app.get('/supervisor', async (req, res) => {
+    try {
+        let html = await fs.readFile(path.join(__dirname, 'templates', 'supervisor.html'), 'utf8');
+        res.send(html);
+    } catch (error) {
+        console.error('Error serving supervisor page:', error);
+        res.status(500).send('Error loading supervisor page');
+    }
+});
+
 // Seed default admin user if none exists
 async function seedAdminUser() {
     if (!db) return;
@@ -3174,8 +3187,8 @@ app.post('/api/admin/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid username or password' });
         }
 
-        if (user.role !== 'admin') {
-            return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+        if (user.role !== 'admin' && user.role !== 'supervisor') {
+            return res.status(403).json({ error: 'Access denied. Admin or Supervisor privileges required.' });
         }
 
         if (user.status === 'inactive') {

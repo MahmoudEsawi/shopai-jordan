@@ -206,6 +206,9 @@ async function loadDashboardStats() {
             </li>
         `).join('');
 
+        // Build admin dashboard charts
+        buildAdminCharts();
+
     } catch (err) {
         console.error('Error loading stats:', err);
     }
@@ -858,7 +861,99 @@ document.getElementById('userModal')?.addEventListener('click', (e) => {
     if (e.target.classList.contains('admin-modal-overlay')) closeUserModal();
 });
 
+// ===== ADMIN CHARTS (Chart.js) =====
+let adminCharts = {};
+
+function destroyAdminChart(key) {
+    if (adminCharts[key]) { adminCharts[key].destroy(); delete adminCharts[key]; }
+}
+
+function buildAdminCharts() {
+    if (typeof Chart === 'undefined') return;
+    buildAdminRevenueChart();
+    buildAdminCategoryChart();
+    buildAdminOrderChart();
+}
+
+function buildAdminRevenueChart() {
+    destroyAdminChart('revenue');
+    const ctx = document.getElementById('adminRevenueChart');
+    if (!ctx) return;
+    const daily = {};
+    allOrders.forEach(o => {
+        if (o.status === 'Cancelled') return;
+        const d = new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        daily[d] = (daily[d] || 0) + (parseFloat(o.total_amount) || 0);
+    });
+    let entries = Object.entries(daily).slice(-14);
+    if (!entries.length) entries = [['Today', 0]];
+    adminCharts.revenue = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: entries.map(e => e[0]),
+            datasets: [{
+                label: 'Revenue (JOD)',
+                data: entries.map(e => e[1]),
+                borderColor: '#25a55f',
+                backgroundColor: 'rgba(37,165,95,0.1)',
+                fill: true, tension: 0.4,
+                pointBackgroundColor: '#25a55f',
+                pointRadius: 4, pointHoverRadius: 6, borderWidth: 2.5
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+function buildAdminCategoryChart() {
+    destroyAdminChart('category');
+    const ctx = document.getElementById('adminCategoryChart');
+    if (!ctx) return;
+    const cc = {};
+    allProducts.forEach(p => { const c = p.category || 'Other'; cc[c] = (cc[c] || 0) + 1; });
+    const sorted = Object.entries(cc).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const colors = ['#25a55f','#10b981','#06b6d4','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#ec4899','#f97316','#14b8a6'];
+    adminCharts.category = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: sorted.map(e => e[0]),
+            datasets: [{ data: sorted.map(e => e[1]), backgroundColor: colors, borderWidth: 0, hoverOffset: 8 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '60%',
+            plugins: { legend: { position: 'right', labels: { padding: 8, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } } }
+        }
+    });
+}
+
+function buildAdminOrderChart() {
+    destroyAdminChart('orders');
+    const ctx = document.getElementById('adminOrderChart');
+    if (!ctx) return;
+    const s = { Pending: 0, Processing: 0, Shipped: 0, Delivered: 0, Cancelled: 0 };
+    allOrders.forEach(o => s[o.status || 'Pending']++);
+    adminCharts.orders = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(s),
+            datasets: [{ data: Object.values(s), backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444'], borderWidth: 0, hoverOffset: 6 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '65%',
+            plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } } } }
+        }
+    });
+}
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
 });
+

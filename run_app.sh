@@ -5,36 +5,26 @@
 echo "🚀 Starting Mooneh.ai Environment..."
 
 # 1. Start MongoDB if not already running
-if ! lsof -i :27017 > /dev/null; then
-    echo "🍃 Starting MongoDB..."
-    # Attempt to start via brew services first
-    if command -v brew &> /dev/null; then
-        brew services start mongodb-community
-    else
-        # Fallback to direct mongod run in background
-        nohup mongod --dbpath /usr/local/var/mongodb > /dev/null 2>&1 &
-    fi
+if lsof -i :27017 > /dev/null 2>&1; then
+    echo "🍃 MongoDB already running"
+elif command -v brew &> /dev/null && brew services list 2>/dev/null | grep -q mongodb; then
+    echo "🍃 Starting MongoDB via brew..."
+    brew services start mongodb-community 2>/dev/null
+    sleep 2
+elif command -v mongod &> /dev/null; then
+    echo "🍃 Starting mongod..."
+    mkdir -p /tmp/mongodata
+    mongod --dbpath /tmp/mongodata --fork --logpath /tmp/mongod.log 2>/dev/null
     sleep 2
 else
-    echo "✅ MongoDB is already running."
+    echo "⚠️  MongoDB not installed - server will use JSON fallback"
 fi
 
-# 2. Kill any existing node processes for this project
-echo "🔄 Refreshing Node.js processes..."
-lsof -ti :3000 | xargs kill -9 2>/dev/null
+# 2. Kill any existing node server on port 3000
+lsof -ti:3000 | xargs kill -9 2>/dev/null
+sleep 1
 
-# 3. Start the Node.js server in the background
-echo "🌐 Starting Mooneh.ai Server on port 3000..."
-nohup node server.js > server_nohup.log 2>&1 &
-
-# Wait for server to initialize
-sleep 3
-
-# 4. Open the website in the browser
-echo "✨ Opening Mooneh.ai in your browser..."
-open "http://localhost:3000"
-
-echo "----------------------------------------"
-echo "✅ Done! Mooneh.ai is now live."
-echo "📜 Logs are being written to server_nohup.log"
-echo "----------------------------------------"
+# 3. Start server
+echo "🌐 Starting Node.js server..."
+cd "$(dirname "$0")"
+node server.js

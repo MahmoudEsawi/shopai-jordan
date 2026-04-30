@@ -9,6 +9,7 @@
     <link rel="icon" href="/pics/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/static/css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body class="admin-body">
 
@@ -110,6 +111,9 @@
                 <a href="/" class="store-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i> View Store
                 </a>
+                <a href="/supervisor" class="store-link" style="background:var(--admin-info);color:white;">
+                    <i class="fas fa-chart-line"></i> Supervisor
+                </a>
                 <button class="header-btn" title="Logout" onclick="handleLogout()">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
@@ -156,6 +160,27 @@
                         </div>
                     </div>
 
+                    <!-- Charts Row -->
+                    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-chart-area"></i> Revenue Overview</h3>
+                            </div>
+                            <div class="admin-card-body" style="height:280px;padding:0.5rem;">
+                                <canvas id="adminRevenueChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="admin-card">
+                            <div class="admin-card-header">
+                                <h3 class="admin-card-title"><i class="fas fa-chart-pie"></i> Category Distribution</h3>
+                            </div>
+                            <div class="admin-card-body" style="height:280px;padding:0.5rem;">
+                                <canvas id="adminCategoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Second Row: Activity + Orders Chart -->
                     <div class="dashboard-grid">
                         <div class="admin-card">
                             <div class="admin-card-header">
@@ -175,11 +200,21 @@
                         </div>
                         <div class="admin-card">
                             <div class="admin-card-header">
-                                <h3 class="admin-card-title"><i class="fas fa-chart-bar"></i> Category Breakdown</h3>
+                                <h3 class="admin-card-title"><i class="fas fa-shopping-bag"></i> Order Status</h3>
                             </div>
-                            <div class="admin-card-body">
-                                <ul class="category-list" id="categoryBreakdown"></ul>
+                            <div class="admin-card-body" style="height:240px;padding:0.5rem;">
+                                <canvas id="adminOrderChart"></canvas>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Breakdown List -->
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title"><i class="fas fa-chart-bar"></i> Category Breakdown</h3>
+                        </div>
+                        <div class="admin-card-body">
+                            <ul class="category-list" id="categoryBreakdown"></ul>
                         </div>
                     </div>
                 </section>
@@ -517,6 +552,7 @@
                             <label class="form-label-admin">Role</label>
                             <select class="form-input-admin" id="userRole">
                                 <option value="customer">Customer</option>
+                                <option value="supervisor">Supervisor</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
